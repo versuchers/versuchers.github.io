@@ -1,0 +1,311 @@
+---
+import { href, KIND_PLURAL, type Kind, type Entry } from '../lib/data';
+import { parseTrDate } from '../lib/format';
+import EntryCard from './EntryCard.astro';
+
+interface Props {
+	kind: Kind;
+	items: Entry[];
+}
+
+const { kind, items } = Astro.props;
+
+/** Türkçe karakterleri sadeleştirip küçük harfe çevirir (arama için). */
+function fold(input: string): string {
+	const map: Record<string, string> = {
+		ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u',
+		â: 'a', î: 'i', û: 'u',
+	};
+	return input
+		.toLowerCase()
+		.replace(/[çğıöşüâîû]/g, (c) => map[c] ?? c);
+}
+
+function searchText(e: Entry): string {
+	const parts = [e.title, e.originalTitle, e.year];
+	if (e.type === 'film') parts.push(e.fullTitle, e.director, e.genre, e.mainTheme, e.tags, ...e.cast.map((c) => c.name));
+	else if (e.type === 'dizi') parts.push(e.creator, e.genre, e.mainLabel, e.tags, ...e.cast.map((c) => c.name));
+	else parts.push(e.author, e.mainGenre, e.subGenre, e.mainTheme, e.tags, e.publisher);
+	return fold(parts.filter(Boolean).join(' '));
+}
+
+function primaryGenre(e: Entry): string {
+	if (e.type === 'film') return e.genre;
+	if (e.type === 'dizi') return e.genre;
+	return e.mainGenre;
+}
+
+// Facet değerleri
+const genres = new Set<string>();
+const years = new Set<string>();
+for (const e of items) {
+	(primaryGenre(e) || '')
+		.split(',')
+		.forEach((g) => g.trim() && genres.add(g.trim()));
+	if (e.year) years.add(e.year);
+}
+const genreList = [...genres].sort((a, b) => a.localeCompare(b, 'tr'));
+const yearList = [...years].sort((a, b) => Number(b) - Number(a));
+
+// Başlangıç sıralaması
+const sortOptions = [
+	{ id: 'title', label: 'Başlığa göre (A→Z)' },
+	{ id: 'rating', label: 'Puana göre (yüksek→düşük)' },
+	{ id: 'year', label: 'Yıla göre (yeni→eski)' },
+	{ id: 'review', label: 'Son yorumlanan' },
+	{ id: 'added', label: 'Ekleme sırası' },
+];
+---
+
+<div class="browse" data-browse data-kind={kind}>
+	<div class="controls">
+		<label class="search">
+			<span class="visually-hidden">Ara</span>
+			<span class="icon" aria-hidden="true">⌕</span>
+			<input
+				type="search"
+				data-f="search"
+				placeholder={`${KIND_PLURAL[kind]} içinde ara…`}
+				autocomplete="off"
+			/>
+		</label>
+
+		<label class="field">
+			<span>Tür</span>
+			<select data-f="genre">
+				<option value="">Hepsi</option>
+				{genreList.map((g) => <option value={fold(g)}>{g}</option>)}
+			</select>
+		</label>
+
+		<label class="field">
+			<span>Yıl</span>
+			<select data-f="year">
+				<option value="">Hepsi</option>
+				{yearList.map((y) => <option value={y}>{y}</option>)}
+			</select>
+		</label>
+
+		<label class="field">
+			<span>Puan</span>
+			<select data-f="rating">
+				<option value="">Hepsi</option>
+				<option value="9">9+</option>
+				<option value="8">8+</option>
+				<option value="7">7+</option>
+				<option value="6">6+</option>
+				<option value="5">5+</option>
+			</select>
+		</label>
+
+		<label class="field">
+			<span>Sırala</span>
+			<select data-f="sort">
+				{sortOptions.map((s) => <option value={s.id}>{s.label}</option>)}
+			</select>
+		</label>
+
+		<button type="button" class="btn reset" data-f="reset">Sıfırla</button>
+	</div>
+
+	<div class="status">
+		<span data-count class="muted">{items.length} kayıt</span>
+	</div>
+
+	<ul class="grid browse-grid">
+		{
+			items.map((e, index) => (
+				<li
+					class="cell"
+					data-search={searchText(e)}
+					data-genre={fold(primaryGenre(e) || '')}
+					data-year={e.year || ''}
+					data-rating={String(e.rating ?? 0)}
+					data-review={String(parseTrDate(e.reviewDate)?.getTime() ?? 0)}
+					data-index={String(index)}
+				>
+					<EntryCard entry={e} />
+				</li>
+			))
+		}
+	</ul>
+
+	<p class="empty muted" data-empty hidden>Aramanla eşleşen kayıt yok. Filtreleri sıfırlamayı dene.</p>
+</div>
+
+<script>
+	type SortId = 'title' | 'rating' | 'year' | 'review' | 'added';
+
+	function fold(s: string): string {
+		const map: Record<string, string> = {
+			ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u', â: 'a', î: 'i', û: 'u',
+		};
+		return s.toLowerCase().replace(/[çğıöşüâîû]/g, (c) => map[c] ?? c);
+	}
+
+	document.querySelectorAll<HTMLElement>('[data-browse]').forEach((root) => {
+		const grid = root.querySelector<HTMLElement>('.browse-grid');
+		if (!grid) return;
+		const cells = Array.from(grid.children) as HTMLElement[];
+		const search = root.querySelector<HTMLInputElement>('[data-f="search"]')!;
+		const genre = root.querySelector<HTMLSelectElement>('[data-f="genre"]')!;
+		const year = root.querySelector<HTMLSelectElement>('[data-f="year"]')!;
+		const rating = root.querySelector<HTMLSelectElement>('[data-f="rating"]')!;
+		const sort = root.querySelector<HTMLSelectElement>('[data-f="sort"]')!;
+		const reset = root.querySelector<HTMLButtonElement>('[data-f="reset"]')!;
+		const count = root.querySelector<HTMLElement>('[data-count]')!;
+		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+
+		const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
+
+		function apply() {
+			const q = fold(search.value.trim());
+			const g = genre.value;
+			const y = year.value;
+			const r = rating.value ? Number(rating.value) : 0;
+
+			let visible = 0;
+			for (const cell of cells) {
+				let ok = true;
+				if (q && !(cell.dataset.search ?? '').includes(q)) ok = false;
+				if (ok && g && !(cell.dataset.genre ?? '').includes(g)) ok = false;
+				if (ok && y && cell.dataset.year !== y) ok = false;
+				if (ok && r && num(cell, 'rating') < r) ok = false;
+
+				cell.hidden = !ok;
+				if (ok) visible++;
+			}
+
+			// Sıralama
+			const mode = sort.value as SortId;
+			const sorted = [...cells].sort((a, b) => {
+				switch (mode) {
+					case 'rating':
+						return num(b, 'rating') - num(a, 'rating');
+					case 'year':
+						return num(b, 'year') - num(a, 'year');
+					case 'review':
+						return num(b, 'review') - num(a, 'review');
+					case 'added':
+						return num(a, 'index') - num(b, 'index');
+					default:
+						return (a.dataset.search ?? '').localeCompare(b.dataset.search ?? '', 'tr');
+				}
+			});
+			for (const cell of sorted) grid!.appendChild(cell);
+
+			count.textContent = `${visible} kayıt`;
+			empty.hidden = visible !== 0;
+		}
+
+		[search, genre, year, rating, sort].forEach((el) =>
+			el.addEventListener('input', apply),
+		);
+		reset.addEventListener('click', () => {
+			search.value = '';
+			genre.value = '';
+			year.value = '';
+			rating.value = '';
+			sort.value = 'title';
+			apply();
+		});
+
+		// URL parametrelerinden başlangıç durumu (?q= &tur= &yil=)
+		const params = new URLSearchParams(location.search);
+		if (params.get('q')) search.value = params.get('q')!;
+		if (params.get('tur')) genre.value = fold(params.get('tur')!);
+		if (params.get('yil')) year.value = params.get('yil')!;
+
+		apply();
+	});
+</script>
+
+<style>
+	.controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		align-items: flex-end;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		margin-bottom: 1rem;
+	}
+
+	.search {
+		flex: 1 1 260px;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		background: var(--bg-2);
+		padding: 0 0.75rem;
+		height: 2.6rem;
+	}
+	.search:focus-within {
+		border-color: var(--accent);
+	}
+	.search .icon {
+		color: var(--text-muted);
+		font-size: 1.1rem;
+	}
+	.search input {
+		border: 0;
+		background: transparent;
+		color: var(--text);
+		width: 100%;
+		height: 100%;
+		font-family: var(--font-ui);
+		font-size: 0.95rem;
+		outline: none;
+	}
+
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		font-family: var(--font-ui);
+		font-size: 0.72rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+	.field > span {
+		padding-left: 0.15rem;
+	}
+
+	select {
+		height: 2.6rem;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		background: var(--bg-2);
+		color: var(--text);
+		font-family: var(--font-ui);
+		font-size: 0.82rem;
+		padding: 0 0.6rem;
+		min-width: 9rem;
+	}
+	select:focus {
+		outline: none;
+		border-color: var(--accent);
+	}
+
+	.reset {
+		height: 2.6rem;
+	}
+
+	.status {
+		margin-bottom: 0.75rem;
+		font-size: 0.88rem;
+	}
+
+	.cell[hidden] {
+		display: none;
+	}
+
+	.empty {
+		padding: 2rem 0;
+	}
+</style>

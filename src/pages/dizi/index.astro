@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import Browse from '../../components/Browse.astro';
+import { series } from '../../lib/data';
+---
+
+<Base
+	title="Diziler"
+	description={`İzlediğim ${series.length} dizi: puanlar, yorumlar, künye ve afişler.`}
+>
+	<div class="container section">
+		<header class="page-head">
+			<p class="eyebrow">Arşiv</p>
+			<h1>Diziler</h1>
+			<p class="lede">
+				{series.length} dizi. Sezon/network bilgisi, durum ve yorumlarla birlikte.
+			</p>
+		</header>
+		<Browse kind="dizi" items={series} />
+	</div>
+</Base>
+
+<style>
+	.page-head {
+		margin-bottom: 2rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+</style>

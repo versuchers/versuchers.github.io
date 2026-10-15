@@ -1,0 +1,57 @@
+# Site derlemesi + GitHub Pages dağıtımı.
+# Yakın canlı Last.fm verisi: her cron'da LASTFM_API_KEY secret ile
+# scripts/fetch-lastfm.mjs çalıştırılır (anahtar yoksa sessiz atlanır).
+name: site
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+  # "log" deposundaki generate-index workflow Pages deploy bitince bu olayı
+  # gönderir; kapaklar değişince site de yeniden derlensin.
+  repository_dispatch:
+    types: [log-guncellendi]
+  schedule:
+    # ~30 dakikada bir ("nearly live" son dinlenenler) + Google Sheets verisi
+    - cron: '17,47 * * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Google Sheets verisi (film / dizi / kitap)
+        run: npm run fetch
+      - name: Last.fm son dinlenenler
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+        run: npm run music:lastfm
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

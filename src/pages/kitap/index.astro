@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import Browse from '../../components/Browse.astro';
+import { books } from '../../lib/data';
+---
+
+<Base
+	title="Kitaplar"
+	description={`Okuduğum ${books.length} kitap: puanlar, yorumlar, künye ve kapaklar.`}
+>
+	<div class="container section">
+		<header class="page-head">
+			<p class="eyebrow">Arşiv</p>
+			<h1>Kitaplar</h1>
+			<p class="lede">
+				{books.length} kitap. Yazar, yayınevi, sayfa sayısı ve yorumlarla birlikte.
+			</p>
+		</header>
+		<Browse kind="kitap" items={books} />
+	</div>
+</Base>
+
+<style>
+	.page-head {
+		margin-bottom: 2rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+</style>

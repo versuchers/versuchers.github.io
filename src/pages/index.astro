@@ -1,0 +1,180 @@
+---
+import Base from '../layouts/Base.astro';
+import Rail from '../components/Rail.astro';
+import LastfmNow from '../components/LastfmNow.astro';
+import { getCollection } from 'astro:content';
+import { formatTrDate } from '../lib/format';
+import { titleCaseTr } from '../lib/text';
+import { films, series, books, latestWatched, latestRead, latestReviewed } from '../lib/data';
+
+const watched = latestWatched(6);
+const read = latestRead(6);
+const reviewed = latestReviewed(6);
+
+// Şifreli (sphinx etiketli) yazılar anasayfada gösterilmez: içerikleri görünmez.
+const posts = (await getCollection('blog', ({ data }) => !data.draft && !data.tags.includes('sphinx')))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 6);
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+
+const stats = [
+	{ label: 'film', value: films.length, href: '/film' },
+	{ label: 'dizi', value: series.length, href: '/dizi' },
+	{ label: 'kitap', value: books.length, href: '/kitap' },
+	{ label: 'blog postu', value: allPosts.length, href: '/blog' },
+];
+const total = films.length + series.length + books.length;
+---
+
+<Base>
+	<section class="hero">
+		<div class="container">
+			<div class="panel hero-panel">
+				<div class="hero-main">
+					<p class="eyebrow">Kişisel arşiv</p>
+					<h1>
+						İzlediklerim, okuduklarım,<br /> ve üzerine düşündüklerim.
+					</h1>
+					<p class="lede">
+						{total} kayıtlık bir koleksiyon: filmler, diziler ve kitaplar. Her afiş kendi
+						sayfasına gider; künye, yorum ve dış bağlantılar orada.
+					</p>
+					<p class="stat-row">
+						{
+							stats.map((s) => (
+								<a class="stat" href={s.href}>
+									<span class="n">{s.value}</span>
+									<span class="l">{s.label}</span>
+								</a>
+							))
+						}
+					</p>
+				</div>
+				<LastfmNow class="lastfm-hero" />
+			</div>
+		</div>
+	</section>
+
+	{/*
+		"Son dinlenenler" paneli — Müzik sayfasından çıkarılıp hero sağ tarafına taşındı.
+	*/}
+
+	<Rail items={read} title="Son okuduklarım" moreHref="/kitap" moreLabel="Tüm kitaplar" />
+
+	<Rail items={watched} title="Son izlediklerim" moreHref="/film" moreLabel="Tüm filmler" />
+
+	<Rail items={reviewed} title="Son yorumladıklarım" moreHref="/film" moreLabel="Gözat" subMode="compact" />
+
+	{posts.length > 0 && (
+		<section class="section">
+			<div class="container">
+				<div class="panel">
+					<div class="section-head">
+						<h2>Son yazılar</h2>
+						<a class="more" href="/blog">Blog →</a>
+					</div>
+					<ul class="posts">
+						{posts.map((post) => (
+							<li>
+								<a class="post" href={`/blog/${post.id}`}>
+									<time datetime={post.data.pubDate.toISOString()}>
+										{formatTrDate(post.data.pubDate.toLocaleDateString('tr-TR'))}
+									</time>
+									<h3>{titleCaseTr(post.data.title)}</h3>
+									{post.data.description && <p class="muted">{post.data.description}</p>}
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+			</div>
+		</section>
+	)}
+</Base>
+
+<style>
+	.hero {
+		padding-block: clamp(1.5rem, 4vw, 2.5rem);
+	}
+
+	.hero-panel {
+		display: grid;
+		gap: clamp(1.5rem, 4vw, 2.5rem);
+	}
+
+	@media (min-width: 880px) {
+		.hero-panel {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+			align-items: center;
+		}
+	}
+
+	.hero h1 {
+		margin-bottom: 1rem;
+	}
+
+	.stat-row {
+		display: flex;
+		gap: 1.75rem;
+		margin-top: 2rem;
+		flex-wrap: wrap;
+	}
+
+	.stat {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		padding-bottom: 0.25rem;
+		border-bottom: 2px solid transparent;
+		transition: border-color var(--dur) var(--ease);
+	}
+	.stat:hover {
+		border-color: var(--accent);
+	}
+	.stat .n {
+		font-family: var(--font-display);
+		font-size: 1.9rem;
+		font-weight: 400;
+		line-height: 1;
+	}
+	.stat .l {
+		color: var(--text-muted);
+		font-size: 0.95rem;
+	}
+
+	.posts {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1rem;
+	}
+	.post {
+		display: block;
+		height: 100%;
+		padding: 1.1rem 1.25rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+	}
+	.post:hover {
+		border-color: var(--accent);
+		transform: translateY(-2px);
+	}
+	.post h3 {
+		font-family: var(--font-card);
+		margin: 0.2rem 0 0.4rem;
+		font-size: 1.15rem;
+	}
+	.post time {
+		font-size: 0.8rem;
+		color: var(--text-faint);
+	}
+	.post p {
+		margin: 0;
+		font-size: 1.26rem;
+	}
+</style>

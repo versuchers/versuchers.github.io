@@ -1,0 +1,81 @@
+---
+// Tema seçici: light / dark. Seçim localStorage'da saklanır.
+const themes = [
+	{ id: 'light', label: 'Açık', icon: '☀' },
+	{ id: 'dark', label: 'Koyu', icon: '☾' },
+];
+---
+
+<div class="theme-toggle" role="group" aria-label="Tema seçimi" data-theme-toggle>
+	{
+		themes.map((t) => (
+			<button type="button" data-set-theme={t.id} title={t.label} aria-label={t.label}>
+				<span aria-hidden="true">{t.icon}</span>
+			</button>
+		))
+	}
+</div>
+
+<script>
+	const root = document.documentElement;
+	const buttons = document.querySelectorAll<HTMLButtonElement>('[data-set-theme]');
+
+	function sync() {
+		const current = root.getAttribute('data-theme');
+		buttons.forEach((b) => {
+			const active = b.dataset.setTheme === current;
+			b.classList.toggle('active', active);
+			b.setAttribute('aria-pressed', String(active));
+		});
+	}
+
+	buttons.forEach((b) => {
+		b.addEventListener('click', () => {
+			const theme = b.dataset.setTheme!;
+			root.setAttribute('data-theme', theme);
+			try {
+				localStorage.setItem('theme', theme);
+			} catch (e) {}
+			sync();
+		});
+	});
+
+	sync();
+</script>
+
+<style>
+	.theme-toggle {
+		display: inline-flex;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: var(--surface-2);
+		padding: 2px;
+		gap: 2px;
+	}
+
+
+	button {
+		border: 0;
+		background: transparent;
+		color: var(--text-muted);
+		width: 1.9rem;
+		height: 1.9rem;
+		display: grid;
+		place-items: center;
+		border-radius: 999px;
+		font-size: 0.95rem;
+		line-height: 1;
+		transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+	}
+
+
+	button:hover {
+		color: var(--text);
+		background: var(--surface);
+	}
+
+	button.active {
+		background: var(--accent);
+		color: var(--accent-contrast);
+	}
+</style>

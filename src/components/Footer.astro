@@ -1,0 +1,114 @@
+---
+const year = new Date().getFullYear();
+const links = [
+	{ label: 'Filmler', href: '/film' },
+	{ label: 'Diziler', href: '/dizi' },
+	{ label: 'Kitaplar', href: '/kitap' },
+	{ label: 'Müzik', href: '/muzik' },
+];
+---
+
+<footer class="site-footer">
+	<div class="container inner">
+		<div class="col">
+			<p class="brand">Versucher</p>
+			<p class="muted small">
+				İzlediklerimin, okuduklarımın ve dinlediklerimin kişisel arşivi. Veriler Google Sheets ve
+				Spotify geçmişimden gelir; burada görselleştirilir.
+			</p>
+		</div>
+
+		<div class="col">
+			<p class="eyebrow">Arşiv</p>
+			<ul>
+				{
+					links.map((s) => (
+						<li>
+							<a href={s.href}>{s.label}</a>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+		<div class="col">
+			<p class="eyebrow">Diğer</p>
+			<ul>
+				<li><a href="/blog">Blog</a></li>
+				<li><a href="/playlist">Playlistler</a></li>
+				<li><a href="/hakkimda">Hakkımda</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="container bottom">
+		<span class="muted small">© {year} · versucher.com</span>
+		<span class="muted small">Astro ile üretildi</span>
+	</div>
+</footer>
+
+<style>
+	.site-footer {
+		margin-top: clamp(3rem, 8vw, 6rem);
+		border-top: 1px solid var(--border);
+		padding-block: clamp(2rem, 5vw, 3rem) 2rem;
+		background: var(--bg-2);
+	}
+
+	.inner {
+		display: grid;
+		grid-template-columns: 2fr 1fr 1fr;
+		gap: 2rem;
+	}
+
+	.brand {
+		font-family: var(--font-display);
+		font-weight: 400;
+		font-size: 1.2rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		margin: 0 0 0.5rem;
+	}
+
+	.small {
+		font-size: 0.85rem;
+	}
+
+	.col ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.4rem;
+	}
+
+	.col a {
+		font-family: var(--font-ui);
+		font-size: 0.76rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+	.col a:hover {
+		color: var(--accent);
+	}
+
+	.bottom {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-top: 2.5rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid var(--border);
+		flex-wrap: wrap;
+	}
+
+	@media (max-width: 720px) {
+		.inner {
+			grid-template-columns: 1fr 1fr;
+		}
+		.col:first-child {
+			grid-column: 1 / -1;
+		}
+	}
+</style>

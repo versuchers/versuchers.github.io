@@ -1,0 +1,122 @@
+---
+import MusicCover from './MusicCover.astro';
+import { integer } from '../lib/music';
+
+interface Row {
+	title: string;
+	sub?: string;
+	href?: string | null;
+	src?: string;
+	plays: number;
+}
+
+interface Props {
+	rows: Row[];
+}
+
+const { rows } = Astro.props;
+---
+
+<ol class="mrows">
+	{
+		rows.map((r, i) => (
+			<li class="mr">
+				<span class="rk">{i + 1}</span>
+				<div class="cv">
+					{r.src ? <MusicCover src={r.src} alt={r.title} /> : <span class="cv-empty" aria-hidden="true" />}
+				</div>
+				<div class="txt">
+					{r.href ? (
+						<a href={r.href}>
+							<span class="t">{r.title}</span>
+						</a>
+					) : (
+						<span class="t">{r.title}</span>
+					)}
+					{r.sub && <span class="s muted">{r.sub}</span>}
+				</div>
+				<span class="plays">
+					<strong>{integer(r.plays)}</strong>
+					<span>çalma</span>
+				</span>
+			</li>
+		))
+	}
+</ol>
+
+<style>
+	.mrows {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		border-top: 1px solid var(--border);
+	}
+	.mr {
+		display: grid;
+		grid-template-columns: 1.9rem 40px 1fr auto;
+		align-items: center;
+		gap: 0.9rem;
+		padding: 0.5rem 0.2rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.rk {
+		font-family: var(--font-ui);
+		font-size: 0.8rem;
+		color: var(--text-faint);
+		text-align: right;
+	}
+	.cv {
+		width: 40px;
+	}
+	.cv :global(.mcover) {
+		width: 40px;
+	}
+	.cv-empty {
+		display: block;
+		width: 40px;
+		height: 40px;
+		border-radius: var(--radius-sm);
+		background: var(--surface-2);
+	}
+	.txt {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.txt a {
+		color: inherit;
+	}
+	.txt a:hover .t {
+		color: var(--link-hover);
+	}
+	.t {
+		font-family: var(--font-card);
+		font-size: 1.05rem;
+		line-height: 1.25;
+		transition: color var(--dur) var(--ease);
+	}
+	.s {
+		font-family: var(--font-meta);
+		font-size: 0.84rem;
+		line-height: 1.3;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.plays {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		font-family: var(--font-ui);
+		font-size: 0.6rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-faint);
+	}
+	.plays strong {
+		font-size: 1.02rem;
+		font-weight: 600;
+		letter-spacing: 0;
+		color: var(--text);
+	}
+</style>

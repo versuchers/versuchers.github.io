@@ -1,0 +1,72 @@
+---
+import EntryCard from './EntryCard.astro';
+import type { Entry } from '../lib/data';
+
+interface Props {
+	items: Entry[];
+	title?: string;
+	moreHref?: string;
+	moreLabel?: string;
+	subMode?: 'full' | 'compact';
+	id?: string;
+}
+
+const {
+	items,
+	title,
+	moreHref,
+	moreLabel = 'Tümü',
+	subMode = 'full',
+	id,
+} = Astro.props;
+---
+
+{items.length > 0 && (
+	<section class="section" id={id}>
+		<div class="container">
+			<div class="panel">
+				{title && (
+					<div class="section-head">
+						<h2>{title}</h2>
+						{moreHref && <a class="more" href={moreHref}>{moreLabel} →</a>}
+					</div>
+				)}
+				<ul class="rail">
+					{items.map((entry, i) => (
+						<li>
+							<EntryCard entry={entry} eager={i < 3} subMode={subMode} />
+						</li>
+					))}
+				</ul>
+			</div>
+		</div>
+	</section>
+)}
+
+<style>
+	.rail {
+		display: grid;
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+		gap: var(--gap);
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	/* 6 yan yana sığmadığında: ortalanmış, 3'erli iki satır.
+	   Kart boyutu sabit kalır (max 180px), büyümez. */
+	@media (max-width: 1080px) {
+		.rail {
+			grid-template-columns: repeat(3, minmax(0, 180px));
+			justify-content: center;
+		}
+	}
+
+	@media (max-width: 460px) {
+		.rail {
+			grid-template-columns: repeat(2, minmax(0, 180px));
+			justify-content: center;
+			gap: 0.9rem;
+		}
+	}
+</style>

@@ -1,0 +1,281 @@
+---
+import MusicCover from './MusicCover.astro';
+import { integer } from '../lib/music';
+
+export interface BrowseRow {
+	href: string;
+	title: string;
+	sub?: string;
+	src?: string;
+	round?: boolean;
+	plays: number;
+	/** arama için sadeleştirilmiş metin */
+	search: string;
+}
+
+interface Props {
+	label: string;
+	unit: string;
+	rows: BrowseRow[];
+}
+
+const { label, unit, rows } = Astro.props;
+---
+
+<div class="mbrowse" data-mbrowse>
+	<div class="controls">
+		<label class="search">
+			<span class="visually-hidden">{label} içinde ara</span>
+			<span class="icon" aria-hidden="true">⌕</span>
+			<input type="search" data-f="search" placeholder={`${label} içinde ara…`} autocomplete="off" />
+		</label>
+		<label class="field">
+			<span>Sırala</span>
+			<select data-f="sort">
+				<option value="plays">Çalmaya göre (çok→az)</option>
+				<option value="title">Ada göre (A→Z)</option>
+			</select>
+		</label>
+		<button type="button" class="btn reset" data-f="reset">Sıfırla</button>
+	</div>
+
+	<div class="status">
+		<span data-count class="muted">{rows.length} {unit}</span>
+	</div>
+
+	<ol class="mrow-list">
+		{
+			rows.map((r, i) => (
+				<li
+					class="mrow"
+					data-search={r.search}
+					data-title={r.title.toLocaleLowerCase('tr')}
+					data-plays={String(r.plays)}
+					data-index={String(i)}
+				>
+					<span class="rk">{i + 1}</span>
+					<a class="row-link" href={r.href}>
+						<MusicCover src={r.src} alt={r.title} round={r.round} />
+						<span class="txt">
+							<span class="t">{r.title}</span>
+							{r.sub && <span class="s muted">{r.sub}</span>}
+						</span>
+						<span class="plays">
+							<strong>{integer(r.plays)}</strong>
+							<span>çalma</span>
+						</span>
+					</a>
+				</li>
+			))
+		}
+	</ol>
+
+	<p class="empty muted" data-empty hidden>Aramanla eşleşen kayıt yok.</p>
+</div>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-mbrowse]').forEach((root) => {
+		const list = root.querySelector<HTMLElement>('.mrow-list');
+		if (!list) return;
+		const rows = Array.from(list.children) as HTMLElement[];
+		const search = root.querySelector<HTMLInputElement>('[data-f="search"]')!;
+		const sort = root.querySelector<HTMLSelectElement>('[data-f="sort"]')!;
+		const reset = root.querySelector<HTMLButtonElement>('[data-f="reset"]')!;
+		const count = root.querySelector<HTMLElement>('[data-count]')!;
+		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+		const unit = count.textContent?.replace(/^\d+\s*/, '') ?? '';
+
+		function fold(s: string): string {
+			const map: Record<string, string> = {
+				ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u', â: 'a', î: 'i', û: 'u',
+			};
+			return s.toLowerCase().replace(/[çğıöşüâîû]/g, (c) => map[c] ?? c);
+		}
+
+		function apply() {
+			const q = fold(search.value.trim());
+			for (const row of rows) {
+				const ok = !q || (row.dataset.search ?? '').includes(q);
+				row.hidden = !ok;
+			}
+			const mode = sort.value;
+			const sorted = [...rows].sort((a, b) => {
+				if (mode === 'title') return (a.dataset.title ?? '').localeCompare(b.dataset.title ?? '', 'tr');
+				return Number(b.dataset.plays ?? 0) - Number(a.dataset.plays ?? 0);
+			});
+			let visible = 0;
+			for (const row of sorted) {
+				list!.appendChild(row);
+				const rk = row.querySelector<HTMLElement>('.rk');
+				if (!row.hidden) {
+					visible++;
+					if (rk) rk.textContent = String(visible);
+				}
+			}
+			count.textContent = `${visible} ${unit}`;
+			empty.hidden = visible !== 0;
+		}
+
+		search.addEventListener('input', apply);
+		sort.addEventListener('change', apply);
+		reset.addEventListener('click', () => {
+			search.value = '';
+			sort.value = 'plays';
+			apply();
+		});
+		apply();
+	});
+</script>
+
+<style>
+	.controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		align-items: flex-end;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		margin-bottom: 1rem;
+	}
+	.search {
+		flex: 1 1 240px;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		background: var(--bg-2);
+		padding: 0 0.75rem;
+		height: 2.6rem;
+	}
+	.search:focus-within {
+		border-color: var(--accent);
+	}
+	.search .icon {
+		color: var(--text-muted);
+		font-size: 1.1rem;
+	}
+	.search input {
+		border: 0;
+		background: transparent;
+		color: var(--text);
+		width: 100%;
+		height: 100%;
+		font-size: 0.95rem;
+		outline: none;
+	}
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		font-family: var(--font-ui);
+		font-size: 0.72rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+	.field > span {
+		padding-left: 0.15rem;
+	}
+	select {
+		height: 2.6rem;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		background: var(--bg-2);
+		color: var(--text);
+		font-size: 0.82rem;
+		padding: 0 0.6rem;
+		min-width: 12rem;
+	}
+	select:focus {
+		outline: none;
+		border-color: var(--accent);
+	}
+	.reset {
+		height: 2.6rem;
+	}
+	.status {
+		margin-bottom: 0.75rem;
+		font-size: 0.88rem;
+	}
+
+	.mrow-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		border-top: 1px solid var(--border);
+	}
+	.mrow {
+		border-bottom: 1px solid var(--border);
+	}
+	.mrow[hidden] {
+		display: none;
+	}
+	.row-link {
+		display: grid;
+		grid-template-columns: 1.9rem 48px 1fr auto;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.55rem 0.4rem;
+		transition: background-color var(--dur) var(--ease);
+		border-radius: var(--radius-sm);
+	}
+	.row-link:hover {
+		background: var(--accent-soft);
+	}
+	.rk {
+		font-family: var(--font-ui);
+		font-size: 0.8rem;
+		color: var(--text-faint);
+		text-align: right;
+	}
+	.row-link :global(.mcover) {
+		width: 48px;
+	}
+	.txt {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.t {
+		font-family: var(--font-card);
+		font-size: 1.05rem;
+		line-height: 1.25;
+	}
+	.s {
+		font-family: var(--font-meta);
+		font-size: 0.85rem;
+		line-height: 1.3;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.plays {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		font-family: var(--font-ui);
+		font-size: 0.62rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-faint);
+	}
+	.plays strong {
+		font-size: 1.05rem;
+		font-weight: 600;
+		letter-spacing: 0;
+		color: var(--text);
+	}
+
+	@media (max-width: 520px) {
+		.row-link {
+			grid-template-columns: 1.4rem 44px 1fr auto;
+			gap: 0.7rem;
+		}
+		.row-link :global(.mcover) {
+			width: 44px;
+		}
+	}
+</style>

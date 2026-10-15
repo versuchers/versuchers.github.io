@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryDetail from '../../components/EntryDetail.astro';
+import { films, type Film } from '../../lib/data';
+
+export function getStaticPaths() {
+	return films.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}
+
+const { entry } = Astro.props as { entry: Film };
+const displayTitle = entry.fullTitle || entry.title;
+const description =
+	entry.review ||
+	`${displayTitle}${entry.year ? ` (${entry.year})` : ''} — ${entry.director || 'film'} künyesi ve yorumum.`;
+---
+
+<Base title={displayTitle} description={description} ogImage={entry.poster}>
+	<EntryDetail entry={entry} />
+</Base>

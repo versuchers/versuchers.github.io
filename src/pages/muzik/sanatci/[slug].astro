@@ -1,0 +1,83 @@
+---
+import Base from '../../../layouts/Base.astro';
+import MusicDetail from '../../../components/MusicDetail.astro';
+import MusicRows from '../../../components/MusicRows.astro';
+import {
+	artists,
+	stats,
+	cover,
+	integer,
+	durationText,
+	musicDate,
+	spotifySearchUrl,
+	hasTrack,
+	hasAlbum,
+	type Artist,
+} from '../../../lib/music';
+
+export function getStaticPaths() {
+	return artists.map((a) => ({ params: { slug: a.slug }, props: { a } }));
+}
+
+const { a } = Astro.props as { a: Artist };
+const years = stats.years.map((y) => String(y.year));
+
+const trackRows = a.topTracks.map((t) => ({
+	title: t.name,
+	sub: t.album,
+	href: hasTrack(t.slug) ? `/muzik/sarki/${t.slug}` : null,
+	src: t.slug ? cover('track', t.slug) : undefined,
+	plays: t.plays,
+}));
+
+const albumRows = a.topAlbums.map((al) => ({
+	title: al.name,
+	href: hasAlbum(al.slug) ? `/muzik/album/${al.slug}` : null,
+	src: al.slug ? cover('album', al.slug) : undefined,
+	plays: al.plays,
+}));
+
+const description = `${a.name} — ${integer(a.plays)} çalma, ${durationText(a.ms)} dinleme.`;
+---
+
+<Base title={`${a.name} — Müzik`} description={description} ogImage={cover('artist', a.slug)}>
+	<MusicDetail
+		kindLabel="Sanatçı"
+		kindPlural="Sanatçılar"
+		kindHref="/muzik/sanatcilar"
+		title={a.name}
+		coverSrc={cover('artist', a.slug)}
+		round
+		links={[{ label: 'Spotify', href: spotifySearchUrl(a.name) }]}
+		stats={[
+			{ k: 'Çalma', v: integer(a.plays) },
+			{ k: 'Dinleme', v: durationText(a.ms) },
+			{ k: 'Şarkı', v: integer(a.trackCount) },
+			{ k: 'Albüm', v: integer(a.albumCount) },
+			{ k: 'İlk dinleme', v: musicDate(a.first) },
+			{ k: 'Son dinleme', v: musicDate(a.last) },
+		]}
+		values={a.byYear}
+		labels={years}
+	>
+		{trackRows.length > 0 && (
+			<section class="block">
+				<div class="section-head"><h2>En çok dinlenen şarkılar</h2></div>
+				<MusicRows rows={trackRows} />
+			</section>
+		)}
+
+		{albumRows.length > 0 && (
+			<section class="block">
+				<div class="section-head"><h2>Albümler</h2></div>
+				<MusicRows rows={albumRows} />
+			</section>
+		)}
+	</MusicDetail>
+</Base>
+
+<style>
+	.block {
+		margin-top: clamp(2rem, 5vw, 3rem);
+	}
+</style>

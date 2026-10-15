@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+import EncryptedPost from '../../components/EncryptedPost.astro';
+import { getCollection, render } from 'astro:content';
+import { formatTrDate } from '../../lib/format';
+import { tagSlug } from '../../lib/tags';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const dateLabel = formatTrDate(post.data.pubDate.toLocaleDateString('tr-TR'));
+---
+
+<Base title={post.data.title} description={post.data.description || undefined} ogImage={post.data.cover}>
+	<article class="blog-post">
+		<nav class="crumbs" aria-label="Kırıntı">
+			<a href="/">Ana sayfa</a><span aria-hidden="true">/</span><a href="/blog">Blog</a>
+		</nav>
+
+		<h1 class="post-title">{post.data.title}</h1>
+
+
+		{post.data.encrypted ? (
+			post.data.encPayload ? (
+				<EncryptedPost payload={post.data.encPayload} />
+			) : (
+				<p class="notice">
+					Bu yazı, yayımlandığı dönemde şifreli bir araçla korunuyordu. Özgün metin
+					çözülemediği için içerik burada görünmüyor.
+				</p>
+			)
+		) : (
+			<div class="prose">
+				{post.data.contentHtml ? <div set:html={post.data.contentHtml} /> : <Content />}
+			</div>
+		)}
+
+		<footer class="post-foot">
+			<p class="post-date">
+				<time datetime={post.data.pubDate.toISOString()}>{dateLabel}</time>
+			</p>
+			{post.data.tags.length > 0 && (
+				<p class="post-labels">
+					{post.data.tags.map((t) => (
+						<a class="chip" href={`/blog/etiket/${tagSlug(t)}`}>{t}</a>
+					))}
+				</p>
+			)}
+		</footer>
+	</article>
+</Base>

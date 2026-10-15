@@ -1,0 +1,6 @@
+# site.yml içinde `npm run build` sırasında Astro ile üretilir.
+# robots.txt: public/robots.txt (elle güncellenir).
+User-agent: *
+Allow: /
+
+Sitemap: https://versucher.com/sitemap.xml

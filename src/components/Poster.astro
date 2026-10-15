@@ -1,0 +1,34 @@
+---
+import type { Kind } from '../lib/data';
+
+interface Props {
+	src?: string;
+	alt: string;
+	kind?: Kind;
+	eager?: boolean;
+	glyph?: string;
+}
+
+const { src, alt, eager = false } = Astro.props;
+---
+
+<figure class="frame poster">
+	{
+		src && (
+			<img
+				src={src}
+				alt={alt}
+				loading={eager ? 'eager' : 'lazy'}
+				decoding="async"
+				referrerpolicy="no-referrer"
+				onerror="this.remove()"
+			/>
+		)
+	}
+</figure>
+
+<style>
+	.poster {
+		background: linear-gradient(135deg, var(--surface-2), var(--surface));
+	}
+</style>

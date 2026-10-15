@@ -1,0 +1,59 @@
+---
+interface Props {
+	src?: string;
+	alt: string;
+	/** Sanatçı görselleri yuvarlak gösterilir. */
+	round?: boolean;
+	eager?: boolean;
+}
+
+const { src, alt, round = false, eager = false } = Astro.props;
+const initial = (alt || '?').trim().charAt(0).toLocaleUpperCase('tr');
+---
+
+<figure class:list={['mcover', { round }]}>
+	<span class="mono" aria-hidden="true">{initial}</span>
+	{
+		src && (
+			<img
+				src={src}
+				alt={alt}
+				loading={eager ? 'eager' : 'lazy'}
+				decoding="async"
+				referrerpolicy="no-referrer"
+				onerror="this.remove()"
+			/>
+		)
+	}
+</figure>
+
+<style>
+	.mcover {
+		position: relative;
+		aspect-ratio: 1 / 1;
+		background: linear-gradient(135deg, var(--surface-2), var(--surface));
+		border-radius: var(--radius-sm);
+		overflow: hidden;
+		display: grid;
+		place-items: center;
+		container-type: inline-size;
+	}
+	.mcover.round {
+		border-radius: 50%;
+	}
+	.mono {
+		font-family: var(--font-display);
+		font-size: clamp(0.85rem, 36cqw, 4rem);
+		color: var(--text-faint);
+		line-height: 1;
+		user-select: none;
+	}
+	.mcover img {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 420ms var(--ease);
+	}
+</style>

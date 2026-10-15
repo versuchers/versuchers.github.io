@@ -1,0 +1,12 @@
+---
+"title": "Ignorance is What"
+"description": "cehaletin mutluluk olduğunudaha ne kadar deneyimleyeceğimaynı ya da benzer frekanstaherhangi birini bulamayan nietzscheasosyalliğinin baskınlığıdanöykülerinde diyaloğu minimum tutan…"
+"pubDate": "2013-12-12"
+"updatedDate": "2026-03-08"
+"tags":
+  - "poetik"
+"draft": false
+"source": "/2013/12/ignorance-is-bliss.html"
+"encrypted": false
+"contentHtml": "<p></p><div style=\"text-align: center\"><span><span>cehaletin mutluluk olduğunu</span></span></div><span><div style=\"text-align: center\"><span>daha ne kadar deneyimleyeceğim</span></div><span><div style=\"text-align: center\">aynı ya da benzer frekansta</div></span><span><div style=\"text-align: center\">herhangi birini bulamayan nietzsche</div></span><span><div style=\"text-align: center\">asosyalliğinin baskınlığıdan</div></span><span><div style=\"text-align: center\">öykülerinde diyaloğu minimum tutan lovecraft’la</div></span><span><div style=\"text-align: center\">kendimi daha ne kadar özdeşleştireceğim</div></span></span><p></p><p></p><div style=\"text-align: center\"><span><span>müzik zevkini dahi tv’nin belirlediği</span></span></div><span><div style=\"text-align: center\"><span>kendine ait bir ilgi alanı olmayan insanlarla sarılı çevrem</span></div><span><div style=\"text-align: center\">nasıl bu kadar boş olunabilir</div></span><span><div style=\"text-align: center\">ilgilendiğim bilgim olan konular hakkında&nbsp;</div></span><span><div style=\"text-align: center\">benimkilere yakın fikirde birilerinin dahi olmaması<br />tüm bu aptallığın arasında bulunmanın verdiği tembellik<br />ve kendini daha fazla bilgilendirmenin anlamsız gelmesi<br />ve yine bu tembelliğin aslında aptalca oluşu</div></span></span><p></p><p></p><div style=\"text-align: center\"><span><span>balık hafızalı olmak güzel olmalı</span></span></div><span><div style=\"text-align: center\"><span>ya da sonsuz bir kısırdöngünün</span></div><span><div style=\"text-align: center\">yalnızca high modeda dehşet oluşu</div></span><span><div style=\"text-align: center\">aşırı iğrenç yeniliksiz ve değişimsiz</div></span><span><div style=\"text-align: center\">sıkıcılık anıtları varyasyonundaki insanlar</div></span><span><div style=\"text-align: center\">mumyalanmış beyinlerle yaşayabilen</div></span><span><div style=\"text-align: center\">mikroinsanlar</div></span><span><div style=\"text-align: center\">pragmatik düşünceyi ve pratik zekalılığı</div></span><span><div style=\"text-align: center\">haddinden fazla yüceltenler</div></span></span><p></p>"
+---

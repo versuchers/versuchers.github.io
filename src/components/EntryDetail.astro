@@ -1,0 +1,403 @@
+---
+import {
+	facts,
+	tagList,
+	externalLinks,
+	related,
+	KIND_LABEL,
+	KIND_PLURAL,
+	type Entry,
+} from '../lib/data';
+import { formatTrDate, formatYearRange } from '../lib/format';
+import Poster from './Poster.astro';
+import Rating from './Rating.astro';
+import EntryCard from './EntryCard.astro';
+
+interface Props {
+	entry: Entry;
+}
+
+const { entry } = Astro.props;
+
+const displayTitle = entry.type === 'film' ? entry.fullTitle || entry.title : entry.title;
+const showOriginal =
+	entry.originalTitle && entry.originalTitle.trim() && entry.originalTitle.trim() !== displayTitle;
+
+const meta = facts(entry);
+const tags = tagList(entry);
+const links = externalLinks(entry);
+const similar = related(entry, 6);
+
+const yearLabel =
+	entry.type === 'dizi' ? formatYearRange(entry.yearRange, entry.year) : entry.year;
+
+const cast = entry.type === 'film' || entry.type === 'dizi' ? entry.cast : [];
+const reviewDateLabel = formatTrDate(entry.reviewDate);
+
+// Yorum "Spoiler var:" ile başlıyorsa içeriği gizle ve aç/kapat düğmesiyle sun.
+const rawReview = (entry.review || '').trim();
+const isSpoiler = /^spoiler\s*var\b/i.test(rawReview);
+const reviewText = isSpoiler
+	? rawReview.replace(/^spoiler\s*var\s*[:\-–—]?\s*/i, '').trim()
+	: rawReview;
+
+const listHref = `/${entry.type}`;
+const listLabel = KIND_PLURAL[entry.type];
+---
+
+<article class="detail" style={entry.type === 'film' && entry.color ? `--accent: ${entry.color}; --accent-2: ${entry.color}` : undefined}>
+	<div class="container">
+		<nav class="crumbs" aria-label="Kırıntı">
+			<a href="/">Ana sayfa</a>
+			<span aria-hidden="true">/</span>
+			<a href={listHref}>{listLabel}</a>
+		</nav>
+
+		<div class="cols">
+			<div class="left">
+				<Poster src={entry.poster} alt={displayTitle} kind={entry.type} eager />
+				{links.length > 0 && (
+					<div class="links">
+						{links.map((l) => (
+							<a class="btn" href={l.href} target="_blank" rel="noopener noreferrer">
+								{l.label}
+							</a>
+						))}
+					</div>
+				)}
+			</div>
+
+			<div class="right">
+				<p class="eyebrow">{KIND_LABEL[entry.type]}</p>
+				<h1>{displayTitle}</h1>
+				{showOriginal && <p class="original muted">{entry.originalTitle}</p>}
+
+				<div class="topline">
+					{yearLabel && <span class="year">{yearLabel}</span>}
+					{entry.rating && <Rating value={entry.rating} />}
+					{entry.type === 'kitap' && entry.author && <span class="author">· {entry.author}</span>}
+					{entry.type !== 'kitap' && entry.type === 'film' && entry.director && (
+						<span class="author">· {entry.director}</span>
+					)}
+					{entry.type === 'dizi' && entry.creator && <span class="author">· {entry.creator}</span>}
+				</div>
+
+				{reviewText &&
+					(isSpoiler ? (
+						<details class="review review--spoiler">
+							<summary>
+								<span class="lbl-open">Spoiler'ı gör</span>
+								<span class="lbl-close">Spoiler'ı kapat</span>
+							</summary>
+							<p>{reviewText}</p>
+							{reviewDateLabel && <cite>{reviewDateLabel}</cite>}
+						</details>
+					) : (
+						<blockquote class="review">
+							<p>{reviewText}</p>
+							{reviewDateLabel && <cite>{reviewDateLabel}</cite>}
+						</blockquote>
+					))}
+
+				{tags.length > 0 && (
+					<div class="block">
+						<p class="eyebrow">Etiketler</p>
+						<div class="chip-list">
+							{tags.map((t) => (
+								<a class="chip" href={`/ara?q=${encodeURIComponent(t)}`}>
+									{t}
+								</a>
+							))}
+						</div>
+					</div>
+				)}
+
+				{meta.length > 0 && (
+					<div class="block">
+						<p class="eyebrow">Künye</p>
+						<dl class="facts">
+							{meta.map((f) => (
+								<div class="fact">
+									<dt>{f.label}</dt>
+									<dd>
+										{f.values ? (
+											<span class="multi">
+												{f.values.map((v) => (
+													<a href={v.href}>{v.value}</a>
+												))}
+											</span>
+										) : f.href ? (
+											<a href={f.href}>{f.value}</a>
+										) : (
+											f.value
+										)}
+									</dd>
+								</div>
+							))}
+						</dl>
+					</div>
+				)}
+
+				{cast.length > 0 && (
+					<div class="block">
+						<p class="eyebrow">Kadro</p>
+						<ul class="cast">
+							{cast.map((c) => (
+								<li>
+									<a href={`/ara?q=${encodeURIComponent(c.name)}`}>{c.name}</a>
+									{c.role && <span class="role muted"> — {c.role}</span>}
+								</li>
+							))}
+						</ul>
+					</div>
+				)}
+			</div>
+		</div>
+
+		{similar.length > 0 && (
+			<section class="similar">
+				<div class="section-head">
+					<h2>Benzer {listLabel.toLocaleLowerCase('tr')}</h2>
+					<a class="more" href={listHref}>{listLabel} →</a>
+				</div>
+				<ul class="grid">
+					{similar.map((e) => (
+						<li>
+							<EntryCard entry={e} />
+						</li>
+					))}
+				</ul>
+			</section>
+		)}
+	</div>
+</article>
+
+<style>
+	.detail {
+		padding-block: 1.5rem 0;
+		--col: 150px;
+	}
+
+	.crumbs {
+		display: flex;
+		gap: 0.5rem;
+		font-family: var(--font-ui);
+		font-size: 0.72rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+		margin-bottom: 1.5rem;
+	}
+	.crumbs a {
+		color: var(--text-muted);
+	}
+	.crumbs a:hover {
+		color: var(--link-hover);
+	}
+
+	.cols {
+		display: grid;
+		grid-template-columns: minmax(220px, 300px) 1fr;
+		gap: clamp(1.5rem, 4vw, 3rem);
+		align-items: start;
+	}
+
+	.left {
+		position: sticky;
+		top: 5.5rem;
+		--poster-max: 300px;
+	}
+
+	.links {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 1rem;
+		max-width: min(100%, var(--poster-max, 280px));
+	}
+
+	.eyebrow + h1 {
+		margin-top: 0.2rem;
+	}
+
+	.original {
+		margin: -0.4rem 0 0.8rem;
+		font-style: italic;
+		font-size: 1.2rem;
+	}
+
+	.topline {
+		display: flex;
+		align-items: baseline;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		margin-bottom: 1.5rem;
+		font-family: var(--font-card);
+		font-size: 1.15rem;
+	}
+	.topline .year {
+		font-weight: 600;
+	}
+	.topline .author {
+		color: var(--text-muted);
+		font-size: 1.05rem;
+	}
+
+	/* ---- yorum ---- */
+	.review {
+		margin: 0 0 2rem;
+		padding: 1rem 1.25rem;
+		border-left: 3px solid var(--accent);
+		background: var(--accent-soft);
+		border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+	}
+	.review p {
+		margin: 0;
+		font-family: var(--font-serif);
+		font-size: 25px;
+		line-height: 1.8;
+	}
+	.review cite {
+		display: block;
+		margin-top: 0.6rem;
+		font-family: var(--font-head);
+		font-size: 0.8rem;
+		font-style: normal;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+
+	/* spoiler kutusu */
+	.review--spoiler summary {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5em;
+		list-style: none;
+		cursor: pointer;
+		padding: 0.5em 1.1em;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		background: var(--surface);
+		color: var(--text);
+		font-family: var(--font-card);
+		font-size: 1.02rem;
+		letter-spacing: 0.01em;
+		transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease),
+			background-color var(--dur) var(--ease);
+	}
+	.review--spoiler summary::-webkit-details-marker {
+		display: none;
+	}
+	.review--spoiler summary::before {
+		content: '◉';
+		font-size: 0.8em;
+		color: var(--rating);
+	}
+	.review--spoiler summary:hover {
+		border-color: var(--accent);
+		color: var(--accent-2);
+	}
+	.review--spoiler .lbl-close {
+		display: none;
+	}
+	.review--spoiler[open] .lbl-open {
+		display: none;
+	}
+	.review--spoiler[open] .lbl-close {
+		display: inline;
+	}
+	.review--spoiler[open] summary {
+		margin-bottom: 0.9rem;
+	}
+	.review--spoiler p {
+		margin: 0;
+		font-family: var(--font-serif);
+		font-size: 25px;
+		line-height: 1.8;
+	}
+
+	.block {
+		margin-bottom: 2rem;
+	}
+
+	.facts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 0.6rem 1.5rem;
+		margin: 0.5rem 0 0;
+	}
+	.fact {
+		display: flex;
+		flex-direction: column;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.fact dt {
+		font-family: var(--font-ui);
+		font-size: 0.7rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-faint);
+	}
+	.fact dd {
+		margin: 0.15rem 0 0;
+		font-size: 1.15rem;
+		line-height: 1.5;
+	}
+
+	/* Tıklanabilir alanlar: alt çizgi yok; üzerine gelince renk belirginleşir */
+	.fact dd a,
+	.cast a {
+		color: inherit;
+		text-decoration: none;
+		transition: color var(--dur) var(--ease);
+	}
+	.fact dd .multi {
+		display: inline;
+	}
+	.fact dd .multi a:not(:last-child)::after {
+		content: ', ';
+		color: var(--text-muted);
+	}
+	.fact dd a:hover,
+	.cast a:hover {
+		color: var(--link-hover);
+	}
+
+	.cast {
+		list-style: none;
+		margin: 0.5rem 0 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 0.3rem 1.5rem;
+		font-size: 1.1rem;
+	}
+	.cast .role {
+		font-size: 0.95rem;
+	}
+
+	.similar {
+		margin-top: clamp(2.5rem, 6vw, 4rem);
+		padding-top: 2rem;
+		border-top: 1px solid var(--border);
+	}
+
+	@media (max-width: 760px) {
+		.cols {
+			grid-template-columns: 1fr;
+		}
+		.left {
+			position: static;
+			max-width: 280px;
+		}
+		.review p,
+		.review--spoiler p {
+			font-size: 20px;
+			line-height: 1.75;
+		}
+	}
+</style>

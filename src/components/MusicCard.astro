@@ -1,0 +1,95 @@
+---
+import MusicCover from './MusicCover.astro';
+import { integer } from '../lib/music';
+
+interface Props {
+	href: string;
+	title: string;
+	sub?: string;
+	src?: string;
+	round?: boolean;
+	plays: number;
+	rank?: number;
+	eager?: boolean;
+}
+
+const { href, title, sub, src, round = false, plays, rank, eager = false } = Astro.props;
+---
+
+<li class="mcard">
+	<a class="card" href={href}>
+		<div class="cvr">
+			<MusicCover src={src} alt={title} round={round} eager={eager} />
+			{rank && <span class="rank">{rank}</span>}
+		</div>
+		<div class="body">
+			<span class="t">{title}</span>
+			{sub && <span class="s muted">{sub}</span>}
+			<span class="p">{integer(plays)} çalma</span>
+		</div>
+	</a>
+</li>
+
+<style>
+	.mcard {
+		list-style: none;
+	}
+	.mcard .card {
+		display: block;
+		height: 100%;
+	}
+	.mcard .card:hover :global(.mcover img) {
+		transform: scale(1.05);
+	}
+	.mcard .card:hover .rank {
+		color: var(--accent);
+	}
+	.cvr {
+		position: relative;
+	}
+	.rank {
+		position: absolute;
+		top: 0.4rem;
+		left: 0.4rem;
+		min-width: 1.5rem;
+		height: 1.5rem;
+		padding: 0 0.35rem;
+		display: inline-grid;
+		place-items: center;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--bg) 78%, transparent);
+		color: var(--accent-2);
+		font-family: var(--font-ui);
+		font-size: 0.72rem;
+		font-weight: 600;
+		backdrop-filter: blur(4px);
+	}
+	.body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		padding: 0.6rem 0.7rem 0.75rem;
+	}
+	.t {
+		font-family: var(--font-card);
+		font-size: 1.02rem;
+		line-height: 1.25;
+	}
+	.s {
+		font-family: var(--font-meta);
+		font-size: 0.82rem;
+		line-height: 1.3;
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 1;
+		-webkit-box-orient: vertical;
+	}
+	.p {
+		margin-top: 0.15rem;
+		font-family: var(--font-ui);
+		font-size: 0.68rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-faint);
+	}
+</style>

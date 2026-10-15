@@ -1,0 +1,25 @@
+---
+interface Props {
+	value?: number | null;
+	/** Sadece yıldız/rakam gösterimi (etiket yok) */
+	compact?: boolean;
+}
+
+const { value, compact = false } = Astro.props;
+const has = typeof value === 'number' && value > 0;
+---
+
+{
+	has && (
+		<span class:list={['rating', { compact }]} title={`${value}/10`}>
+			<span class="val">{value}</span>
+			<span class="den">/10</span>
+		</span>
+	)
+}
+
+<style>
+	.compact .den {
+		display: none;
+	}
+</style>

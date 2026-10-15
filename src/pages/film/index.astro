@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import Browse from '../../components/Browse.astro';
+import { films } from '../../lib/data';
+---
+
+<Base
+	title="Filmler"
+	description={`İzlediğim ${films.length} film: puanlar, yorumlar, künye ve afişler.`}
+>
+	<div class="container section">
+		<header class="page-head">
+			<p class="eyebrow">Arşiv</p>
+			<h1>Filmler</h1>
+			<p class="lede">
+				{films.length} film. Ara, tür/yıl/puanla süz, sırala; her afiş kendi sayfasına gider.
+			</p>
+		</header>
+		<Browse kind="film" items={films} />
+	</div>
+</Base>
+
+<style>
+	.page-head {
+		margin-bottom: 2rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+</style>

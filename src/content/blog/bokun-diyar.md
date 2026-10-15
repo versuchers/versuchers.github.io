@@ -1,0 +1,14 @@
+---
+"title": "Bokun Diyarı"
+"description": "ve işte depedehşet bir sıradışışehirdışılığın sonundayine kaka diyarındayımodama girdiğimdeonu baskısı altına alan sigaralarımınihtiyar dumanlarını duyumsadımonların gözlerindeki ölümdendaha dipte…"
+"pubDate": "2014-06-12"
+"updatedDate": "2026-03-16"
+"tags":
+  - "poetik"
+"draft": false
+"source": "/2014/06/bokun-diyar.html"
+"encrypted": false
+"contentHtml": "<h2><div style=\"text-align: center\"><span style=\"font-weight: normal\">ve işte</span></div>
+
+  <span style=\"font-weight: normal\"><div style=\"text-align: center\"><span>depedehşet bir sıradışı</span></div><div style=\"text-align: center\"><span>şehirdışılığın sonunda</span></div><div style=\"text-align: center\"><span>yine kaka diyarındayım</span></div><div style=\"text-align: center\"><span>odama girdiğimde</span></div><div style=\"text-align: center\"><span>onu baskısı altına alan sigaralarımın</span></div><div style=\"text-align: center\"><span>ihtiyar dumanlarını duyumsadım</span></div><div style=\"text-align: center\"><span>onların gözlerindeki ölümden</span></div><div style=\"text-align: center\"><span>daha dipte bir şehir</span></div><div style=\"text-align: center\"><span>içinde olduğum</span></div><div style=\"text-align: center\"><span>ölüm, burada yaşıyor</span></div><div style=\"text-align: center\"><span>burada yaşamak</span></div><div style=\"text-align: center\"><span>ölümü anımsatıyor</span></div><div style=\"text-align: center\"><span>ölü zihinler görüyorum</span></div><div style=\"text-align: center\"><span>doktor malcome</span></div><div style=\"text-align: center\"><span>yaşamak, yalnızca</span></div><div style=\"text-align: center\"><span>uçları gördüğünde</span></div><div style=\"text-align: center\"><span>isminin hakkını verebilir</span></div><div style=\"text-align: center\"><span>ortalama insan, ortalama yaşam</span></div><div style=\"text-align: center\">vasat</div><div style=\"text-align: center\"><span>bu, paketlenmiş bir insan bokuna</span></div><div style=\"text-align: center\"><span>ne kadar da benziyor</span></div><div style=\"text-align: center\"><span>mizantropim</span></div><div style=\"text-align: center\"><span>çokyüzlüye, kendi olamayana</span></div><div style=\"text-align: center\"><span>beni yalnızca x'in oğlu&nbsp;</span><span>olarak görene</span></div><div style=\"text-align: center\"><span>yaratamayana</span></div><div style=\"text-align: center\"><span>arzularını baskılamaya çabalayana</span></div><div style=\"text-align: center\"><span>gündeliği, saykodeliğe tercih edene</span></div><div style=\"text-align: center\"><span>darzihinliye</span></div><div style=\"text-align: center\"><span>-ler -lar'lara</span></div><div style=\"text-align: center\"><span>toplumun içine kendini sığdırana</span></div><div style=\"text-align: center\"><span>kendi için belirlenene uyana</span></div><div style=\"text-align: center\"><span>kalıplardan taşamayana</span></div></span></h2>"
+---

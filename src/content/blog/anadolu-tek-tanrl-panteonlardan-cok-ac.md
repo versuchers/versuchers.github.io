@@ -1,0 +1,12 @@
+---
+"title": "Bilin Çakışı"
+"description": "Anadolu, tek tanrılı panteonlardan çok acı çekti, ataerkil zihinlerden, dogmalardan, gerçeğin sanrılarından. İstiklal Mahkemeleri'nin varlığı, astıkları, Atatürk'ten nefret ettirmiyor bana.…"
+"pubDate": "2014-04-03"
+"updatedDate": "2025-11-20"
+"tags":
+  - "deneme"
+"draft": false
+"source": "/2016/09/anadolu-tek-tanrl-panteonlardan-cok-ac.html"
+"encrypted": false
+"contentHtml": "<p><span>Anadolu, tek tanrılı panteonlardan çok acı çekti, ataerkil zihinlerden, dogmalardan, gerçeğin sanrılarından.</span></p><p><span>İstiklal Mahkemeleri'nin varlığı, astıkları, Atatürk'ten nefret ettirmiyor bana. Halifeliği siktir edip, laik devleti, köy enstitülerini, osmanlı öncesi Türk Tarihini, islam kitabını Türkçeleştirmeyi oluşturan adama saygı duyabilirim ancak. Tahsin Mayatepek'i, Mayalar'ı araştırması için Meksika'ya göndermesini düşünüyorum ve geri kalan olumsuz değerlendirdiğiniz özelliklerini silip atıyor, sadece bu bile.</span></p><p><span>Paganizmi özlüyor olmalı, Dünya'nın Ruhu. Kendisine duyulan saygıyı, verilen gerçek sevgiyi. Yaralıyoruz onu, binalarla, orman yangınlarıyla. Ben, akraba olduğumu düşünmek istiyorum, ağaçlarla. Cosmos'ta da dediği gibi deGrasse Tyson’ın.</span></p><p><span><span>Marx denktir M******t.&nbsp;</span><span>Tek yol devrim değil.</span><span><span>&nbsp;</span><span>Tek bir yol yok.</span></span></span></p><p><span>Yobazlığa düşmesi o kadar kolay ki zihinlerimizin. Kendi zihinlerimizin diktatörleri yapıyoruz, bir takım -izmleri. Bireyler, birer birer daha önemli toplumdan, kollektiften, izmlerin tümünden.</span></p><p><span>Atlantis'in, Mu'nun Gizemi. Fantastik evrenlere duyduğum açlık. Bir high mode gibi fantastik kurgu. Gerçeklik dışına götürüyor beni, iyi hissettiriyor. Tolkien, Robert Jordan, George Martin, J.K. Rowling… Poe ve Lovecraft da elbette.</span></p><p><span><span>Genelleme, cehennemî.&nbsp;</span><span>İstisna, kaideyi defalarca becerebilir.</span><span>&nbsp;</span><span><span>Ahhlak diye bir şey yok.&nbsp;</span><span>Tabulardan arın.&nbsp;</span></span></span></p><p><span><span>Buddha'nın Nirvanasına ulaşırsam, bunu anlayabilir miyim?&nbsp;</span><span>Seküler bir totaliter devleti, anarşiye yeğlerdim.&nbsp;</span><span>En güzel bayrak, gökkuşağı.&nbsp;</span><span>Blues iyi ki var.</span></span></p><p><span><span>Anlamı kollektif olarak bulmayı umma.&nbsp;</span><span>Bu olmayacak.&nbsp;</span></span></p><p><span><b>Hiçbir zaman.</b></span></p>"
+---

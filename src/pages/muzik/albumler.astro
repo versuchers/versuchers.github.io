@@ -1,0 +1,37 @@
+---
+import Base from '../../layouts/Base.astro';
+import MusicBrowse from '../../components/MusicBrowse.astro';
+import { albums, cover, integer, foldTr } from '../../lib/music';
+
+const rows = albums.map((al) => ({
+	href: `/muzik/album/${al.slug}`,
+	title: al.name,
+	sub: `${al.artist} · ${integer(al.trackCount)} şarkı`,
+	src: cover('album', al.slug),
+	plays: al.plays,
+	search: foldTr(`${al.name} ${al.artist}`),
+}));
+---
+
+<Base
+	title="Müzik — Albümler"
+	description={`En çok dinlediğim ${albums.length} albüm.`}
+>
+	<div class="container section">
+		<header class="page-head">
+			<p class="eyebrow">Müzik</p>
+			<h1>Albümler</h1>
+			<p class="lede">En çok dinlediğim {albums.length} albüm; çalma sayısına göre.</p>
+		</header>
+		<MusicBrowse label="Albümler" unit="albüm" rows={rows} />
+	</div>
+</Base>
+
+<style>
+	.page-head {
+		margin-bottom: 2rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+</style>

@@ -1,0 +1,155 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+const nav = [
+	{ href: '/film', label: 'Film' },
+	{ href: '/dizi', label: 'Dizi' },
+	{ href: '/kitap', label: 'Kitap' },
+	{ href: '/muzik', label: 'Müzik' },
+	{ href: '/blog', label: 'Blog' },
+];
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => path === href || path.startsWith(href + '/');
+---
+
+<header class="site-header">
+	<div class="container bar">
+		<a class="brand" href="/" aria-label="Ana sayfa">
+			<span class="mark" aria-hidden="true">✦</span>
+			<span class="word">V E R S U C H E R</span>
+		</a>
+
+		<nav aria-label="Ana gezinme">
+			{
+				nav.map((item) => (
+					<a href={item.href} class:list={['nav-link', { active: isActive(item.href) }]}>
+						{item.label}
+					</a>
+				))
+			}
+		</nav>
+
+		<div class="actions">
+			<a class="search-link" href="/ara" title="Ara" aria-label="Ara">⌕</a>
+			<ThemeToggle />
+		</div>
+	</div>
+</header>
+
+<style>
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		background: color-mix(in srgb, var(--bg) 82%, transparent);
+		backdrop-filter: var(--header-blur);
+		border-bottom: 1px solid var(--border);
+	}
+
+	.bar {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		height: 4rem;
+	}
+
+	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-family: var(--font-display);
+		font-weight: 400;
+		font-size: clamp(1.9rem, 6vw, 2.75rem);
+		line-height: 1;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		white-space: nowrap;
+		transform-origin: left center;
+		transition: transform 420ms var(--ease), color var(--dur) var(--ease);
+	}
+
+	/* Görsellerdeki yakınlaşma efektine benzer: hafif büyüme + renk değişimi */
+	.brand:hover {
+		transform: scale(1.045);
+		color: var(--accent);
+	}
+
+	.brand .mark {
+		color: var(--accent);
+		transition: color var(--dur) var(--ease);
+	}
+
+	.brand:hover .mark {
+		color: var(--accent-2);
+	}
+
+	nav {
+		display: flex;
+		gap: 0.35rem;
+		margin-left: auto;
+	}
+
+	.nav-link {
+		padding: 0.4rem 0.7rem;
+		border-radius: 999px;
+		font-family: var(--font-card);
+		font-size: 1rem;
+		letter-spacing: 0.02em;
+		color: var(--text-muted);
+		transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+	}
+
+	.nav-link:hover {
+		color: var(--text);
+		background: var(--surface-2);
+	}
+
+	.nav-link.active {
+		color: var(--text);
+		font-weight: 600;
+	}
+
+	.actions {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.search-link {
+		width: 1.9rem;
+		height: 1.9rem;
+		display: grid;
+		place-items: center;
+		border-radius: 999px;
+		color: var(--text-muted);
+		font-size: 1.1rem;
+	}
+	.search-link:hover {
+		color: var(--accent);
+		background: var(--surface-2);
+	}
+
+	@media (max-width: 900px) {
+		.brand {
+			font-size: 1.45rem;
+			letter-spacing: 0.05em;
+		}
+	}
+	@media (max-width: 640px) {
+		.bar {
+			gap: 0.5rem;
+		}
+		.brand {
+			font-size: 1.1rem;
+			letter-spacing: 0.04em;
+		}
+		.nav-link {
+			padding: 0.4rem 0.55rem;
+			font-size: 0.95rem;
+		}
+		.search-link {
+			display: none;
+		}
+	}
+</style>

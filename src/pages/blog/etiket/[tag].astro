@@ -1,0 +1,49 @@
+---
+import Base from '../../../layouts/Base.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+import { tagSlug } from '../../../lib/tags';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog', ({ data }) => !data.draft);
+	const bySlug = new Map<string, string>();
+	for (const p of posts) {
+		for (const t of p.data.tags) {
+			const s = tagSlug(t);
+			if (!bySlug.has(s)) bySlug.set(s, t);
+		}
+	}
+	return [...bySlug.entries()].map(([slug, tag]) => ({
+		params: { tag: slug },
+		props: { tag },
+	}));
+}
+
+const { tag } = Astro.props;
+const all = await getCollection('blog', ({ data }) => !data.draft);
+const posts = all
+	.filter((p) => p.data.tags.includes(tag))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Base title={`Etiket: ${tag}`} description={`"${tag}" etiketli yazılar.`}>
+	<div class="section blog-feed">
+		<header class="page-head">
+			<p class="eyebrow">Etiket</p>
+			<h1>{tag}</h1>
+			<p class="lede">{posts.length} yazı · <a class="back" href="/blog">tüm blog</a></p>
+		</header>
+
+		{
+			posts.length === 0 ? (
+				<p class="muted">Bu etikette yazı yok.</p>
+			) : (
+				<ul class="posts">
+					{posts.map((post) => (
+						<PostCard post={post} />
+					))}
+				</ul>
+			)
+		}
+	</div>
+</Base>

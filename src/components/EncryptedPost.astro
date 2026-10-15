@@ -1,0 +1,261 @@
+---
+interface Props {
+	payload: string;
+}
+
+const { payload } = Astro.props;
+
+// base64 → { v, salt, iv, hmac, cipher, hint }
+let hint = '';
+try {
+	const json = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));
+	if (typeof json.hint === 'string') hint = json.hint;
+} catch {
+	hint = '';
+}
+---
+
+<div class="sp-lock" data-sp-enc data-payload={payload}>
+	<div class="sp-icon" aria-hidden="true">&#x26E7;</div>
+	<p class="sp-title">bu içerik şifreli</p>
+
+	<div class="sp-field">
+		<label class="sp-label" for="sp-pw">parola</label>
+		<input
+			id="sp-pw"
+			type="password"
+			class="sp-pw-input"
+			autocomplete="current-password"
+			placeholder="parola"
+		/>
+	</div>
+
+	<div class="sp-actions">
+		{hint && <span class="sp-hint">ipucu: {hint}</span>}
+		<button type="button" class="sp-btn">aç</button>
+	</div>
+
+	<p class="sp-msg" role="status" aria-live="polite"></p>
+</div>
+
+<script>
+	function hexToBuf(hex: string): ArrayBuffer {
+		const b = new Uint8Array(hex.length / 2);
+		for (let i = 0; i < hex.length; i += 2) b[i / 2] = parseInt(hex.substr(i, 2), 16);
+		return b.buffer;
+	}
+	function b64ToBuf(s: string): ArrayBuffer {
+		const bin = atob(s);
+		const b = new Uint8Array(bin.length);
+		for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+		return b.buffer;
+	}
+
+	async function deriveKey(pw: string, salt: string): Promise<CryptoKey> {
+		const base = await crypto.subtle.importKey(
+			'raw',
+			new TextEncoder().encode(pw),
+			'PBKDF2',
+			false,
+			['deriveKey'],
+		);
+		return crypto.subtle.deriveKey(
+			{ name: 'PBKDF2', salt: hexToBuf(salt), iterations: 200000, hash: 'SHA-256' },
+			base,
+			{ name: 'AES-GCM', length: 256 },
+			true,
+			['decrypt'],
+		);
+	}
+
+	async function decrypt(
+		data: { cipher: string; iv: string; hmac: string },
+		key: CryptoKey,
+	): Promise<string> {
+		const cipher = b64ToBuf(data.cipher);
+		const raw = await crypto.subtle.exportKey('raw', key);
+		const hmacKey = await crypto.subtle.importKey(
+			'raw',
+			raw,
+			{ name: 'HMAC', hash: 'SHA-256' },
+			false,
+			['verify'],
+		);
+		const ok = await crypto.subtle.verify('HMAC', hmacKey, hexToBuf(data.hmac), cipher);
+		if (!ok) throw new Error('hmac');
+		const plain = await crypto.subtle.decrypt(
+			{ name: 'AES-GCM', iv: hexToBuf(data.iv) },
+			key,
+			cipher,
+		);
+		return new TextDecoder().decode(plain);
+	}
+
+	document.querySelectorAll<HTMLElement>('[data-sp-enc]').forEach((wrap) => {
+		let payload: any;
+		try {
+			payload = JSON.parse(new TextDecoder().decode(b64ToBuf(wrap.dataset.payload || '')));
+		} catch {
+			return;
+		}
+
+		const input = wrap.querySelector<HTMLInputElement>('.sp-pw-input')!;
+		const btn = wrap.querySelector<HTMLButtonElement>('.sp-btn')!;
+		const msg = wrap.querySelector<HTMLElement>('.sp-msg')!;
+
+		const setMsg = (t: string) => {
+			msg.textContent = t;
+		};
+
+		async function attempt() {
+			const pw = input.value;
+			if (!pw) {
+				input.focus();
+				return;
+			}
+			btn.disabled = true;
+			setMsg('çözülüyor…');
+			try {
+				const key = await deriveKey(pw, payload.salt);
+				const plain = await decrypt(payload, key);
+				const out = document.createElement('div');
+				out.className = 'sp-decrypted';
+				out.textContent = plain;
+				wrap.replaceWith(out);
+			} catch {
+				setMsg('yanlış parola.');
+				btn.disabled = false;
+				input.value = '';
+				input.focus();
+			}
+		}
+
+		btn.addEventListener('click', attempt);
+		input.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter') attempt();
+		});
+	});
+</script>
+
+<style>
+	.sp-lock {
+		margin: 2.25rem auto 0;
+		max-width: 62ch;
+		padding: 2rem 1.5rem;
+		border: 1px solid var(--border);
+		border-radius: 14px;
+		background: var(--surface);
+		box-shadow: var(--shadow);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+	}
+	.sp-icon {
+		font-size: 28px;
+		color: var(--text-faint);
+		line-height: 1;
+	}
+	.sp-title {
+		margin: 0.5rem 0 0;
+		font-family: var(--font-ui);
+		font-size: 0.75rem;
+		letter-spacing: 0.3em;
+		text-transform: lowercase;
+		color: var(--text-muted);
+	}
+	.sp-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		width: 100%;
+		max-width: 320px;
+		margin-top: 1.25rem;
+	}
+	.sp-label {
+		font-family: var(--font-ui);
+		font-size: 0.7rem;
+		letter-spacing: 0.25em;
+		text-transform: lowercase;
+		color: var(--text-faint);
+	}
+	.sp-pw-input {
+		width: 100%;
+		background: var(--bg-2);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		color: var(--text);
+		font-family: var(--font-ui);
+		font-size: 0.95rem;
+		padding: 0.6rem 0.8rem;
+		text-align: center;
+	}
+	.sp-pw-input:focus {
+		outline: none;
+		border-color: var(--accent);
+	}
+	.sp-actions {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+		margin-top: 1.25rem;
+	}
+	.sp-hint {
+		font-family: var(--font-ui);
+		font-size: 0.72rem;
+		color: var(--text-faint);
+	}
+	.sp-btn {
+		background: none;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		color: var(--text);
+		font-family: var(--font-ui);
+		font-size: 0.78rem;
+		letter-spacing: 0.2em;
+		text-transform: lowercase;
+		padding: 0.5rem 1.4rem;
+		cursor: pointer;
+		transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+	}
+	.sp-btn:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	.sp-btn:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+	.sp-msg {
+		margin: 0.75rem 0 0;
+		min-height: 1.2em;
+		font-family: var(--font-ui);
+		font-size: 0.8rem;
+		letter-spacing: 0.1em;
+		color: var(--text-muted);
+	}
+	/* Çözülen metin: blog gövdesiyle aynı görünüm */
+	:global(.sp-decrypted) {
+		margin-top: 2.25rem;
+		padding: 10px 80px 80px;
+		background: var(--surface);
+		border-radius: 14px;
+		box-shadow: var(--shadow);
+		overflow: hidden;
+		white-space: pre-wrap;
+		word-break: break-word;
+		font-family: var(--font-serif);
+		font-size: 25px;
+		line-height: 1.85;
+		color: var(--text-faint);
+	}
+	@media (max-width: 768px) {
+		:global(.sp-decrypted) {
+			padding: 40px 26px 48px;
+			font-size: 20px;
+			line-height: 1.8;
+		}
+	}
+</style>

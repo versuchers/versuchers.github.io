@@ -1,0 +1,378 @@
+/* ============================================================================
+   Blog bölümüne özgü düzen.
+   Renk, tipografi ve doku artık global.css'te (site geneli tema) tanımlı;
+   burada yalnızca blog sayfalarının dizilimi ve bloga özgü ince ayarlar var.
+   ========================================================================= */
+
+/* Blog sayfalarında üst/alt çubuk da sitenin geri kalanıyla birebir aynıdır; */
+/* bloga özgü dizilim aşağıda tanımlanır. */
+
+/* Etiketler blogda sade metin (#etiket) */
+body.is-blog .chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35em;
+	border: 0;
+	background: none;
+	border-radius: 0;
+	padding: 0;
+	white-space: normal;
+}
+body.is-blog .chip::before {
+	content: '#';
+	opacity: 0.45;
+}
+.blog-feed .chip {
+	font-family: var(--font-card);
+	font-weight: 400;
+	font-size: 0.72rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text-faint);
+}
+.blog-feed a.chip {
+	transition: color 0.15s ease;
+}
+.blog-feed a.chip:hover {
+	color: var(--accent-2);
+}
+.blog-post .chip {
+	font-family: var(--font-display);
+	font-size: 1.1rem;
+	letter-spacing: 0.08em;
+	color: var(--text-muted);
+}
+.blog-post a.chip {
+	transition: color 0.15s ease;
+}
+.blog-post a.chip:hover {
+	color: var(--accent-2);
+}
+
+/* ================================================================ BLOG LİSTESİ */
+.blog-feed {
+	width: 100%;
+	max-width: 692px;
+	margin-inline: auto;
+	padding-inline: 1.25rem;
+	padding-block: clamp(2.5rem, 6vw, 4.5rem);
+}
+.blog-feed .page-head {
+	text-align: center;
+	margin-bottom: clamp(2.5rem, 6vw, 3.5rem);
+}
+.blog-feed .page-head .eyebrow {
+	font-family: var(--font-ui);
+	color: var(--text-faint);
+	letter-spacing: 0.2em;
+}
+.blog-feed .page-head h1 {
+	font-family: var(--font-display);
+	font-weight: 400;
+	font-size: 34px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	margin: 0.5rem 0 0.6rem;
+}
+.blog-feed .page-head .lede {
+	font-family: var(--font-serif);
+	font-size: 1.15rem;
+	line-height: 1.7;
+	color: var(--text-muted);
+	max-width: none;
+	margin-inline: auto;
+}
+
+.blog-feed .posts {
+	display: grid;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.blog-feed .posts > li {
+	min-width: 0;
+}
+.blog-feed .posts > li + li {
+	margin-top: 54px;
+	padding-top: 54px;
+	background-image: linear-gradient(
+		to right,
+		var(--border-strong) 0%,
+		var(--border) 50%,
+		transparent 100%
+	);
+	background-size: 100% 1px;
+	background-repeat: no-repeat;
+	background-position: top;
+}
+.blog-feed .post {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: 36px 40px;
+	border: 0;
+	border-radius: 15px;
+	background: var(--surface);
+	box-shadow: var(--shadow);
+	overflow: hidden;
+	transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.blog-feed .post::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	pointer-events: none;
+	border-radius: 10px;
+	opacity: 0.045;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)'/%3E%3C/svg%3E");
+	background-size: 180px 180px;
+	mix-blend-mode: overlay;
+}
+.blog-feed .post > * {
+	position: relative;
+	z-index: 2;
+}
+/* Kartın tamamı tıklanabilir kalsın: başlık bağlantısı karta yayılır.
+   Etiket listesi z-index ile örtünün üstünde kalır ve ayrı tıklanabilir olur. */
+.blog-feed .post h2 {
+	position: static;
+	z-index: auto;
+}
+.blog-feed .post-link {
+	color: inherit;
+}
+.blog-feed .post-link::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	border-radius: 15px;
+}
+.blog-feed .post:hover {
+	background-color: var(--surface-2);
+	box-shadow: var(--shadow-hover, var(--shadow));
+}
+
+.blog-feed .post h2 {
+	order: 1;
+	margin: 0 0 10px;
+	font-family: var(--font-display);
+	font-weight: 400;
+	font-size: clamp(1.6rem, 5.5vw, 2.25rem);
+	line-height: 1.15;
+	letter-spacing: 0.02em;
+	color: var(--text-muted);
+	text-transform: capitalize;
+	transition: color 0.15s ease;
+}
+.blog-feed .post:hover h2 {
+	color: var(--accent-2);
+}
+.blog-feed .post time {
+	order: 2;
+	font-family: var(--font-card);
+	font-size: 0.72rem;
+	font-weight: 400;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--text-faint);
+}
+.blog-feed .post .chip-list {
+	order: 3;
+	justify-content: center;
+	margin-top: 10px;
+	position: relative;
+	z-index: 4;
+}
+
+/* ================================================================ BLOG YAZISI */
+.blog-post {
+	width: 100%;
+	max-width: 860px;
+	margin-inline: auto;
+	padding: 1.5rem 18px clamp(3rem, 8vw, 5rem);
+}
+.blog-post .crumbs {
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem;
+	margin-bottom: 1.75rem;
+	font-family: var(--font-card);
+	font-size: 0.72rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--text-faint);
+}
+.blog-post .crumbs a:hover {
+	color: var(--text);
+}
+.blog-post .post-title {
+	font-family: var(--font-display);
+	font-weight: 400;
+	font-size: clamp(1.55rem, 4.4vw, 1.875rem);
+	line-height: 1.2;
+	letter-spacing: 0.01em;
+	text-align: center;
+	color: var(--text);
+	margin: 0;
+}
+.blog-post .lede {
+	font-family: var(--font-serif);
+	font-size: 1.2rem;
+	line-height: 1.7;
+	text-align: center;
+	color: var(--text-muted);
+	max-width: 60ch;
+	margin: 0.9rem auto 0;
+}
+.blog-post .post-foot {
+	margin-top: 40px;
+	padding-top: 20px;
+	border-top: 1px solid var(--border);
+	text-align: center;
+}
+.blog-post .post-date {
+	margin: 0;
+	opacity: 0.5;
+	font-family: var(--font-head);
+	font-size: 12px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+.blog-post .post-labels {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.75rem;
+	margin: 0.75rem 0 0;
+}
+
+.blog-post .notice {
+	margin: 1.75rem auto 0;
+	max-width: 62ch;
+	padding: 0.75rem 1.25rem;
+	border-left: 2px solid var(--border-strong);
+	background: var(--accent-soft);
+	border-radius: 0;
+	font-family: var(--font-ui);
+	font-size: 0.85rem;
+	line-height: 1.6;
+	color: var(--text-muted);
+}
+
+.blog-post .prose {
+	position: relative;
+	max-width: none;
+	margin-top: 2.25rem;
+	padding: 10px 80px 80px;
+	background: var(--surface);
+	border-radius: 14px;
+	box-shadow: var(--shadow);
+	overflow: hidden;
+}
+.blog-post .prose::before {
+	content: '\2014';
+	display: block;
+	margin-bottom: 28px;
+	font-size: 18px;
+	letter-spacing: 0.4em;
+	text-align: center;
+	opacity: 0.2;
+}
+.blog-post .prose p,
+.blog-post .prose li,
+.blog-post .prose span,
+.blog-post .prose div,
+.blog-post .prose ol,
+.blog-post .prose ul {
+	font-family: var(--font-serif);
+	font-size: 25px;
+	line-height: 1.85;
+	color: var(--text-faint);
+}
+.blog-post .prose p {
+	margin: 0 0 1.35em;
+}
+.blog-post .prose p:last-child {
+	margin-bottom: 0;
+}
+.blog-post .prose h2,
+.blog-post .prose h3,
+.blog-post .prose h4 {
+	font-family: var(--font-display);
+	font-weight: 400;
+	color: var(--text);
+	letter-spacing: 0.03em;
+	margin: 1.6em 0 0.6em;
+}
+.blog-post .prose b,
+.blog-post .prose strong {
+	font-family: var(--font-display);
+	font-weight: 400;
+}
+.blog-post .prose a {
+	color: var(--accent);
+	text-decoration: none;
+}
+.blog-post .prose a:hover {
+	color: var(--accent-2);
+}
+.blog-post .prose blockquote {
+	margin: 1.4em 0;
+	padding-left: 1.4em;
+	border-left: 2px solid var(--border);
+	font-family: var(--font-ui);
+	font-size: 22px;
+	line-height: 1.65;
+	color: var(--text);
+}
+.blog-post .prose blockquote p {
+	font-family: var(--font-ui);
+	font-size: 22px;
+	color: var(--text);
+}
+.blog-post .prose img {
+	border-radius: 6px;
+	margin-inline: auto;
+}
+.blog-post .prose code {
+	font-family: var(--font-ui);
+	font-size: 0.72em;
+	background: var(--surface-2);
+	padding: 0.15em 0.45em;
+	border-radius: 4px;
+}
+.blog-post .prose hr {
+	border: 0;
+	border-top: 1px solid var(--border);
+	margin: 2em 0;
+}
+
+/* ================================================================ RESPONSIVE */
+@media (max-width: 768px) {
+	.blog-feed .post {
+		padding: 28px 22px;
+	}
+	.blog-feed .posts > li + li {
+		margin-top: 28px;
+		padding-top: 28px;
+	}
+	.blog-post .prose {
+		padding: 40px 26px 48px;
+	}
+	.blog-post .prose p,
+	.blog-post .prose li,
+	.blog-post .prose span,
+	.blog-post .prose div,
+	.blog-post .prose ol,
+	.blog-post .prose ul {
+		font-size: 20px;
+		line-height: 1.8;
+	}
+}

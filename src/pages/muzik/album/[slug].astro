@@ -1,0 +1,68 @@
+---
+import Base from '../../../layouts/Base.astro';
+import MusicDetail from '../../../components/MusicDetail.astro';
+import MusicRows from '../../../components/MusicRows.astro';
+import {
+	albums,
+	stats,
+	cover,
+	integer,
+	durationText,
+	musicDate,
+	spotifySearchUrl,
+	hasTrack,
+	hasArtist,
+	type Album,
+} from '../../../lib/music';
+
+export function getStaticPaths() {
+	return albums.map((al) => ({ params: { slug: al.slug }, props: { al } }));
+}
+
+const { al } = Astro.props as { al: Album };
+const years = stats.years.map((y) => String(y.year));
+
+const rows = al.tracks.map((t) => ({
+	title: t.name,
+	href: hasTrack(t.slug) ? `/muzik/sarki/${t.slug}` : null,
+	src: t.slug ? cover('track', t.slug) : undefined,
+	plays: t.plays,
+}));
+
+const description = `${al.artist} — ${al.name}: ${integer(al.plays)} çalma, ${durationText(al.ms)}.`;
+---
+
+<Base title={`${al.name} — ${al.artist}`} description={description} ogImage={cover('album', al.slug)}>
+	<MusicDetail
+		kindLabel="Albüm"
+		kindPlural="Albümler"
+		kindHref="/muzik/albumler"
+		title={al.name}
+		subtitle={al.artist}
+		subtitleHref={hasArtist(al.artistSlug) ? `/muzik/sanatci/${al.artistSlug}` : undefined}
+		coverSrc={cover('album', al.slug)}
+		links={[{ label: 'Spotify', href: spotifySearchUrl(`${al.artist} ${al.name}`) }]}
+		stats={[
+			{ k: 'Çalma', v: integer(al.plays) },
+			{ k: 'Dinleme', v: durationText(al.ms) },
+			{ k: 'Şarkı', v: integer(al.trackCount) },
+			{ k: 'İlk dinleme', v: musicDate(al.first) },
+			{ k: 'Son dinleme', v: musicDate(al.last) },
+		]}
+		values={al.byYear}
+		labels={years}
+	>
+		{rows.length > 0 && (
+			<section class="block">
+				<div class="section-head"><h2>Şarkılar</h2></div>
+				<MusicRows rows={rows} />
+			</section>
+		)}
+	</MusicDetail>
+</Base>
+
+<style>
+	.block {
+		margin-top: clamp(2rem, 5vw, 3rem);
+	}
+</style>

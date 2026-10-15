@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import { films, series, books } from '../lib/data';
+
+const total = films.length + series.length + books.length;
+---
+
+<Base title="Hakkımda" description="Bu arşiv ve onu nasıl tuttuğum hakkında.">
+	<div class="container section narrow">
+		<p class="eyebrow">Hakkımda</p>
+		<h1>Bu arşiv nedir?</h1>
+		<div class="prose">
+			<p>
+				İzlediğim filmleri, dizileri ve okuduğum kitapları yıllardır bir Google Sheets
+				dosyasında tutuyorum. Bu site o veriyi görselleştiriyor: <strong>{total}</strong> kayıt,
+				hepsi tıklanabilir.
+			</p>
+			<p>
+				Veri kaynağı düzenli olarak güncellenen üç ayrı sheet: filmler, diziler ve kitaplar.
+				Her kayıt; puan, yorum, künye, tarih ve dış bağlantıları (TMDB, IMDb, Letterboxd,
+				Goodreads) içeriyor.
+			</p>
+			<p>
+				Site <strong>Astro</strong> ile üretiliyor ve statik olarak yayınlanıyor. Afişler
+				<code>versucher.com/log</code> altında barınıyor.
+			</p>
+		</div>
+		<p class="links">
+			<a class="btn" href="/film">Filmler</a>
+			<a class="btn" href="/dizi">Diziler</a>
+			<a class="btn" href="/kitap">Kitaplar</a>
+		</p>
+	</div>
+</Base>
+
+<style>
+	.narrow {
+		max-width: 680px;
+	}
+	.narrow h1 {
+		margin-block: 0.2rem 1rem;
+	}
+	.links {
+		display: flex;
+		gap: 0.6rem;
+		flex-wrap: wrap;
+		margin-top: 2rem;
+	}
+</style>

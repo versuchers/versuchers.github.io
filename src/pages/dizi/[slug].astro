@@ -1,0 +1,18 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryDetail from '../../components/EntryDetail.astro';
+import { series, type Dizi } from '../../lib/data';
+
+export function getStaticPaths() {
+	return series.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}
+
+const { entry } = Astro.props as { entry: Dizi };
+const description =
+	entry.review ||
+	`${entry.title}${entry.yearRange ? ` (${entry.yearRange})` : ''} — ${entry.creator || 'dizi'} künyesi ve yorumum.`;
+---
+
+<Base title={entry.title} description={description} ogImage={entry.poster}>
+	<EntryDetail entry={entry} />
+</Base>
