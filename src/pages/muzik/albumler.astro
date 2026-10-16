@@ -1,7 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
 import MusicBrowse from '../../components/MusicBrowse.astro';
-import { albums, cover, integer, foldTr } from '../../lib/music';
+import { albums, cover, integer } from '../../lib/music';
+import { fold } from '../../lib/text';
 
 const rows = albums.map((al) => ({
 	href: `/muzik/album/${al.slug}`,
@@ -9,7 +10,7 @@ const rows = albums.map((al) => ({
 	sub: `${al.artist} · ${integer(al.trackCount)} şarkı`,
 	src: cover('album', al.slug),
 	plays: al.plays,
-	search: foldTr(`${al.name} ${al.artist}`),
+	search: fold(`${al.name} ${al.artist}`),
 }));
 ---
 

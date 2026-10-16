@@ -1,5 +1,6 @@
 /**
- * Başlık biçimlendirme yardımcıları.
+ * Metin yardımcıları: başlık biçimlendirme ve Türkçe karakter sadeleştirme.
+ * Tek kaynak — sunucu bileşenleri ve tarayıcı betikleri buradaki fonksiyonları kullanır.
  */
 
 /**
@@ -40,4 +41,39 @@ export function titleCaseTr(input: string): string {
 			return upper + token.slice(1);
 		})
 		.join('');
+}
+
+const TR_FOLD: Record<string, string> = {
+	ç: 'c',
+	ğ: 'g',
+	ı: 'i',
+	ö: 'o',
+	ş: 's',
+	ü: 'u',
+	â: 'a',
+	î: 'i',
+	û: 'u',
+};
+
+/** Türkçe karakterleri sadeleştirip küçük harfe çevirir (arama için). */
+export function fold(input: string): string {
+	return (
+		(input || '')
+			.toLowerCase()
+			// 'İ'.toLowerCase() birleşik nokta (U+0307) üretir ("i̇"); onu sadele.
+			.replace(/i\u0307/g, 'i')
+			.replace(/[çğıöşüâîû]/g, (c) => TR_FOLD[c] ?? c)
+	);
+}
+
+/** Etiket adlarını URL-güvenli slug'a çevirir. */
+export function tagSlug(input: string): string {
+	return (
+		fold(input)
+			.trim()
+			.replace(/['"’]/g, '')
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '')
+			.slice(0, 80) || 'etiket'
+	);
 }

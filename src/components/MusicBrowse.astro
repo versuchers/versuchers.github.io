@@ -74,6 +74,8 @@ const { label, unit, rows } = Astro.props;
 </div>
 
 <script>
+	import { fold } from '../lib/text';
+
 	document.querySelectorAll<HTMLElement>('[data-mbrowse]').forEach((root) => {
 		const list = root.querySelector<HTMLElement>('.mrow-list');
 		if (!list) return;
@@ -84,13 +86,6 @@ const { label, unit, rows } = Astro.props;
 		const count = root.querySelector<HTMLElement>('[data-count]')!;
 		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
 		const unit = count.textContent?.replace(/^\d+\s*/, '') ?? '';
-
-		function fold(s: string): string {
-			const map: Record<string, string> = {
-				ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u', â: 'a', î: 'i', û: 'u',
-			};
-			return s.toLowerCase().replace(/[çğıöşüâîû]/g, (c) => map[c] ?? c);
-		}
 
 		function apply() {
 			const q = fold(search.value.trim());

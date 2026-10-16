@@ -6,13 +6,14 @@
  * Gizlilik: yalnızca sanatçı / şarkı / albüm / tarih / kapak gösterilir.
  */
 import MusicCover from './MusicCover.astro';
-import { lastfm, tracks, hasTrack, cover, foldTr, MONTHS_TR } from '../lib/music';
+import { lastfm, tracks, hasTrack, cover, MONTHS_TR } from '../lib/music';
+import { fold } from '../lib/text';
 
 const rows = (lastfm.tracks || []).slice(0, 6);
 if (rows.length === 0) return null;
 
 // Aynı şarkı arşivde varsa yerel detay sayfasına bağla.
-const localKey = (a: string, n: string) => `${foldTr(a)}|${foldTr(n)}`;
+const localKey = (a: string, n: string) => `${fold(a)}|${fold(n)}`;
 const local = new Map(tracks.map((t) => [localKey(t.artist, t.name), t.slug]));
 
 const stamp = (uts: number): string => {

@@ -2,12 +2,14 @@
 /**
  * Playlist kapaklarını log deposuna aynalar (indir → webp → push) ve
  * src/data/spotify-playlists.json içindeki `cover` alanını
- * https://versuchers.github.io/log/playlist/<id>.webp adresine çevirir.
+ * https://versucher.com/log/playlist/<id>.webp adresine çevirir.
  *
- * Çalıştırma:  node scripts/fetch-playlist-covers.mjs [--force]
+ * Çalıştırma:  node scripts/fetch-playlist-covers.mjs [--force] [--no-push]
  *
  * - Zaten log deposunda olan kapaklar atlanır (kesintiden sonra devam edilebilir).
  * - Aynalama yoksa (klon/PAT yoksa) kapak Spotify CDN adresinde kalır — kırık olmaz.
+ * - --no-push: dosyaları yerele yazar/veriyi günceller ama log deposuna
+ *   commit/push YAPMAZ (yayına almadan hazırlamak için).
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -17,6 +19,7 @@ import { mirror, flush, hosted, logUrl } from './lib/mirror.mjs';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = resolve(ROOT, 'src/data/spotify-playlists.json');
 const FORCE = process.argv.includes('--force');
+const NO_PUSH = process.argv.includes('--no-push');
 const CONC = 6;
 
 const isLog = (u) => typeof u === 'string' && u.includes('/log/playlist/');
@@ -54,17 +57,21 @@ async function main() {
 
 	await Promise.all(Array.from({ length: CONC }, worker));
 
-	const pushed = newly.length ? await flush() : false;
-	if (newly.length && !pushed) {
-		let reverted = 0;
-		for (const { id, url, rel } of newly) {
-			if (!(await hosted(rel))) {
-				const pl = playlists.find((p) => p.id === id);
-				if (pl) pl.cover = url;
-				reverted++;
+	if (NO_PUSH) {
+		console.log(`\n⏸  --no-push: ${newly.length} kapak yerele yazıldı; log deposuna commit/push yapılmadı.`);
+	} else {
+		const pushed = newly.length ? await flush() : false;
+		if (newly.length && !pushed) {
+			let reverted = 0;
+			for (const { id, url, rel } of newly) {
+				if (!(await hosted(rel))) {
+					const pl = playlists.find((p) => p.id === id);
+					if (pl) pl.cover = url;
+					reverted++;
+				}
 			}
+			if (reverted) console.log(`   · yayında olmayan ${reverted} kapak özgün URL'ye döndürüldü`);
 		}
-		if (reverted) console.log(`   · yayında olmayan ${reverted} kapak özgün URL'ye döndürüldü`);
 	}
 
 	await writeFile(OUT, JSON.stringify(data, null, 2));

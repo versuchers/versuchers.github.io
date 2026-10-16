@@ -120,10 +120,6 @@ function tag(block, name) {
 	return m ? m[1] : '';
 }
 
-function isSelfClosed(block, name) {
-	return new RegExp(`<${name}\\s*/>`).test(block) && !new RegExp(`<${name}>`).test(block);
-}
-
 function dateOnly(iso) {
 	const d = new Date(iso);
 	if (Number.isNaN(d.getTime())) return '';

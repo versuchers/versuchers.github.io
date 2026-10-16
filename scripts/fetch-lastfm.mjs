@@ -11,7 +11,7 @@
  * Anahtar repoya yazılmaz; anahtarsız betik sessizce çıkar.
  *
  * Kapaklar mümkünse log deposuna aynalanır (indir → webp → push) ve
- * https://versuchers.github.io/log/music/son/<ad>.webp adresi yazılır.
+ * https://versucher.com/log/music/son/<ad>.webp adresi yazılır.
  * Aynalama yoksa (CI'da klon/PAT yoksa) daha önce aynalanmış görseller yine
  * log adresinden, yeni görseller Last.fm CDN'inden gelir — asla kırık olmaz.
  */

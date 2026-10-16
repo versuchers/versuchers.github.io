@@ -30,12 +30,13 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 
 <header class="site-header">
 	<div class="container bar">
-		<a class="brand" href="/" aria-label="Ana sayfa">
+		<a class="brand" href="/">
 			<span class="mark" aria-hidden="true">✦</span>
-			<span class="word">V E R S U C H E R</span>
+			<span class="word" aria-hidden="true">V E R S U C H E R</span>
+			<span class="visually-hidden">Versucher, ana sayfa</span>
 		</a>
 
-		<nav aria-label="Ana gezinme">
+		<nav class="main-nav" aria-label="Ana gezinme">
 			{
 				groups.map((group) => (
 					<div class="nav-group" data-nav-group>
@@ -77,7 +78,44 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 		<div class="actions">
 			<a class="search-link" href="/ara" title="Ara" aria-label="Ara">⌕</a>
 			<ThemeToggle />
+			<button
+				type="button"
+				class="menu-btn"
+				aria-label="Menü"
+				aria-expanded="false"
+				aria-controls="mobile-nav"
+				data-menu-btn
+			>
+				<span class="bars" aria-hidden="true">☰</span>
+				<span class="x" aria-hidden="true">✕</span>
+			</button>
 		</div>
+	</div>
+
+	<div class="mobile-panel" id="mobile-nav" data-mobile-panel>
+		<a class="m-search" href="/ara">
+			<span class="m-ico" aria-hidden="true">⌕</span>
+			<span>Ara</span>
+		</a>
+		{
+			groups.map((group) => (
+				<div class="m-group">
+					<p class="m-group-label">{group.label}</p>
+					{group.items.map((item) => (
+						<a href={item.href} class:list={['m-link', { active: isActive(item.href) }]}>
+							{item.label}
+						</a>
+					))}
+				</div>
+			))
+		}
+		{
+			singles.map((item) => (
+				<a href={item.href} class:list={['m-link', { active: isActive(item.href) }]}>
+					{item.label}
+				</a>
+			))
+		}
 	</div>
 </header>
 
@@ -112,6 +150,31 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 		});
 		document.addEventListener('keydown', (event) => {
 			if (event.key === 'Escape') closeAll();
+		});
+	}
+
+	// Mobil menü (≤768px): hamburger ile aç/kapat.
+	const menuBtn = document.querySelector<HTMLButtonElement>('[data-menu-btn]');
+	const panel = document.querySelector<HTMLElement>('[data-mobile-panel]');
+
+	if (menuBtn && panel) {
+		const setMenu = (open: boolean) => {
+			panel.classList.toggle('open', open);
+			menuBtn.setAttribute('aria-expanded', String(open));
+		};
+		menuBtn.addEventListener('click', () => setMenu(!panel.classList.contains('open')));
+		panel.addEventListener('click', (event) => {
+			if ((event.target as Element | null)?.closest('a')) setMenu(false);
+		});
+		document.addEventListener('click', (event) => {
+			const el = event.target as Element | null;
+			if (el && !el.closest('[data-mobile-panel]') && !el.closest('[data-menu-btn]')) setMenu(false);
+		});
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape') setMenu(false);
+		});
+		window.matchMedia('(min-width: 769px)').addEventListener('change', (event) => {
+			if (event.matches) setMenu(false);
 		});
 	}
 </script>
@@ -287,18 +350,104 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 		background: var(--surface-2);
 	}
 
+	/* --- Mobil menü (hamburger + açılır panel) --- */
+	.menu-btn {
+		display: none;
+		width: 2.2rem;
+		height: 2.2rem;
+		place-items: center;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: var(--surface-2);
+		color: var(--text-muted);
+		font-size: 1.05rem;
+		line-height: 1;
+	}
+	.menu-btn:hover {
+		color: var(--text);
+	}
+	.menu-btn .x {
+		display: none;
+	}
+	.menu-btn[aria-expanded='true'] .bars {
+		display: none;
+	}
+	.menu-btn[aria-expanded='true'] .x {
+		display: inline;
+	}
+
+	.mobile-panel {
+		display: none;
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		max-height: min(75vh, 34rem);
+		overflow-y: auto;
+		background: var(--surface);
+		border-top: 1px solid var(--border);
+		border-bottom: 1px solid var(--border);
+		box-shadow: var(--shadow);
+		padding: 0.5rem clamp(1rem, 4vw, 2.5rem) 1rem;
+	}
+	.mobile-panel.open {
+		display: block;
+	}
+	.m-search {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.75rem 0.4rem;
+		border-bottom: 1px solid var(--border);
+		font-family: var(--font-ui);
+		color: var(--text);
+	}
+	.m-ico {
+		font-size: 1.1rem;
+		color: var(--accent);
+	}
+	.m-group {
+		padding-top: 0.5rem;
+	}
+	.m-group-label {
+		margin: 0.2rem 0;
+		padding: 0 0.4rem;
+		font-family: var(--font-ui);
+		font-size: 0.7rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--text-faint);
+	}
+	.m-link {
+		display: block;
+		padding: 0.6rem 0.4rem;
+		border-radius: var(--radius-sm);
+		font-family: var(--font-card);
+		font-size: 1.05rem;
+		color: var(--text-muted);
+	}
+	.m-link:hover,
+	.m-link.active {
+		color: var(--text);
+		background: var(--surface-2);
+	}
+
 	@media (max-width: 900px) {
 		.brand {
 			font-size: 1.45rem;
 			letter-spacing: 0.05em;
 		}
 	}
-	@media (max-width: 700px) {
-		/* Dar ekranda menü sağ kenara hizalansın ki taşmasın. */
-		.nav-menu {
-			left: auto;
-			right: 0;
-			transform: none;
+	@media (max-width: 768px) {
+		/* Masaüstü menüsü yerine hamburger + açılır panel. */
+		.main-nav {
+			display: none;
+		}
+		.search-link {
+			display: none;
+		}
+		.menu-btn {
+			display: grid;
 		}
 	}
 	@media (max-width: 640px) {
@@ -309,15 +458,16 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 			font-size: 1.1rem;
 			letter-spacing: 0.04em;
 		}
-		.nav-link {
-			padding: 0.4rem 0.55rem;
-			font-size: 0.95rem;
+	}
+	@media (max-width: 400px) {
+		.brand {
+			font-size: 1rem;
+			letter-spacing: 0.03em;
 		}
-		.nav-sub {
-			font-size: 0.9rem;
-		}
-		.search-link {
-			display: none;
+		.menu-btn {
+			width: 2rem;
+			height: 2rem;
+			font-size: 1rem;
 		}
 	}
 </style>

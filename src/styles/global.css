@@ -36,8 +36,8 @@
 	--surface: #18181c;
 	--surface-2: #2c2c32;
 	--text: #c8c0b8;
-	--text-muted: #8a8a8a;
-	--text-faint: #696969;
+	--text-muted: #9c9c9c;
+	--text-faint: #969696;
 	--border: #2a2a2a;
 	--border-strong: #333333;
 	--accent: #a99c8c;
@@ -45,7 +45,7 @@
 	--accent-contrast: #111113;
 	--accent-soft: rgba(169, 156, 140, 0.12);
 	--link-hover: #a99c8c;
-	--rating: #b51200;
+	--rating: #f2726a;
 	--font-display: 'Manufacturing Consent', 'EB Garamond', Georgia, serif;
 	--headline-weight: 400;
 	--headline-tracking: 0.01em;
@@ -66,8 +66,8 @@
 	--surface: #fbf9f5;
 	--surface-2: #ece6da;
 	--text: #2b2723;
-	--text-muted: #6f675d;
-	--text-faint: #938b7f;
+	--text-muted: #635b51;
+	--text-faint: #6b6359;
 	--border: #ddd5c7;
 	--border-strong: #cec4b3;
 	--accent: #6d5f52;
@@ -356,7 +356,7 @@ a.chip:hover {
 
 .rating .den {
 	font-size: 0.62em;
-	opacity: 0.6;
+	color: var(--text-muted);
 	font-weight: 500;
 }
 

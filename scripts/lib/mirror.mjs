@@ -1,23 +1,23 @@
 /**
  * Harici görsel URL'lerini "log" deposuna ayna (mirror) eder:
  *   indir → webp'ye çevir → <klon>/music/... altına yaz → git push →
- *   https://versuchers.github.io/log/music/... adresi döndürülür.
+ *   https://versucher.com/log/music/... adresi döndürülür.
  *
  * Ortam değişkenleri (opsiyonel):
  *   LOG_REPO_DIR   log deposunun yerel klonu; yoksa ~/versuchers-log denenir
  *   LOG_REPO_TOKEN GitHub PAT — yalnızca klon yoksa klonlamak/CI'da push için
- *   LOG_BASE       varsayılan: https://versuchers.github.io/log
+ *   LOG_BASE       varsayılan: https://versucher.com/log
  *
  * Klon yoksa ve token yoksa her şey sessizce devre dışı kalır; çağıran betik
  * özgün (harici) URL'yi kullanır. Böylece CI'da bile site asla kırık görsel
  * göstermez.
  */
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import path from 'node:path';
 
-export const LOG_BASE = process.env.LOG_BASE || 'https://versuchers.github.io/log';
+export const LOG_BASE = process.env.LOG_BASE || 'https://versucher.com/log';
 export const logUrl = (rel) => `${LOG_BASE}/${String(rel).replace(/^\/+/, '')}`;
 
 const TOKEN = process.env.LOG_REPO_TOKEN || '';

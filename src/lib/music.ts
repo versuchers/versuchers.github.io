@@ -209,11 +209,3 @@ export function dayLabel(ymd: string | null): string {
 export function maxOf(arr: number[]): number {
 	return arr.reduce((m, v) => (v > m ? v : m), 0);
 }
-
-const FOLD: Record<string, string> = {
-	ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u', â: 'a', î: 'i', û: 'u',
-};
-/** Türkçe karakterleri sadeleştirip küçük harfe çevirir (arama için). */
-export function foldTr(s: string): string {
-	return (s || '').toLowerCase().replace(/[çğıöşüâîû]/g, (c) => FOLD[c] ?? c);
-}

@@ -6,6 +6,7 @@ import filmsJson from '../data/film.json';
 import seriesJson from '../data/dizi.json';
 import booksJson from '../data/kitap.json';
 import { parseTrDate, parseLooseTrDate, formatLooseTrDate } from './format';
+import { fold } from './text';
 
 export type Kind = 'film' | 'dizi' | 'kitap';
 
@@ -379,26 +380,28 @@ export function related(entry: Entry, limit = 6): Entry[] {
 		.map((x) => x.entry);
 }
 
-const FOLD_MAP: Record<string, string> = {
-	ç: 'c',
-	ğ: 'g',
-	ı: 'i',
-	ö: 'o',
-	ş: 's',
-	ü: 'u',
-	â: 'a',
-	î: 'i',
-	û: 'u',
-};
+/** Global arama için bir kaydın tüm aranabilir alanlarını birleştirir. */
+/** Arama metnine katılacak en fazla oyuncu sayısı (uzun kadrolarda kuyruğu atlar). */
+const CAST_SEARCH_LIMIT = 12;
 
-/** Türkçe karakterleri sadeleştirip küçük harfe çevirir (arama için). */
-export function fold(input: string): string {
-	return (input || '')
-		.toLowerCase()
-		.replace(/[çğıöşüâîû]/g, (c) => FOLD_MAP[c] ?? c);
+/**
+ * Kadronun ilk `CAST_SEARCH_LIMIT` farklı oyuncusunu döndürür.
+ * Aynı oyuncu birden çok rolde görünebileceği için ada göre tekilleştirilir;
+ * böylece "ilk 12 oyuncu" gerçekten 12 kişiyi kapsar.
+ */
+function topCast(cast: { name: string; role: string }[]): { name: string; role: string }[] {
+	const seen = new Set<string>();
+	const out: { name: string; role: string }[] = [];
+	for (const c of cast) {
+		const key = (c.name || '').toLowerCase().trim();
+		if (key && seen.has(key)) continue;
+		if (key) seen.add(key);
+		out.push(c);
+		if (out.length >= CAST_SEARCH_LIMIT) break;
+	}
+	return out;
 }
 
-/** Global arama için bir kaydın tüm aranabilir alanlarını birleştirir. */
 export function searchText(e: Entry): string {
 	const parts: (string | undefined)[] = [
 		e.title,
@@ -425,8 +428,8 @@ export function searchText(e: Entry): string {
 			e.platform,
 			e.discovery,
 			e.reason,
-			...e.cast.map((c) => c.name),
-			...e.cast.map((c) => c.role),
+			...topCast(e.cast).map((c) => c.name),
+			...topCast(e.cast).map((c) => c.role),
 		);
 	} else if (e.type === 'dizi') {
 		parts.push(
@@ -445,8 +448,8 @@ export function searchText(e: Entry): string {
 			e.favoriteSeason,
 			e.firstCity,
 			e.discovery,
-			...e.cast.map((c) => c.name),
-			...e.cast.map((c) => c.role),
+			...topCast(e.cast).map((c) => c.name),
+			...topCast(e.cast).map((c) => c.role),
 		);
 	} else {
 		parts.push(

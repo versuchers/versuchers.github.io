@@ -34,6 +34,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Tip denetimi
+        run: npm run check
       - name: Google Sheets verisi (film / dizi / kitap)
         run: npm run fetch
       - name: Last.fm son dinlenenler

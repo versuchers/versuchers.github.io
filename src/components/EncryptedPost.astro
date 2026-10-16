@@ -41,7 +41,7 @@ try {
 <script>
 	function hexToBuf(hex: string): ArrayBuffer {
 		const b = new Uint8Array(hex.length / 2);
-		for (let i = 0; i < hex.length; i += 2) b[i / 2] = parseInt(hex.substr(i, 2), 16);
+		for (let i = 0; i < hex.length; i += 2) b[i / 2] = parseInt(hex.slice(i, i + 2), 16);
 		return b.buffer;
 	}
 	function b64ToBuf(s: string): ArrayBuffer {

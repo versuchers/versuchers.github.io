@@ -1,5 +1,4 @@
-# site.yml içinde `npm run build` sırasında Astro ile üretilir.
-# robots.txt: public/robots.txt (elle güncellenir).
+# Bu dosya elle güncellenir (public/robots.txt).
 User-agent: *
 Allow: /
 

@@ -1,6 +1,7 @@
 ---
-import { href, KIND_PLURAL, type Kind, type Entry } from '../lib/data';
+import { KIND_PLURAL, type Kind, type Entry } from '../lib/data';
 import { parseTrDate } from '../lib/format';
+import { fold } from '../lib/text';
 import EntryCard from './EntryCard.astro';
 
 interface Props {
@@ -9,25 +10,6 @@ interface Props {
 }
 
 const { kind, items } = Astro.props;
-
-/** Türkçe karakterleri sadeleştirip küçük harfe çevirir (arama için). */
-function fold(input: string): string {
-	const map: Record<string, string> = {
-		ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u',
-		â: 'a', î: 'i', û: 'u',
-	};
-	return input
-		.toLowerCase()
-		.replace(/[çğıöşüâîû]/g, (c) => map[c] ?? c);
-}
-
-function searchText(e: Entry): string {
-	const parts = [e.title, e.originalTitle, e.year];
-	if (e.type === 'film') parts.push(e.fullTitle, e.director, e.genre, e.mainTheme, e.tags, ...e.cast.map((c) => c.name));
-	else if (e.type === 'dizi') parts.push(e.creator, e.genre, e.mainLabel, e.tags, ...e.cast.map((c) => c.name));
-	else parts.push(e.author, e.mainGenre, e.subGenre, e.mainTheme, e.tags, e.publisher);
-	return fold(parts.filter(Boolean).join(' '));
-}
 
 function primaryGenre(e: Entry): string {
 	if (e.type === 'film') return e.genre;
@@ -112,12 +94,14 @@ const sortOptions = [
 		<span data-count class="muted">{items.length} kayıt</span>
 	</div>
 
+	<h2 class="visually-hidden">{KIND_PLURAL[kind]} listesi</h2>
+
 	<ul class="grid browse-grid">
 		{
 			items.map((e, index) => (
 				<li
 					class="cell"
-					data-search={searchText(e)}
+					data-title={fold(e.title)}
 					data-genre={fold(primaryGenre(e) || '')}
 					data-year={e.year || ''}
 					data-rating={String(e.rating ?? 0)}
@@ -134,18 +118,14 @@ const sortOptions = [
 </div>
 
 <script>
-	type SortId = 'title' | 'rating' | 'year' | 'review' | 'added';
+	import { fold } from '../lib/text';
 
-	function fold(s: string): string {
-		const map: Record<string, string> = {
-			ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u', â: 'a', î: 'i', û: 'u',
-		};
-		return s.toLowerCase().replace(/[çğıöşüâîû]/g, (c) => map[c] ?? c);
-	}
+	type SortId = 'title' | 'rating' | 'year' | 'review' | 'added';
 
 	document.querySelectorAll<HTMLElement>('[data-browse]').forEach((root) => {
 		const grid = root.querySelector<HTMLElement>('.browse-grid');
 		if (!grid) return;
+		const kind = root.dataset.kind ?? '';
 		const cells = Array.from(grid.children) as HTMLElement[];
 		const search = root.querySelector<HTMLInputElement>('[data-f="search"]')!;
 		const genre = root.querySelector<HTMLSelectElement>('[data-f="genre"]')!;
@@ -158,16 +138,45 @@ const sortOptions = [
 
 		const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
 
+		// Arama metni DOM'da tutulmaz; sayfa boyutunu küçük tutmak için yalnız
+		// gerektiğinde (ilk aramada) ayrı bir indeks dosyasından indirilir.
+		let index: string[] | null = null;
+		let indexLoading = false;
+		let indexError = false;
+		async function ensureIndex() {
+			if (index || indexLoading || indexError) return;
+			indexLoading = true;
+			try {
+				const url = `/search-index/${kind}.json`;
+				let data: string[] = await (await fetch(url)).json();
+				// Sayfa ile indeks sürümü uyuşmuyorsa (ör. CDN önbelleği) tazele.
+				if (data.length !== cells.length) {
+					data = await (await fetch(`${url}?t=${Date.now()}`)).json();
+				}
+				index = data;
+			} catch {
+				indexError = true;
+			} finally {
+				indexLoading = false;
+			}
+		}
+
 		function apply() {
 			const q = fold(search.value.trim());
 			const g = genre.value;
 			const y = year.value;
 			const r = rating.value ? Number(rating.value) : 0;
 
+			if (q && !index) {
+				if (!indexError) ensureIndex().then(apply);
+				count.textContent = indexError ? 'Arama indeksi yüklenemedi' : 'Aranıyor…';
+				return;
+			}
+
 			let visible = 0;
 			for (const cell of cells) {
 				let ok = true;
-				if (q && !(cell.dataset.search ?? '').includes(q)) ok = false;
+				if (q && !(index?.[num(cell, 'index')] ?? '').includes(q)) ok = false;
 				if (ok && g && !(cell.dataset.genre ?? '').includes(g)) ok = false;
 				if (ok && y && cell.dataset.year !== y) ok = false;
 				if (ok && r && num(cell, 'rating') < r) ok = false;
@@ -189,7 +198,7 @@ const sortOptions = [
 					case 'added':
 						return num(a, 'index') - num(b, 'index');
 					default:
-						return (a.dataset.search ?? '').localeCompare(b.dataset.search ?? '', 'tr');
+						return (a.dataset.title ?? '').localeCompare(b.dataset.title ?? '', 'tr');
 				}
 			});
 			for (const cell of sorted) grid!.appendChild(cell);
@@ -201,6 +210,7 @@ const sortOptions = [
 		[search, genre, year, rating, sort].forEach((el) =>
 			el.addEventListener('input', apply),
 		);
+		search.addEventListener('focus', ensureIndex, { once: true });
 		reset.addEventListener('click', () => {
 			search.value = '';
 			genre.value = '';

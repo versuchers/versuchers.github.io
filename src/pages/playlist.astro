@@ -24,7 +24,6 @@ for (const p of playlists) {
 	if (first && chipCount.has(first)) chipCount.set(first, chipCount.get(first)! + 1);
 }
 const folderName = new Map(chips.map((c) => [c.id, c.name]));
-const defaultFolder = chips[0]?.id ?? '__all';
 const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
 ---
 
@@ -262,11 +261,10 @@ const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
 	.fchip.is-on {
 		background: var(--accent);
 		border-color: var(--accent);
-		color: #fff;
+		color: var(--accent-contrast);
 	}
 	.fchip .n {
 		font-size: 0.72rem;
-		opacity: 0.7;
 	}
 	.pl {
 		display: flex;

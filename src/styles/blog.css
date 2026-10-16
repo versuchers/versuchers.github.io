@@ -238,12 +238,11 @@ body.is-blog .chip::before {
 }
 .blog-post .post-date {
 	margin: 0;
-	opacity: 0.5;
 	font-family: var(--font-head);
 	font-size: 12px;
 	letter-spacing: 0.1em;
 	text-transform: uppercase;
-	color: var(--text-muted);
+	color: var(--text-faint);
 }
 .blog-post .post-labels {
 	display: flex;

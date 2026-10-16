@@ -17,6 +17,8 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft && !data.ta
 ---
 
 <Base>
+	<h1 class="visually-hidden">Versucher — kişisel arşiv</h1>
+
 	<Rail items={read} title="Son okuduklarım" moreHref="/kitap" moreLabel="Tüm kitaplar" />
 
 	<Rail items={watched} title="Son izlediklerim" moreHref="/film" moreLabel="Tüm filmler" />
