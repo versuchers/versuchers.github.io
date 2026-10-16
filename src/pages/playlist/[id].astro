@@ -1,0 +1,191 @@
+---
+import Base from '../../layouts/Base.astro';
+import MusicCover from '../../components/MusicCover.astro';
+import { getPlaylistById, spotifyPlaylists } from '../../lib/playlists';
+
+export function getStaticPaths() {
+	return spotifyPlaylists.playlists.map((p) => ({ params: { id: p.id } }));
+}
+
+const { id } = Astro.params;
+const pl = getPlaylistById(id);
+
+if (!pl) {
+	throw new Error(`Playlist bulunamadı: ${id}`);
+}
+
+function formatMs(ms: number) {
+	const h = Math.floor(ms / 3600000);
+	const m = Math.floor((ms % 3600000) / 60000);
+	return h > 0 ? `${h}s ${m}d` : `${m}d`;
+}
+
+const maxArtist = pl.artists[0]?.count || 1;
+const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim() : '';
+---
+
+<Base title={pl.name} description={`Spotify playlist: ${pl.name}`}>
+	<div class="container section">
+		<nav class="crumbs"><a href="/playlist">← Playlistler</a></nav>
+
+		<header class="pl-head">
+			<div class="pl-cover">
+				<MusicCover src={pl.cover ?? undefined} alt={pl.name} eager />
+			</div>
+			<div class="pl-info">
+				<p class="eyebrow">Playlist</p>
+				<h1>{pl.name.trim() || '(isimsiz)'}</h1>
+				{description && <p class="lede">{description}</p>}
+				<p class="muted">
+					{pl.trackCount} şarkı · {pl.artistCount} artist · {pl.albumCount} albüm
+					{pl.durationMs > 0 ? ` · ${formatMs(pl.durationMs)}` : ''}
+				</p>
+				<div class="pl-actions">
+					<a class="btn btn--accent" href={pl.url} target="_blank" rel="noopener">
+						Spotify'da aç
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<section class="panel">
+			<h2>Artistler</h2>
+			<ol class="artists">
+				{pl.artists.map((a) => (
+					<li class="artist">
+						<span class="a-name">{a.name}</span>
+						<span class="a-bar" aria-hidden="true">
+							<span style={`width:${Math.max(4, Math.round((a.count / maxArtist) * 100))}%`} />
+						</span>
+						<span class="a-count">{a.count}</span>
+					</li>
+				))}
+			</ol>
+		</section>
+
+		<div class="two">
+			<section class="panel">
+				<h2>Türler</h2>
+				{pl.genres.length > 0 ? (
+					<ul class="chip-list">
+						{pl.genres.map((g) => (
+							<li class="chip">
+								{g.name} ({g.count})
+							</li>
+						))}
+					</ul>
+				) : (
+					<p class="muted">
+						Tür henüz yok. <code>npm run spotify -- --genres-only</code> ile Last.fm'den doldurulur.
+					</p>
+				)}
+			</section>
+
+			<section class="panel">
+				<h2>İlk şarkılar</h2>
+				<ol class="tracks">
+					{pl.tracks.map((t) => (
+						<li class="track">
+							<span class="tr-name">{t.name}</span>
+							<span class="tr-art muted">{t.artists.map((x) => x.name).join(', ')}</span>
+						</li>
+					))}
+				</ol>
+			</section>
+		</div>
+	</div>
+</Base>
+
+<style>
+	.crumbs {
+		margin-bottom: 1rem;
+		font-family: var(--font-ui);
+		font-size: 0.85rem;
+	}
+	.pl-head {
+		display: grid;
+		grid-template-columns: minmax(140px, 220px) 1fr;
+		gap: 1.2rem;
+		align-items: start;
+		margin-bottom: 1.6rem;
+	}
+	.pl-cover :global(.mcover) {
+		border-radius: var(--radius);
+		box-shadow: var(--shadow);
+	}
+	.pl-info h1 {
+		margin: 0.15rem 0 0.5rem;
+	}
+	.pl-actions {
+		margin-top: 0.7rem;
+	}
+	.two {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: var(--gap);
+	}
+	.artists,
+	.tracks {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		max-height: 32rem;
+		overflow: auto;
+	}
+	.artist {
+		display: grid;
+		grid-template-columns: 1fr 90px 2.4rem;
+		gap: 0.6rem;
+		align-items: center;
+		font-size: 0.9rem;
+	}
+	.a-name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.a-bar {
+		height: 6px;
+		border-radius: 999px;
+		background: var(--surface-2);
+		overflow: hidden;
+	}
+	.a-bar > span {
+		display: block;
+		height: 100%;
+		background: var(--accent);
+		border-radius: 999px;
+	}
+	.a-count {
+		text-align: right;
+		font-family: var(--font-meta);
+		font-size: 0.8rem;
+		color: var(--text-faint);
+	}
+	.track {
+		display: flex;
+		flex-direction: column;
+		gap: 0.05rem;
+		padding-bottom: 0.3rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.tr-name {
+		font-size: 0.92rem;
+	}
+	.tr-art {
+		font-family: var(--font-meta);
+		font-size: 0.78rem;
+	}
+	@media (max-width: 640px) {
+		.pl-head,
+		.two {
+			grid-template-columns: 1fr;
+		}
+		.pl-cover {
+			max-width: 220px;
+		}
+	}
+</style>

@@ -1,6 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import '../styles/fonts.css';
 import '../styles/global.css';
 import '../styles/blog.css';
 
@@ -46,11 +47,37 @@ const og = ogImage ? new URL(ogImage, Astro.site ?? 'https://versucher.com').hre
 		{og && <meta property="og:image" content={og} />}
 		<meta name="twitter:card" content={og ? 'summary_large_image' : 'summary'} />
 
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		{/* Fontlar yerelden sunulur (public/fonts + src/styles/fonts.css).
+		    İlk boyamada görünen iki aile (başlık + gövde) önden yüklenir.
+		    Türkçe karakterler (ğ ş ı İ) latin-ext dosyasında olduğu için
+		    her iki alt küme de önden yüklenir. */}
 		<link
-			rel="stylesheet"
-			href="https://fonts.googleapis.com/css2?family=Manufacturing+Consent&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Manrope:wght@300;400;500&family=Montserrat:wght@400;500;600;700&family=Cardo:ital,wght@0,400;0,700;1,400&family=Alegreya:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+			rel="preload"
+			href="/fonts/manufacturing-consent-normal-latin.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+		<link
+			rel="preload"
+			href="/fonts/manufacturing-consent-normal-latin-ext.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+		<link
+			rel="preload"
+			href="/fonts/alegreya-normal-latin.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+		<link
+			rel="preload"
+			href="/fonts/alegreya-normal-latin-ext.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
 		/>
 
 		<script is:inline>

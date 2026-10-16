@@ -18,7 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIR = resolve(__dirname, '..', 'src', 'data', 'music');
 const OUT = resolve(DIR, 'covers.json');
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36';
-const DELAY = 60;
+const DELAY = 150;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const NUL = String.fromCharCode(0);
@@ -61,6 +61,63 @@ async function deezer(path) {
 
 const loadJson = async (f) => JSON.parse(await readFile(resolve(DIR, f), 'utf-8'));
 
+// Deezer API uç noktalarını (gerçek görsel değil) ayıklar.
+const bogus = (u) => u && !/artist\/\d+\/image|album\/\d+\/image/.test(u);
+
+// Albüm/şarkı adını arama için sadeleştirir: parantez içi, "- ..." kuyruğu,
+// "Remaster/Deluxe/EP/Pt. II" gibi ekleri atar. Uzun adlar Deezer aramasını bozar.
+const cleanName = (s) =>
+	String(s ?? '')
+		.replace(/[\(\[][^\)\]]*[\)\]]/g, ' ')
+		.replace(/\s+-\s+.*$/, ' ')
+		.replace(/[,\s]+(pt|part)\.?\s*[ivxlcdm0-9]+\s*$/i, ' ')
+		.replace(/\b(remaster(ed)?|deluxe|anniversary|expanded|edition|ep|single|version|mix|instrumental|radio edit)\b/gi, ' ')
+		.replace(/\s+/g, ' ')
+		.replace(/^[,\s-]+|[,\s-]+$/g, '')
+		.trim();
+
+/** Albüm kapağı: çoklu sorgu + sanatçı eşleşmesi; olmazsa sanatçı albümleri içinde ada göre. */
+async function findAlbumCover(artist, name) {
+	const clean = cleanName(name) || name;
+	const queries = [`${artist} ${name}`, `${artist} ${clean}`, `${clean} ${artist}`, clean, name]
+		.filter((v, i, a) => v && a.indexOf(v) === i);
+	for (const q of queries) {
+		const j = await deezer(`search/album?q=${encodeURIComponent(q)}&limit=5`);
+		const hits = j?.data || [];
+		const am = hits.find((h) => norm(h.artist?.name) === norm(artist));
+		const pick = am || hits.find((h) => norm(h.title) === norm(clean)) || null;
+		const url = pick?.cover_xl || pick?.cover_big || null;
+		if (url && bogus(url)) return url;
+		await sleep(DELAY);
+	}
+	// son çare: sanatçının albüm listesinde ad benzerliği
+	const j = await deezer(`search/album?q=${encodeURIComponent(artist)}&limit=25`);
+	const hits = (j?.data || []).filter((h) => norm(h.artist?.name) === norm(artist));
+	const match =
+		hits.find((h) => norm(h.title) === norm(clean)) ||
+		hits.find((h) => norm(h.title).includes(norm(clean)) || norm(clean).includes(norm(h.title)));
+	const url = match?.cover_xl || match?.cover_big || null;
+	return url && bogus(url) ? url : null;
+}
+
+/** Şarkı kapağı: önce çoklu sorgu, bulunamazsa albümünü arar. */
+async function findTrackCover(artist, name) {
+	const clean = cleanName(name) || name;
+	const queries = [`${artist} ${name}`, `${artist} ${clean}`, clean].filter(
+		(v, i, a) => v && a.indexOf(v) === i,
+	);
+	for (const q of queries) {
+		const j = await deezer(`search?q=${encodeURIComponent(q)}&limit=5`);
+		const hits = j?.data || [];
+		const pick = hits.find((h) => norm(h.artist?.name) === norm(artist)) || hits[0] || null;
+		const url = pick?.album?.cover_xl || pick?.album?.cover_big || null;
+		if (url && bogus(url)) return url;
+		await sleep(DELAY);
+	}
+	return null;
+}
+
+
 async function main() {
 	const artists = await loadJson('artists.json');
 	const albums = await loadJson('albums.json');
@@ -79,8 +136,7 @@ async function main() {
 	let fetched = 0;
 	const newly = []; // bu çalışmada aynalanan { key, url, rel }
 
-	const save = () => writeFile(OUT, JSON.stringify(covers, null, 0) + '\n', 'utf-8');
-	const bogus = (u) => u && !/artist\/\d+\/image|album\/\d+\/image/.test(u);
+	const save = () => writeFile(OUT, JSON.stringify(covers, null, 2) + '\n', 'utf-8');
 
 	// Deezer görselini log deposuna aynalar (indir → webp → push) ve
 	// covers.json'a log adresini yazar. Aynalama yoksa özgün URL kalır.
@@ -121,12 +177,7 @@ async function main() {
 		const key = `album:${al.slug}`;
 		done++;
 		if (FORCE || !(key in covers)) {
-			const j = await deezer(
-				`search/album?q=${encodeURIComponent(al.artist + ' ' + al.name)}&limit=5`,
-			);
-			const hits = j?.data || [];
-			const pick = hits.find((h) => norm(h.artist?.name) === norm(al.artist)) || hits[0];
-			const url = pick?.cover_xl || pick?.cover_big || null;
+			const url = await findAlbumCover(al.artist, al.name);
 			await publish(key, 'album', al.slug, url);
 			fetched++;
 			if (fetched % 200 === 0) await save();
@@ -141,12 +192,7 @@ async function main() {
 		done++;
 		if (!FORCE && key in covers) continue;
 		let url = albumCoverByName.get(t.artist + NUL + t.album);
-		if (!url) {
-			const j = await deezer(`search?q=${encodeURIComponent(t.artist + ' ' + t.name)}&limit=5`);
-			const hits = j?.data || [];
-			const pick = hits.find((h) => norm(h.artist?.name) === norm(t.artist)) || hits[0];
-			url = pick?.album?.cover_xl || pick?.album?.cover_big || null;
-		}
+		if (!url) url = await findTrackCover(t.artist, t.name);
 		await publish(key, 'track', t.slug, url);
 		fetched++;
 		if (fetched % 200 === 0) await save();

@@ -1,24 +1,157 @@
 ---
 import Base from '../layouts/Base.astro';
+import MusicCover from '../components/MusicCover.astro';
+import { spotifyPlaylists } from '../lib/playlists';
+
+function formatMs(ms: number) {
+	const h = Math.floor(ms / 3600000);
+	const m = Math.floor((ms % 3600000) / 60000);
+	if (h > 0) return `${h}s ${m}d`;
+	return `${m}d`;
+}
+
+const playlists = [...spotifyPlaylists.playlists].sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+const hasData = playlists.length > 0;
+const totalTracks = playlists.reduce((s, p) => s + p.trackCount, 0);
 ---
 
-<Base title="Playlistler" description="Müzik playlistlerim — yakında.">
-	<div class="container section narrow">
-		<p class="eyebrow">Yakında</p>
-		<h1>Playlistler</h1>
-		<p class="lede">
-			Bu bölüm şimdilik kapalı. Playlist sheet'i bağlandığında burada listelenecek:
-			isim, kapak, platform, şarkı sayısı ve tarih.
-		</p>
-		<p><a class="btn" href="/">← Ana sayfa</a></p>
+<Base title="Playlistler" description="Public Spotify playlistlerim.">
+	<div class="container section">
+		<header class="section-head">
+			<div>
+				<p class="eyebrow">Müzik</p>
+				<h1>Playlistler</h1>
+				<p class="lede">
+					{hasData
+						? `${playlists.length} public playlist · ${totalTracks.toLocaleString('tr-TR')} şarkı`
+						: "Henüz veri yok — npm run spotify çalıştır."}
+				</p>
+			</div>
+			{hasData && spotifyPlaylists.fetchedAt && (
+				<p class="muted">Güncellenme: {new Date(spotifyPlaylists.fetchedAt).toLocaleDateString('tr-TR')}</p>
+			)}
+		</header>
+
+		{
+			!hasData && (
+				<section class="panel">
+					<h2>Kurulum</h2>
+					<ol>
+						<li>
+							developer.spotify.com/dashboard → Create app (Redirect URI:{' '}
+							<code>http://127.0.0.1:8888/callback</code>)
+						</li>
+						<li>
+							<code>.env</code> içine <code>SPOTIFY_CLIENT_ID</code>, <code>SPOTIFY_CLIENT_SECRET</code>
+						</li>
+						<li>
+							<code>npm run spotify:auth</code> → tarayıcıda onayla
+						</li>
+						<li>
+							<code>npm run spotify</code>
+						</li>
+					</ol>
+				</section>
+			)
+		}
+
+		{
+			hasData && (
+				<ul class="grid" style="--col: 200px">
+					{playlists.map((pl) => (
+						<li class="card pl">
+							<a class="pl-cover" href={`/playlist/${pl.id}`} aria-label={pl.name}>
+								<MusicCover src={pl.cover ?? undefined} alt={pl.name} />
+							</a>
+							<div class="pl-body">
+								<h3 class="t">
+									<a href={`/playlist/${pl.id}`}>{pl.name.trim() || '(isimsiz)'}</a>
+								</h3>
+								<p class="s muted">
+									{pl.trackCount} şarkı · {pl.artistCount} artist
+									{pl.durationMs > 0 ? ` · ${formatMs(pl.durationMs)}` : ''}
+								</p>
+								{pl.artists.length > 0 && (
+									<p class="s muted">
+										{pl.artists
+											.slice(0, 3)
+											.map((a) => `${a.name} (${a.count})`)
+											.join(' · ')}
+									</p>
+								)}
+								{pl.genres.length > 0 && (
+									<ul class="chip-list">
+										{pl.genres.slice(0, 3).map((g) => (
+											<li class="chip">{g.name}</li>
+										))}
+									</ul>
+								)}
+								<div class="pl-actions">
+									<a class="btn btn--accent" href={`/playlist/${pl.id}`}>
+										Detay
+									</a>
+									<a class="btn" href={pl.url} target="_blank" rel="noopener">
+										Spotify
+									</a>
+								</div>
+							</div>
+						</li>
+					))}
+				</ul>
+			)
+		}
 	</div>
 </Base>
 
 <style>
-	.narrow {
-		max-width: 640px;
+	.pl {
+		display: flex;
+		flex-direction: column;
 	}
-	.narrow h1 {
-		margin-block: 0.2rem 0.6rem;
+	.pl-cover {
+		display: block;
+	}
+	.pl :global(.mcover) {
+		border-radius: 0;
+	}
+	.pl-body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		padding: 0.6rem 0.7rem 0.75rem;
+	}
+	.t {
+		margin: 0;
+		font-family: var(--font-card);
+		font-size: 1.02rem;
+		line-height: 1.25;
+	}
+	.t a {
+		color: inherit;
+		text-decoration: none;
+	}
+	.s {
+		margin: 0;
+		font-family: var(--font-meta);
+		font-size: 0.8rem;
+		line-height: 1.3;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.chip-list {
+		margin: 0.1rem 0 0;
+	}
+	.pl-actions {
+		display: flex;
+		gap: 0.4rem;
+		margin-top: 0.5rem;
+	}
+	.pl-actions .btn {
+		flex: 1;
+		padding: 0.4rem 0.6rem;
+		font-size: 0.78rem;
+		text-align: center;
 	}
 </style>

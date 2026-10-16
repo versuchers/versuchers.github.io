@@ -11,10 +11,10 @@
 
 	/* Tipografi — "p v t   p e k m e z i" blog temasından uyarlama */
 	--font-display: 'Manufacturing Consent', 'EB Garamond', Georgia, serif;
-	--font-serif: 'Cormorant Garamond', 'EB Garamond', Georgia, 'Times New Roman', serif;
-	--font-ui: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+	--font-serif: 'Alegreya', 'EB Garamond', Georgia, 'Times New Roman', serif;
+	--font-ui: 'Manrope', ui-sans-serif, system-ui, sans-serif;
 	--font-meta: 'Manrope', ui-sans-serif, system-ui, sans-serif;
-	--font-head: 'Cardo', Georgia, 'Times New Roman', serif;
+	--font-head: 'Bitter', Georgia, 'Times New Roman', serif;
 	--font-card: 'Alegreya', 'EB Garamond', Georgia, serif;
 	--font-sans: var(--font-ui);
 

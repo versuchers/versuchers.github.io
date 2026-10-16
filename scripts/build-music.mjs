@@ -24,7 +24,8 @@ const MUSIC_DIR =
 	process.env.MUSIC_DIR || '/home/versucher/Downloads/Spotify Extended Streaming History';
 
 const MIN_MS = 30_000; // scrobble eşiği
-const DETAIL_MIN = 25; // detay sayfası + liste eşiği (çalma)
+const DETAIL_MIN = 25; // albüm/şarkı detay eşiği (çalma). Sanatçılar eşik yerine
+                       // "en çok dinlenen ilk 666" kuralıyla seçilir (LIST_LIMIT).
 const Y0 = 2016;
 const Y1 = 2026;
 const YN = Y1 - Y0 + 1;
@@ -88,9 +89,7 @@ async function main() {
 	const artists = new Map();
 	const albums = new Map(); // artist \u0000 album
 	const tracks = new Map(); // uri
-	const artistTracks = new Map();
 	const artistAlbums = new Map();
-	const albumTracks = new Map();
 
 	const dayPlays = new Map();
 	const dayMs = new Map();
@@ -180,27 +179,11 @@ async function main() {
 				touch(tr, ts, yIdx);
 
 				// iç içe indeksler
-				let at = artistTracks.get(artist);
-				if (!at) { at = new Map(); artistTracks.set(artist, at); }
-				let atv = at.get(uri);
-				if (!atv) { atv = { name: track, album, plays: 0, ms: 0 }; at.set(uri, atv); }
-				atv.plays++; atv.ms += ms;
-
 				let aa = artistAlbums.get(artist);
 				if (!aa) { aa = new Map(); artistAlbums.set(artist, aa); }
 				let aav = aa.get(albKey);
 				if (!aav) { aav = { name: album, plays: 0, ms: 0 }; aa.set(albKey, aav); }
 				aav.plays++; aav.ms += ms;
-
-				let abt = albumTracks.get(albKey);
-				if (!abt) { abt = new Map(); albumTracks.set(albKey, abt); }
-				let abv = abt.get(uri);
-				if (!abv) { abv = { name: track, plays: 0, ms: 0 }; abt.set(uri, abv); }
-				abv.plays++; abv.ms += ms;
-			} else {
-				// ms yine biriksin (kısa çalmalarda süre önemli)
-				const at = artistTracks.get(artist);
-				if (at && at.get(uri)) at.get(uri).ms += ms;
 			}
 		}
 	}
@@ -234,11 +217,39 @@ async function main() {
 		trackSlug.set(uri, s);
 	}
 
-	// hızlı aramalar (iç içe listeleri O(n²) yapmadan çözmek için)
-	const trackLookup = new Map(); // artist \u0000 şarkı adı -> uri
-	for (const [uri, t] of tracks) trackLookup.set(t.artist + A0 + t.name, uri);
-	const albumLookup = new Map(); // artist \u0000 albüm adı -> albüm anahtarı
-	for (const [k, al] of albums) albumLookup.set(al.artist + A0 + al.name, k);
+	// Aynı (sanatçı + albüm + şarkı) adına sahip kayıtlar tek kayıtta birleştirilir.
+	// Bunlar aynı şarkının farklı Spotify URI'leridir (single/albüm sürümü, bölgesel
+	// yayın vb.) ve listelerde mükerrer satır oluşturmamalı. Çalma ile süre toplanır,
+	// yıllık seriler eklenir; temsilci URI en çok çalınan sürümdür, slug (dolayısıyla
+	// kapak) ondan alınır — böylece mevcut slug/kapak anahtarları korunur.
+	const mergedTracks = new Map(); // sanatçı \u0000 albüm \u0000 şarkı -> kayıt
+	const mergedByArtist = new Map(); // sanatçı -> Map(k -> kayıt)
+	const mergedByAlbum = new Map(); // sanatçı \u0000 albüm -> Map(k -> kayıt)
+	for (const [uri, t] of tracks) {
+		const albKey = t.artist + A0 + t.album;
+		const k = albKey + A0 + t.name;
+		let v = mergedTracks.get(k);
+		if (!v) {
+			v = {
+				name: t.name, artist: t.artist, album: t.album, uri,
+				plays: 0, ms: 0, first: null, last: null, byYear: blank(), slug: null, best: -1,
+			};
+			mergedTracks.set(k, v);
+			let ma = mergedByArtist.get(t.artist);
+			if (!ma) { ma = new Map(); mergedByArtist.set(t.artist, ma); }
+			ma.set(k, v);
+			let mb = mergedByAlbum.get(albKey);
+			if (!mb) { mb = new Map(); mergedByAlbum.set(albKey, mb); }
+			mb.set(k, v);
+		}
+		v.plays += t.plays;
+		v.ms += t.ms;
+		if (t.first && (v.first === null || t.first < v.first)) v.first = t.first;
+		if (t.last && (v.last === null || t.last > v.last)) v.last = t.last;
+		for (let i = 0; i < YN; i++) v.byYear[i] += t.byYear[i];
+		if (t.plays > v.best) { v.best = t.plays; v.uri = uri; }
+	}
+	for (const v of mergedTracks.values()) v.slug = trackSlug.get(v.uri) ?? null;
 
 	// ------------------------------------------------------------- diziler
 	const num = (m, k) => m.get(k) || 0;
@@ -262,18 +273,19 @@ async function main() {
 	const months = [...monthPlays.keys()].sort().map((ym) => ({ ym, plays: num(monthPlays, ym), ms: num(monthMs, ym) }));
 	const days = [...dayPlays.keys()].sort().map((d) => ({ d, plays: num(dayPlays, d), ms: num(dayMs, d) }));
 
-	// sanatçı detay kayıtları (>= eşik)
+	// sanatçı detay kayıtları: en çok dinlenen ilk 666 (aşağıda LIST_LIMIT ile
+	// kırpılır). Eşik yerine sıralama+kırpma kullanılır; yalnızca 0 çalmalı
+	// (sadece atlanan) kayıtlar dışlanır.
 	const artistArr = [];
 	for (const a of artists.values()) {
-		if (a.plays < DETAIL_MIN) continue;
-		const tops = [...(artistTracks.get(a.name)?.values() || [])]
+		if (a.plays <= 0) continue;
+		// En çok dinlenen şarkılar: aynı (albüm + şarkı) adına sahip kayıtlar zaten
+		// tek kayıtta birleşiktir (mergedByArtist) ve çalma/süre toplamıdır.
+		const tops = [...(mergedByArtist.get(a.name)?.values() || [])]
 			.filter((x) => x.plays > 0)
 			.sort((x, y) => y.plays - x.plays || x.name.localeCompare(y.name, 'tr'))
 			.slice(0, 25)
-			.map((x) => {
-				const uriKey = trackLookup.get(a.name + A0 + x.name);
-				return { name: x.name, album: x.album, plays: x.plays, ms: x.ms, slug: uriKey ? trackSlug.get(uriKey) : null };
-			});
+			.map((x) => ({ name: x.name, album: x.album, plays: x.plays, ms: x.ms, slug: x.slug }));
 		const topAlbums = [...(artistAlbums.get(a.name)?.values() || [])]
 			.sort((x, y) => y.plays - x.plays)
 			.slice(0, 12)
@@ -288,7 +300,7 @@ async function main() {
 			ms: a.ms,
 			first: a.first,
 			last: a.last,
-			trackCount: a.trackCount ?? new Set((artistTracks.get(a.name) || new Map()).keys()).size,
+			trackCount: [...(mergedByArtist.get(a.name)?.values() || [])].filter((x) => x.plays > 0).length,
 			albumCount: (artistAlbums.get(a.name) || new Map()).size,
 			byYear: a.byYear,
 			topTracks: tops,
@@ -300,13 +312,11 @@ async function main() {
 	const albumArr = [];
 	for (const [k, al] of albums) {
 		if (al.plays < DETAIL_MIN) continue;
-		const tt = [...(albumTracks.get(k)?.values() || [])]
+		const tt = [...(mergedByAlbum.get(k)?.values() || [])]
+			.filter((x) => x.plays > 0)
 			.sort((x, y) => y.plays - x.plays)
 			.slice(0, 30)
-			.map((x) => {
-				const uriKey = trackLookup.get(al.artist + A0 + x.name);
-				return { name: x.name, plays: x.plays, ms: x.ms, slug: uriKey ? trackSlug.get(uriKey) : null };
-			});
+			.map((x) => ({ name: x.name, plays: x.plays, ms: x.ms, slug: x.slug }));
 		albumArr.push({
 			slug: albumSlug.get(k),
 			name: al.name,
@@ -316,28 +326,28 @@ async function main() {
 			ms: al.ms,
 			first: al.first,
 			last: al.last,
-			trackCount: (albumTracks.get(k) || new Map()).size,
+			trackCount: [...(mergedByAlbum.get(k)?.values() || [])].filter((x) => x.plays > 0).length,
 			byYear: al.byYear,
 			tracks: tt,
 		});
 	}
 
-	// şarkı detay kayıtları
+	// şarkı detay kayıtları (aynı sanatçı \u0000 albüm \u0000 şarkı adı birleşiktir)
 	const trackArr = [];
-	for (const [uri, t] of tracks) {
-		if (t.plays < DETAIL_MIN) continue;
+	for (const v of mergedTracks.values()) {
+		if (v.plays < DETAIL_MIN) continue;
 		trackArr.push({
-			slug: trackSlug.get(uri),
-			name: t.name,
-			artist: t.artist,
-			artistSlug: artistSlug.get(t.artist) ?? null,
-			album: t.album,
-			uri,
-			plays: t.plays,
-			ms: t.ms,
-			first: t.first,
-			last: t.last,
-			byYear: t.byYear,
+			slug: v.slug,
+			name: v.name,
+			artist: v.artist,
+			artistSlug: artistSlug.get(v.artist) ?? null,
+			album: v.album,
+			uri: v.uri,
+			plays: v.plays,
+			ms: v.ms,
+			first: v.first,
+			last: v.last,
+			byYear: v.byYear,
 		});
 	}
 
@@ -391,7 +401,7 @@ async function main() {
 			hours: Math.round(musicMs / 3600000),
 			artists: artists.size,
 			albums: albums.size,
-			tracks: tracks.size,
+			tracks: mergedTracks.size,
 			days: sortedDays.length,
 			skipRate: musicRows ? 1 - scrobbleCount / musicRows : 0,
 		},
@@ -431,9 +441,9 @@ async function main() {
 	console.log(`Müzik (tekil)    : ${f(musicRows)}  (podcast: ${f(podcastRows)})`);
 	console.log(`Çalma (>=30sn)   : ${f(scrobbleCount)}`);
 	console.log(`Dinleme süresi   : ${f(Math.round(musicMs / 3600000))} saat`);
-	console.log(`Sanatçı / Albüm / Şarkı : ${f(artists.size)} / ${f(albums.size)} / ${f(tracks.size)}`);
+	console.log(`Sanatçı / Albüm / Şarkı : ${f(artists.size)} / ${f(albums.size)} / ${f(mergedTracks.size)}`);
 	console.log(`Dinlenen gün     : ${f(sortedDays.length)}`);
-	console.log(`Detay (>=${DETAIL_MIN})      : ${f(artistArr.length)} sanatçı, ${f(albumArr.length)} albüm, ${f(trackArr.length)} şarkı`);
+	console.log(`Liste (ilk 666)  : ${f(artistArr.length)} sanatçı, ${f(albumArr.length)} albüm, ${f(trackArr.length)} şarkı`);
 	console.log(`✓ Yazıldı: src/data/music/`);
 }
 
