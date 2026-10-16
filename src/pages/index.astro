@@ -1,11 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import Rail from '../components/Rail.astro';
-import LastfmNow from '../components/LastfmNow.astro';
 import { getCollection } from 'astro:content';
 import { formatTrDate } from '../lib/format';
 import { titleCaseTr } from '../lib/text';
-import { films, series, books, latestWatched, latestRead, latestReviewed } from '../lib/data';
+import { latestWatched, latestRead, latestReviewed } from '../lib/data';
 
 const watched = latestWatched(6);
 const read = latestRead(6);
@@ -15,51 +14,9 @@ const reviewed = latestReviewed(6);
 const posts = (await getCollection('blog', ({ data }) => !data.draft && !data.tags.includes('sphinx')))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 6);
-
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-
-const stats = [
-	{ label: 'film', value: films.length, href: '/film' },
-	{ label: 'dizi', value: series.length, href: '/dizi' },
-	{ label: 'kitap', value: books.length, href: '/kitap' },
-	{ label: 'blog postu', value: allPosts.length, href: '/blog' },
-];
-const total = films.length + series.length + books.length;
 ---
 
 <Base>
-	<section class="hero">
-		<div class="container">
-			<div class="panel hero-panel">
-				<div class="hero-main">
-					<p class="eyebrow">Kişisel arşiv</p>
-					<h1>
-						İzlediklerim, okuduklarım,<br /> ve üzerine düşündüklerim.
-					</h1>
-					<p class="lede">
-						{total} kayıtlık bir koleksiyon: filmler, diziler ve kitaplar. Her afiş kendi
-						sayfasına gider; künye, yorum ve dış bağlantılar orada.
-					</p>
-					<p class="stat-row">
-						{
-							stats.map((s) => (
-								<a class="stat" href={s.href}>
-									<span class="n">{s.value}</span>
-									<span class="l">{s.label}</span>
-								</a>
-							))
-						}
-					</p>
-				</div>
-				<LastfmNow class="lastfm-hero" />
-			</div>
-		</div>
-	</section>
-
-	{/*
-		"Son dinlenenler" paneli — Müzik sayfasından çıkarılıp hero sağ tarafına taşındı.
-	*/}
-
 	<Rail items={read} title="Son okuduklarım" moreHref="/kitap" moreLabel="Tüm kitaplar" />
 
 	<Rail items={watched} title="Son izlediklerim" moreHref="/film" moreLabel="Tüm filmler" />
@@ -94,55 +51,6 @@ const total = films.length + series.length + books.length;
 </Base>
 
 <style>
-	.hero {
-		padding-block: clamp(1.5rem, 4vw, 2.5rem);
-	}
-
-	.hero-panel {
-		display: grid;
-		gap: clamp(1.5rem, 4vw, 2.5rem);
-	}
-
-	@media (min-width: 880px) {
-		.hero-panel {
-			grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
-			align-items: center;
-		}
-	}
-
-	.hero h1 {
-		margin-bottom: 1rem;
-	}
-
-	.stat-row {
-		display: flex;
-		gap: 1.75rem;
-		margin-top: 2rem;
-		flex-wrap: wrap;
-	}
-
-	.stat {
-		display: flex;
-		align-items: baseline;
-		gap: 0.5rem;
-		padding-bottom: 0.25rem;
-		border-bottom: 2px solid transparent;
-		transition: border-color var(--dur) var(--ease);
-	}
-	.stat:hover {
-		border-color: var(--accent);
-	}
-	.stat .n {
-		font-family: var(--font-display);
-		font-size: 1.9rem;
-		font-weight: 400;
-		line-height: 1;
-	}
-	.stat .l {
-		color: var(--text-muted);
-		font-size: 0.95rem;
-	}
-
 	.posts {
 		list-style: none;
 		margin: 0;

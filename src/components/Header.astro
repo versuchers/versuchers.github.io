@@ -1,11 +1,26 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
 
-const nav = [
-	{ href: '/film', label: 'Film' },
-	{ href: '/dizi', label: 'Dizi' },
+// Açılır gruplar: üzerine gelince (masaüstü) ya da dokununca açılır.
+const groups = [
+	{
+		label: 'İzliyor',
+		items: [
+			{ href: '/film', label: 'Film' },
+			{ href: '/dizi', label: 'Dizi' },
+		],
+	},
+	{
+		label: 'Dinliyor',
+		items: [
+			{ href: '/playlist', label: 'Playlistler' },
+			{ href: '/muzik', label: 'Dinleme Arşivi' },
+		],
+	},
+];
+
+const singles = [
 	{ href: '/kitap', label: 'Kitap' },
-	{ href: '/muzik', label: 'Müzik' },
 	{ href: '/blog', label: 'Blog' },
 ];
 
@@ -22,7 +37,36 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 
 		<nav aria-label="Ana gezinme">
 			{
-				nav.map((item) => (
+				groups.map((group) => (
+					<div class="nav-group" data-nav-group>
+						<button
+							type="button"
+							class:list={[
+								'nav-link',
+								'nav-trigger',
+								{ active: group.items.some((item) => isActive(item.href)) },
+							]}
+							aria-haspopup="true"
+							aria-expanded="false"
+						>
+							{group.label}
+							<span class="caret" aria-hidden="true">▾</span>
+						</button>
+						<div class="nav-menu">
+							{group.items.map((item) => (
+								<a
+									href={item.href}
+									class:list={['nav-sub', { active: isActive(item.href) }]}
+								>
+									{item.label}
+								</a>
+							))}
+						</div>
+					</div>
+				))
+			}
+			{
+				singles.map((item) => (
 					<a href={item.href} class:list={['nav-link', { active: isActive(item.href) }]}>
 						{item.label}
 					</a>
@@ -36,6 +80,41 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 		</div>
 	</div>
 </header>
+
+<script>
+	const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-group]'));
+
+	function closeAll(except?: HTMLElement) {
+		for (const group of groups) {
+			if (group === except) continue;
+			group.classList.remove('open');
+			group.querySelector('button')?.setAttribute('aria-expanded', 'false');
+		}
+	}
+
+	// Dokunmatikte hover olmadığı için menüler dokunuşla açılır.
+	// Masaüstünde açma/kapama tamamen CSS (:hover / :focus-within) ile yapılır.
+	const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+	if (!canHover) {
+		for (const group of groups) {
+			const btn = group.querySelector<HTMLButtonElement>('button');
+			if (!btn) continue;
+			btn.addEventListener('click', (event) => {
+				event.preventDefault();
+				const open = !group.classList.contains('open');
+				closeAll(group);
+				group.classList.toggle('open', open);
+				btn.setAttribute('aria-expanded', String(open));
+			});
+		}
+		document.addEventListener('click', (event) => {
+			if (!(event.target as Element | null)?.closest('[data-nav-group]')) closeAll();
+		});
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape') closeAll();
+		});
+	}
+</script>
 
 <style>
 	.site-header {
@@ -86,6 +165,8 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 
 	nav {
 		display: flex;
+		align-items: center;
+		align-self: stretch;
 		gap: 0.35rem;
 		margin-left: auto;
 	}
@@ -106,6 +187,82 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 	}
 
 	.nav-link.active {
+		color: var(--text);
+		font-weight: 600;
+	}
+
+	/* --- Açılır menü grupları --- */
+	.nav-group {
+		position: relative;
+		display: flex;
+		align-items: center;
+		align-self: stretch;
+	}
+
+	.nav-trigger {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		background: none;
+		border: 0;
+		cursor: pointer;
+	}
+
+	.nav-trigger .caret {
+		font-size: 0.62em;
+		color: var(--text-faint);
+		transition: transform var(--dur) var(--ease);
+	}
+
+	.nav-group:hover .caret,
+	.nav-group.open .caret,
+	.nav-group:focus-within .caret {
+		transform: rotate(180deg);
+	}
+
+	.nav-menu {
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		display: none;
+		gap: 0.3rem;
+		padding: 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		box-shadow: var(--shadow);
+		white-space: nowrap;
+		z-index: 1;
+	}
+
+	.nav-group.open .nav-menu,
+	.nav-group:focus-within .nav-menu {
+		display: flex;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.nav-group:hover .nav-menu {
+			display: flex;
+		}
+	}
+
+	.nav-sub {
+		padding: 0.4rem 0.7rem;
+		border-radius: var(--radius-sm);
+		font-family: var(--font-card);
+		font-size: 0.95rem;
+		letter-spacing: 0.02em;
+		color: var(--text-muted);
+		transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+	}
+
+	.nav-sub:hover {
+		color: var(--text);
+		background: var(--surface-2);
+	}
+
+	.nav-sub.active {
 		color: var(--text);
 		font-weight: 600;
 	}
@@ -136,6 +293,14 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 			letter-spacing: 0.05em;
 		}
 	}
+	@media (max-width: 700px) {
+		/* Dar ekranda menü sağ kenara hizalansın ki taşmasın. */
+		.nav-menu {
+			left: auto;
+			right: 0;
+			transform: none;
+		}
+	}
 	@media (max-width: 640px) {
 		.bar {
 			gap: 0.5rem;
@@ -147,6 +312,9 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 		.nav-link {
 			padding: 0.4rem 0.55rem;
 			font-size: 0.95rem;
+		}
+		.nav-sub {
+			font-size: 0.9rem;
 		}
 		.search-link {
 			display: none;

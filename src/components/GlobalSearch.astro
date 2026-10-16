@@ -55,6 +55,8 @@ const sortOptions = [
 		<button type="button" class="btn reset" data-f="reset">Sıfırla</button>
 	</div>
 
+	<div class="chips" data-chips hidden aria-label="Etkin süzgeçler"></div>
+
 	<div class="status">
 		<span data-count class="muted">{items.length} kayıt</span>
 	</div>
@@ -99,17 +101,47 @@ const sortOptions = [
 		const reset = root.querySelector<HTMLButtonElement>('[data-f="reset"]')!;
 		const count = root.querySelector<HTMLElement>('[data-count]')!;
 		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+		const chips = root.querySelector<HTMLElement>('[data-chips]');
+
+		// Detay sayfalarından gelen terimler arama kutusunu doldurmaz; sonuçların
+		// üstünde kaldırılabilir birer etiket (süzgeç) olarak gösterilir.
+		const tags: string[] = [];
+
+		function renderChips() {
+			if (!chips) return;
+			chips.replaceChildren();
+			chips.hidden = tags.length === 0;
+			tags.forEach((tag, i) => {
+				const chip = document.createElement('span');
+				chip.className = 'fchip';
+				const label = document.createElement('span');
+				label.textContent = tag;
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.textContent = '×';
+				btn.setAttribute('aria-label', `${tag} etiketini kaldır`);
+				btn.addEventListener('click', () => {
+					tags.splice(i, 1);
+					renderChips();
+					apply();
+				});
+				chip.append(label, btn);
+				chips.appendChild(chip);
+			});
+		}
 
 		const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
 
 		function apply() {
 			const tokens = fold(search.value.trim()).split(/\s+/).filter(Boolean);
+			const tagTokens = tags.map((tag) => fold(tag));
 			const t = type.value;
 
 			let visible = 0;
 			for (const cell of cells) {
 				const text = cell.dataset.search ?? '';
-				const matches = tokens.every((tok) => text.includes(tok));
+				const matches =
+					tokens.every((tok) => text.includes(tok)) && tagTokens.every((tok) => text.includes(tok));
 				const ok = matches && (!t || cell.dataset.type === t);
 				cell.hidden = !ok;
 				if (ok) visible++;
@@ -145,11 +177,17 @@ const sortOptions = [
 			search.value = '';
 			type.value = '';
 			sort.value = 'relevant';
+			tags.length = 0;
+			renderChips();
 			apply();
 		});
 
 		const params = new URLSearchParams(location.search);
-		if (params.get('q')) search.value = params.get('q')!;
+		const q = params.get('q');
+		if (q) {
+			tags.push(q);
+			renderChips();
+		}
 		if (params.get('tur')) {
 			const tur = params.get('tur')!;
 			if (['film', 'dizi', 'kitap'].includes(tur)) type.value = tur;
@@ -169,6 +207,44 @@ const sortOptions = [
 		border-radius: var(--radius);
 		background: var(--surface);
 		margin-bottom: 1rem;
+	}
+
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.85rem;
+	}
+	.fchip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.2rem 0.4rem 0.2rem 0.75rem;
+		border: 1px solid var(--border-strong);
+		border-radius: 999px;
+		background: var(--accent-soft);
+		color: var(--text);
+		font-family: var(--font-ui);
+		font-size: 0.84rem;
+	}
+	.fchip button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.2rem;
+		height: 1.2rem;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: var(--text-muted);
+		font-size: 1rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.fchip button:hover {
+		background: var(--border-strong);
+		color: var(--text);
 	}
 
 	.search {
