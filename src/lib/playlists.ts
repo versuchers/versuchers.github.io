@@ -2,6 +2,7 @@
  * Spotify public playlist'ler verisi.
  */
 import playlistsJson from '../data/spotify-playlists.json';
+import foldersJson from '../data/playlist-folders.json';
 
 export interface SpotifyArtistCount {
   name: string;
@@ -32,6 +33,8 @@ export interface SpotifyPlaylist {
   artistCount: number;
   albumCount: number;
   folder?: string;
+  /** Playlistin oluşturulma tarihi (en eski şarkı ekleme tarihinden), ISO. */
+  createdAt?: string | null;
   artists: SpotifyArtistCount[];
   genres: SpotifyGenreCount[];
   tracks: SpotifyTrack[];
@@ -46,4 +49,61 @@ export const spotifyPlaylists: SpotifyPlaylistsData = playlistsJson as SpotifyPl
 
 export function getPlaylistById(id: string): SpotifyPlaylist | undefined {
   return spotifyPlaylists.playlists.find((p) => p.id === id);
+}
+
+// ------------------------------------------------------------------ klasörler
+
+export interface PlaylistFolderInfo {
+  name: string;
+  parent: string | null;
+}
+
+export interface PlaylistFoldersMap {
+  syncedAt: string | null;
+  source: string;
+  /** Sitede gösterilen klasör id'leri (verilen sırada). */
+  whitelist: string[];
+  whitelistNames: string[];
+  folders: Record<string, PlaylistFolderInfo>;
+  /** playlistId -> doğrudan bulunduğu klasör id'leri (çoktan-çoğa). */
+  playlistFolders: Record<string, string[]>;
+}
+
+export const playlistFolders = foldersJson as PlaylistFoldersMap;
+
+/** Klasör adının başındaki numarayı (₀₁. / 1. vb.) sitede gizle. */
+export function folderDisplayName(name: string): string {
+  return name.replace(/^\s*[0-9\u2080-\u2089]+\s*[.·]\s*/, '').trim() || name;
+}
+
+/** Sitede gösterilecek klasörler (whitelist), verilen sırada. */
+export function folderChips(): { id: string; name: string }[] {
+  return playlistFolders.whitelist.map((id) => ({
+    id,
+    name: folderDisplayName(playlistFolders.folders[id]?.name ?? id),
+  }));
+}
+
+/** Playlist'in doğrudan (whitelist) klasör id'leri. */
+export function getPlaylistFolderIds(id: string): string[] {
+  const wl = new Set(playlistFolders.whitelist);
+  return (playlistFolders.playlistFolders[id] ?? []).filter((f) => wl.has(f));
+}
+
+/**
+ * Klasör süzgeci aktif mi? (whitelist boşsa süzgeç uygulanmaz.)
+ * Süzgeç aktifken yalnızca whitelist bir klasöre doğrudan ait playlistler
+ * gösterilir; başka klasörlerin altındakiler hiçbir zaman görünmez.
+ */
+export const folderFilterActive = playlistFolders.whitelist.length > 0;
+
+export function isListedPlaylist(p: SpotifyPlaylist): boolean {
+  return !folderFilterActive || getPlaylistFolderIds(p.id).length > 0;
+}
+
+/** Sitede gösterilecek playlistler (sıralı, süzgeçli). */
+export function listedPlaylists(): SpotifyPlaylist[] {
+  return spotifyPlaylists.playlists
+    .filter(isListedPlaylist)
+    .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
 }

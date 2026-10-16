@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import MusicCover from '../components/MusicCover.astro';
-import { spotifyPlaylists } from '../lib/playlists';
+import { listedPlaylists, folderChips, getPlaylistFolderIds, spotifyPlaylists } from '../lib/playlists';
 
 function formatMs(ms: number) {
 	const h = Math.floor(ms / 3600000);
@@ -10,9 +10,22 @@ function formatMs(ms: number) {
 	return `${m}d`;
 }
 
-const playlists = [...spotifyPlaylists.playlists].sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+const playlists = listedPlaylists();
 const hasData = playlists.length > 0;
-const totalTracks = playlists.reduce((s, p) => s + p.trackCount, 0);
+// Oluşturulma tarihi (en eski şarkı ekleme anından); yoksa 0 → sıralamada sonda.
+const createdMs = (iso?: string | null) => (iso ? Date.parse(iso) || 0 : 0);
+
+// Klasör çipleri (başlık + çipler bloğu). Her playlist doğrudan tek bir
+// whitelist klasöre aittir; çipler düz ve eşittir.
+const chips = folderChips();
+const chipCount = new Map(chips.map((c) => [c.id, 0]));
+for (const p of playlists) {
+	const [first] = getPlaylistFolderIds(p.id);
+	if (first && chipCount.has(first)) chipCount.set(first, chipCount.get(first)! + 1);
+}
+const folderName = new Map(chips.map((c) => [c.id, c.name]));
+const defaultFolder = chips[0]?.id ?? '__all';
+const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
 ---
 
 <Base title="Playlistler" description="Public Spotify playlistlerim.">
@@ -22,13 +35,11 @@ const totalTracks = playlists.reduce((s, p) => s + p.trackCount, 0);
 				<p class="eyebrow">Müzik</p>
 				<h1>Playlistler</h1>
 				<p class="lede">
-					{hasData
-						? `${playlists.length} public playlist · ${totalTracks.toLocaleString('tr-TR')} şarkı`
-						: "Henüz veri yok — npm run spotify çalıştır."}
+					{hasData ? `${playlists.length} public playlist` : "Henüz veri yok — npm run spotify çalıştır."}
 				</p>
 			</div>
-			{hasData && spotifyPlaylists.fetchedAt && (
-				<p class="muted">Güncellenme: {new Date(spotifyPlaylists.fetchedAt).toLocaleDateString('tr-TR')}</p>
+			{hasData && spotifyFetchedAt && (
+				<p class="muted">Güncellenme: {new Date(spotifyFetchedAt).toLocaleDateString('tr-TR')}</p>
 			)}
 		</header>
 
@@ -56,10 +67,41 @@ const totalTracks = playlists.reduce((s, p) => s + p.trackCount, 0);
 		}
 
 		{
+			hasData && chips.length > 0 && (
+				<section class="pl-folders" aria-label="Klasörler">
+					<div class="pl-folders-head">
+						<h2 class="pl-folders-title">Klasörler</h2>
+						<select class="pl-sort" data-pl-sort aria-label="Sıralama">
+							<option value="az">A → Z</option>
+							<option value="za">Z → A</option>
+							<option value="yeni">Yeniden eskiye</option>
+							<option value="eski">Eskiden yeniye</option>
+						</select>
+					</div>
+					<div class="fchips">
+						<button class="fchip" type="button" data-folder="__all">
+							Tümü <span class="n">{playlists.length}</span>
+						</button>
+						{chips.map((c) => (
+							<button class="fchip" type="button" data-folder={c.id}>
+								{c.name} <span class="n">{chipCount.get(c.id) ?? 0}</span>
+							</button>
+						))}
+					</div>
+				</section>
+			)
+		}
+
+		{
 			hasData && (
-				<ul class="grid" style="--col: 200px">
+				<ul class="grid" style="--col: 200px" data-pl-grid>
 					{playlists.map((pl) => (
-						<li class="card pl">
+						<li
+							class="card pl"
+							data-folders={getPlaylistFolderIds(pl.id).join(' ')}
+							data-name={pl.name.trim().toLocaleLowerCase('tr')}
+							data-created={createdMs(pl.createdAt)}
+						>
 							<a class="pl-cover" href={`/playlist/${pl.id}`} aria-label={pl.name}>
 								<MusicCover src={pl.cover ?? undefined} alt={pl.name} />
 							</a>
@@ -71,21 +113,12 @@ const totalTracks = playlists.reduce((s, p) => s + p.trackCount, 0);
 									{pl.trackCount} şarkı · {pl.artistCount} artist
 									{pl.durationMs > 0 ? ` · ${formatMs(pl.durationMs)}` : ''}
 								</p>
-								{pl.artists.length > 0 && (
-									<p class="s muted">
-										{pl.artists
-											.slice(0, 3)
-											.map((a) => `${a.name} (${a.count})`)
-											.join(' · ')}
-									</p>
-								)}
-								{pl.genres.length > 0 && (
-									<ul class="chip-list">
-										{pl.genres.slice(0, 3).map((g) => (
-											<li class="chip">{g.name}</li>
-										))}
-									</ul>
-								)}
+								<p class="pl-folder-tag">
+									{getPlaylistFolderIds(pl.id)
+										.map((id) => folderName.get(id))
+										.filter(Boolean)
+										.join(' · ')}
+								</p>
 								<div class="pl-actions">
 									<a class="btn btn--accent" href={`/playlist/${pl.id}`}>
 										Detay
@@ -103,10 +136,146 @@ const totalTracks = playlists.reduce((s, p) => s + p.trackCount, 0);
 	</div>
 </Base>
 
+<script>
+	const grid = document.querySelector<HTMLElement>('[data-pl-grid]');
+	const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.fchip'));
+	const sortSel = document.querySelector<HTMLSelectElement>('[data-pl-sort]');
+	if (grid && chips.length) {
+		const cards = Array.from(grid.children) as HTMLElement[];
+		const defaultFolder = chips.find((c) => c.dataset.folder !== '__all')?.dataset.folder ?? '__all';
+
+		// Sıralayıcılar: A-Z, Z-A, yeniden eskiye, eskiden yeniye.
+		// Tarihi bilinmeyenler her zaman sonda kalır.
+		const bySort = (mode: string) => (a: HTMLElement, b: HTMLElement) => {
+			const an = a.dataset.name || '';
+			const bn = b.dataset.name || '';
+			if (mode === 'az') return an.localeCompare(bn, 'tr');
+			if (mode === 'za') return bn.localeCompare(an, 'tr');
+			const ac = Number(a.dataset.created || 0);
+			const bc = Number(b.dataset.created || 0);
+			if (!ac && !bc) return an.localeCompare(bn, 'tr');
+			if (!ac) return 1;
+			if (!bc) return -1;
+			return mode === 'yeni' ? bc - ac : ac - bc;
+		};
+
+		const params = new URLSearchParams(location.search);
+		let folder = params.get('k') || defaultFolder;
+		let sort = params.get('s') || 'az';
+
+		const apply = () => {
+			const all = folder === '__all';
+			const visible = cards.filter((c) => all || (c.dataset.folders || '').split(/\s+/).includes(folder));
+			visible.sort(bySort(sort));
+			for (const c of cards) c.hidden = true;
+			for (const c of visible) {
+				c.hidden = false;
+				grid.appendChild(c);
+			}
+			for (const c of chips) c.classList.toggle('is-on', c.dataset.folder === folder);
+			if (sortSel) sortSel.value = sort;
+		};
+
+		const syncUrl = () => {
+			const url = new URL(location.href);
+			if (folder === defaultFolder) url.searchParams.delete('k');
+			else url.searchParams.set('k', folder);
+			if (sort === 'az') url.searchParams.delete('s');
+			else url.searchParams.set('s', sort);
+			history.replaceState(null, '', url);
+		};
+
+		apply();
+
+		for (const c of chips) {
+			c.addEventListener('click', () => {
+				folder = c.dataset.folder ?? '__all';
+				apply();
+				syncUrl();
+			});
+		}
+		sortSel?.addEventListener('change', () => {
+			sort = sortSel.value;
+			apply();
+			syncUrl();
+		});
+	}
+</script>
+
 <style>
+	.pl-folders {
+		margin: 0 0 1.4rem;
+	}
+	.pl-folders-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem 0.75rem;
+		flex-wrap: wrap;
+		margin: 0 0 0.6rem;
+	}
+	.pl-folders-title {
+		margin: 0;
+		font-family: var(--font-ui);
+		font-size: 0.82rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-faint);
+	}
+	.pl-sort {
+		flex-shrink: 0;
+		max-width: 100%;
+		font-family: var(--font-ui);
+		font-size: 0.8rem;
+		padding: 0.3rem 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		background: var(--surface-2);
+		color: var(--text);
+		cursor: pointer;
+	}
+	.fchips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+	}
+	.fchip {
+		font-family: var(--font-ui);
+		font-size: 0.82rem;
+		line-height: 1.2;
+		padding: 0.34rem 0.7rem;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: var(--surface-2);
+		color: var(--text-muted);
+		cursor: pointer;
+		transition:
+			background 0.15s ease,
+			border-color 0.15s ease,
+			color 0.15s ease;
+	}
+	.fchip:hover {
+		border-color: var(--accent);
+		color: var(--text);
+	}
+	.fchip.is-on {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: #fff;
+	}
+	.fchip .n {
+		font-size: 0.72rem;
+		opacity: 0.7;
+	}
 	.pl {
 		display: flex;
 		flex-direction: column;
+	}
+	/* KRİTİK: yazar kuralı (display:flex) tarayıcının [hidden]{display:none}
+	   kuralını ezdiği için süzgeç görselde işlemiyordu; bu bunu geri kazandırır. */
+	.pl[hidden] {
+		display: none !important;
 	}
 	.pl-cover {
 		display: block;
@@ -135,13 +304,14 @@ const totalTracks = playlists.reduce((s, p) => s + p.trackCount, 0);
 		font-family: var(--font-meta);
 		font-size: 0.8rem;
 		line-height: 1.3;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
 	}
-	.chip-list {
-		margin: 0.1rem 0 0;
+	.pl-folder-tag {
+		margin: 0.2rem 0 0;
+		font-family: var(--font-ui);
+		font-size: 0.72rem;
+		line-height: 1.2;
+		letter-spacing: 0.02em;
+		color: var(--text-faint);
 	}
 	.pl-actions {
 		display: flex;
@@ -153,5 +323,12 @@ const totalTracks = playlists.reduce((s, p) => s + p.trackCount, 0);
 		padding: 0.4rem 0.6rem;
 		font-size: 0.78rem;
 		text-align: center;
+	}
+	/* iOS, 16px altı form öğesine odaklanınca sayfayı yakınlaştırır; mobilde
+	   select'i 16px tutarak bunu engelle. */
+	@media (max-width: 640px) {
+		.pl-sort {
+			font-size: 1rem;
+		}
 	}
 </style>

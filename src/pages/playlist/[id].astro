@@ -1,10 +1,16 @@
 ---
 import Base from '../../layouts/Base.astro';
 import MusicCover from '../../components/MusicCover.astro';
-import { getPlaylistById, spotifyPlaylists } from '../../lib/playlists';
+import {
+	getPlaylistById,
+	listedPlaylists,
+	getPlaylistFolderIds,
+	playlistFolders,
+	folderDisplayName,
+} from '../../lib/playlists';
 
 export function getStaticPaths() {
-	return spotifyPlaylists.playlists.map((p) => ({ params: { id: p.id } }));
+	return listedPlaylists().map((p) => ({ params: { id: p.id } }));
 }
 
 const { id } = Astro.params;
@@ -22,6 +28,10 @@ function formatMs(ms: number) {
 
 const maxArtist = pl.artists[0]?.count || 1;
 const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim() : '';
+const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
+	id,
+	name: folderDisplayName(playlistFolders.folders[id]?.name ?? id),
+}));
 ---
 
 <Base title={pl.name} description={`Spotify playlist: ${pl.name}`}>
@@ -34,6 +44,13 @@ const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim
 			</div>
 			<div class="pl-info">
 				<p class="eyebrow">Playlist</p>
+				{folderNames.length > 0 && (
+					<p class="pl-folders">
+						{folderNames.map((f) => (
+							<a class="pl-folder" href={`/playlist?k=${f.id}`}>{f.name}</a>
+						))}
+					</p>
+				)}
 				<h1>{pl.name.trim() || '(isimsiz)'}</h1>
 				{description && <p class="lede">{description}</p>}
 				<p class="muted">
@@ -115,6 +132,24 @@ const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim
 	}
 	.pl-info h1 {
 		margin: 0.15rem 0 0.5rem;
+	}
+	.pl-folders {
+		margin: 0 0 0.35rem;
+	}
+	.pl-folder {
+		display: inline-block;
+		font-family: var(--font-ui);
+		font-size: 0.76rem;
+		padding: 0.24rem 0.6rem;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: var(--surface-2);
+		color: var(--text-muted);
+		text-decoration: none;
+	}
+	.pl-folder:hover {
+		border-color: var(--accent);
+		color: var(--text);
 	}
 	.pl-actions {
 		margin-top: 0.7rem;

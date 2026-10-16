@@ -16,6 +16,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadPlaylistFolderMap, isKeptByFolder } from './playlist-folders.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'src/data/spotify-playlists.json');
@@ -35,6 +36,11 @@ const EXCLUDE_ARTISTS = [
 const normName = (s) => String(s ?? '').trim().toLocaleLowerCase('tr').normalize('NFC').replace(/\s+/g, ' ');
 const EXCLUDE_SET = new Set(EXCLUDE_ARTISTS.map(normName));
 const isExcluded = (n) => EXCLUDE_SET.has(normName(n));
+
+// İsim bazlı playlist dışlaması: başında [ost] bulunan ve isimsiz (boş) listeler
+// listeye hiçbir zaman alınmaz. Kural fetch-spotify.mjs ile aynıdır.
+const OST_NAME_RE = /^\s*\[ost\]/i;
+const isExcludedPlaylist = (name) => OST_NAME_RE.test(String(name ?? '')) || !String(name ?? '').trim();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const b64 = (s) => Buffer.from(s).toString('base64');
@@ -128,6 +134,17 @@ async function fetchTracks(id) {
 async function main() {
   const data = await readJson(OUT, { playlists: [] });
   const genreCache = await readJson(GENRE_CACHE, {});
+  const folderMap = await loadPlaylistFolderMap();
+  if (folderMap.exists) {
+    console.log(`🗂️  klasör eşlemesi: ${folderMap.whitelist.size} whitelist klasör`);
+  } else {
+    console.warn('⚠️  playlist-folders.json yok — klasör süzgeci UYGULANMIYOR (npm run spotify:folders)');
+  }
+  const folderExcluded = (name, id) => {
+    if (isKeptByFolder(folderMap, id)) return false;
+    console.log(`   🗑️ silindi (whitelist dışı klasör): ${JSON.stringify(name)}`);
+    return true;
+  };
 
   let cachePruned = 0;
   for (const k of Object.keys(genreCache)) {
@@ -142,6 +159,8 @@ async function main() {
   if (OFFLINE) {
     console.log('🧩 çevrimdışı mod (API kullanılmaz)');
     for (const p of data.playlists) {
+      if (isExcludedPlaylist(p.name)) { dropped++; console.log(`   🗑️ silindi ([ost]/isimsiz): ${JSON.stringify(p.name)}`); continue; }
+      if (folderExcluded(p.name, p.id)) { dropped++; continue; }
       const { playlist: np, changed, estimated } = pruneOffline(p);
       if (changed) {
         if (np.trackCount === 0) { dropped++; console.log(`   🗑️ silindi (boşaldı): ${p.name}`); continue; }
@@ -171,6 +190,8 @@ async function main() {
       console.log(`   ${(i + 1).toString().padStart(2)}/${affected.length} ${JSON.stringify(p.name).slice(0, 34).padEnd(36)} ${p.trackCount} -> ${tracks.length}`);
     }
     for (const p of data.playlists) {
+      if (isExcludedPlaylist(p.name)) { dropped++; console.log(`   🗑️ silindi ([ost]/isimsiz): ${JSON.stringify(p.name)}`); continue; }
+      if (folderExcluded(p.name, p.id)) { dropped++; continue; }
       const np = byId.get(p.id) || p;
       if (np.trackCount === 0) { dropped++; console.log(`   🗑️ silindi (boşaldı): ${p.name}`); continue; }
       np.genres = genreCounts(np, genreCache);

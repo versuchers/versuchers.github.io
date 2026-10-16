@@ -22,6 +22,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadPlaylistFolderMap, isKeptByFolder } from './playlist-folders.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'src/data/spotify-playlists.json');
@@ -51,6 +52,15 @@ function normName(s) {
 }
 const EXCLUDE_SET = new Set(EXCLUDE_ARTISTS.map(normName));
 const isExcluded = (name) => EXCLUDE_SET.has(normName(name));
+
+// İsim bazlı playlist dışlaması: başında [ost] bulunan ve isimsiz (boş) listeler
+// listeye hiçbir zaman alınmaz. Kural burada ve prune-playlists.mjs'te aynıdır.
+const OST_NAME_RE = /^\s*\[ost\]/i;
+const isExcludedPlaylist = (name) => OST_NAME_RE.test(String(name ?? '')) || !String(name ?? '').trim();
+
+// Klasör süzgeci: yalnızca whitelist klasörlere DOĞRUDAN ait playlistler alınır.
+// Harita main()'de doldurulur (src/data/playlist-folders.json).
+let playlistFolderMap = { exists: false };
 
 // ---------------------------------------------------------------- yardımcılar
 
@@ -225,18 +235,30 @@ async function fullFetch() {
 
   const owned = raw.filter((p) => p.owner?.id === me.id);
   const publicOwned = owned.filter((p) => p.public === true);
+  const nameKept = publicOwned.filter((p) => !isExcludedPlaylist(p.name));
+  const nameSkipped = publicOwned.length - nameKept.length;
+  const kept = nameKept.filter((p) => isKeptByFolder(playlistFolderMap, p.id));
+  const folderSkipped = nameKept.length - kept.length;
   console.log(`📋 ${raw.length} liste • ${owned.length} bana ait • ${publicOwned.length} public (bana ait)`);
-  console.log(`   atlanan: ${raw.length - owned.length} takip/başkası, ${owned.length - publicOwned.length} özel`);
+  console.log(
+    `   atlanan: ${raw.length - owned.length} takip/başkası, ${owned.length - publicOwned.length} özel, ` +
+      `${nameSkipped} [ost]/isimsiz, ${folderSkipped} whitelist dışı klasör`,
+  );
 
   // 2) her playlistin şarkıları
   const output = [];
   let skipped = 0;
-  for (let i = 0; i < publicOwned.length; i++) {
-    const pl = publicOwned[i];
+  for (let i = 0; i < kept.length; i++) {
+    const pl = kept[i];
     const tracks = [];
+    let earliestAddedAt = null;
     try {
       await paged(`/playlists/${pl.id}/items?limit=100`, async (json) => {
         for (const it of json.items || []) {
+          // Playlistin oluşturulma tarihi için en eski ekleme anını yakala
+          // (sanatçı/yerel filtresinden bağımsız olarak tüm öğeler sayılır).
+          const a = it?.added_at;
+          if (a && (earliestAddedAt === null || a < earliestAddedAt)) earliestAddedAt = a;
           const item = it?.item ?? it?.track;
           if (!item || it.is_local || !item.name) continue;
           const trackArtists = (item.artists || []).map((a) => ({ name: a.name, id: a.id }));
@@ -285,12 +307,13 @@ async function fullFetch() {
       durationMs: tracks.reduce((s, t) => s + t.durationMs, 0),
       artistCount: artists.length,
       albumCount: new Set(tracks.map((t) => t.album).filter(Boolean)).size,
+      createdAt: earliestAddedAt || null,
       artists,
       genres: [],
       tracks: tracks.slice(0, TRACK_PREVIEW),
     });
 
-    if ((i + 1) % 25 === 0) console.log(`   ... ${i + 1}/${publicOwned.length} playlist`);
+    if ((i + 1) % 25 === 0) console.log(`   ... ${i + 1}/${kept.length} playlist`);
   }
 
   console.log(`✅ ${output.length} playlist çekildi${skipped ? ` (${skipped} atlandı)` : ''}`);
@@ -309,6 +332,13 @@ async function main() {
     if (isExcluded(genreCache[k]?.name || k)) delete genreCache[k];
   }
 
+  playlistFolderMap = await loadPlaylistFolderMap();
+  if (playlistFolderMap.exists) {
+    console.log(`🗂️  klasör eşlemesi: ${playlistFolderMap.whitelist.size} whitelist klasör`);
+  } else {
+    console.warn('⚠️  src/data/playlist-folders.json yok — klasör süzgeci UYGULANMIYOR (npm run spotify:folders)');
+  }
+
   let playlists;
   if (GENRES_ONLY) {
     playlists = (await readJson(OUT, { playlists: [] })).playlists;
@@ -316,14 +346,17 @@ async function main() {
       console.error('❌ Önce tam çekim yap: npm run spotify');
       process.exit(1);
     }
-    // Savunma: hariç tutulan sanatçıları burada da temizle.
+    // Savunma: hariç tutulan sanatçıları, isim kuralına takılan listeleri ve
+    // whitelist dışı klasörlerdeki playlistleri burada da temizle.
     playlists = playlists
       .map((p) => ({
         ...p,
         artists: (p.artists || []).filter((a) => !isExcluded(a.name)),
         tracks: (p.tracks || []).filter((t) => !(t.artists || []).some((a) => isExcluded(a.name))),
       }))
-      .filter((p) => (p.artists || []).length > 0);
+      .filter(
+        (p) => (p.artists || []).length > 0 && !isExcludedPlaylist(p.name) && isKeptByFolder(playlistFolderMap, p.id),
+      );
   } else {
     playlists = await fullFetch();
   }
