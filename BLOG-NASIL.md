@@ -100,25 +100,7 @@ npm run build      # çıktı: dist/
 
 ---
 
-## 5) Blogger'dan toplu içe aktarma (isteğe bağlı)
-
-Blogger'da yazmaya devam ediyorsan, Google Takeout ile yeni `feed.atom` indirip:
-
-```bash
-npm run import:blogger
-# veya belirli bir feed dosyası:
-node scripts/import-blogger.mjs "/path/to/feed.atom"
-```
-
-Yalnızca **yayımlanmış** yazılar alınır; şifreli (`sp-enc`) yazılar tanınır.
-
-> ⚠️ **Önemli:** Bu komut, içe aktarılan yazıların dosyalarını **yeniden yazar**. Elle yazdığın dosyalara dokunmaz; ama Blogger'dan gelen bir yazıyı elle düzenlediysen, yeniden import o düzenlemeni **ezer**.
->
-> Bu yüzden tek kaynak seç: ya hep Blogger'da düzelt + import et, ya da hep buradaki dosyada düzelt.
-
----
-
-## 6) Şifreli yazılar
+## 5) Şifreli yazılar
 
 Blogger'daki şifreli (`sp-enc`) yazılar `encrypted: true` + `encPayload` alanlarıyla gelir. Sayfada parola girilen bir kutu çıkar. Elle yeni şifreli yazı üretmek için ayrı bir şifreleme aracı gerekir (istenirse eklenebilir).
 
@@ -132,4 +114,3 @@ Blogger'daki şifreli (`sp-enc`) yazılar `encrypted: true` + `encPayload` alanl
 | Düzeltme | İlgili `.md` dosyasını (veya `contentHtml`'i) düzenle |
 | Önizleme | `astro dev --background` → localhost:4321 |
 | Yayınlama | `npm run build` → `dist/` |
-| Blogger güncelleme | `npm run import:blogger` (elle düzenlenenleri ezer, dikkat) |

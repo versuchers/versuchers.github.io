@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { titleCaseTr } from '../lib/text';
 
 // XML metinlerinde kaçış gereken karakterler.
 const xml = (s: string) =>
@@ -12,7 +13,7 @@ const xml = (s: string) =>
 
 /**
  * Blog akışı (RSS 2.0).
- * Anasayfayla aynı kural: taslaklar ve şifreli (sphinx) yazılar dışarıda tutulur.
+ * Anasayfayla aynı kural: taslaklar ve şifreli yazılar dışarıda tutulur.
  */
 export const GET: APIRoute = async ({ site }) => {
 	const base = site ?? new URL('https://versucher.com');
@@ -20,7 +21,7 @@ export const GET: APIRoute = async ({ site }) => {
 	const posts = (
 		await getCollection(
 			'blog',
-			({ data }) => !data.draft && !data.tags.includes('sphinx'),
+			({ data }) => !data.draft && !data.encrypted,
 		)
 	).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
@@ -29,7 +30,7 @@ export const GET: APIRoute = async ({ site }) => {
 			const url = new URL(`/blog/${post.id}`, base).href;
 			const lines = [
 				'    <item>',
-				`      <title>${xml(post.data.title)}</title>`,
+				`      <title>${xml(titleCaseTr(post.data.title))}</title>`,
 				`      <link>${url}</link>`,
 				`      <guid isPermaLink="true">${url}</guid>`,
 				`      <pubDate>${post.data.pubDate.toUTCString()}</pubDate>`,

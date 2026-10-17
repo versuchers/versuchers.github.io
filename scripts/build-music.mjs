@@ -93,8 +93,6 @@ async function main() {
 
 	const dayPlays = new Map();
 	const dayMs = new Map();
-	const monthPlays = new Map();
-	const monthMs = new Map();
 	const yearPlays = blank();
 	const yearMs = blank();
 	const weekdayHour = Array.from({ length: 7 }, () => new Array(24).fill(0));
@@ -136,21 +134,18 @@ async function main() {
 			const ymd = `${yr}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(
 				d.getUTCDate(),
 			).padStart(2, '0')}`;
-			const ym = ymd.slice(0, 7);
 			const dow = d.getUTCDay(); // 0=Pazar
 			const hour = d.getUTCHours();
 
 			// gün/ay/yıl — yalnızca scrobble'lar sayılır
 			if (isScrobble) {
 				dayPlays.set(ymd, (dayPlays.get(ymd) || 0) + 1);
-				monthPlays.set(ym, (monthPlays.get(ym) || 0) + 1);
 				if (yIdx >= 0 && yIdx < YN) yearPlays[yIdx] += 1;
 				weekdayHour[dow][hour] += 1;
 				hourPlays[hour] += 1;
 				dowPlays[dow] += 1;
 			}
 			dayMs.set(ymd, (dayMs.get(ymd) || 0) + ms);
-			monthMs.set(ym, (monthMs.get(ym) || 0) + ms);
 			if (yIdx >= 0 && yIdx < YN) yearMs[yIdx] += ms;
 
 			// varlıklar
@@ -270,7 +265,6 @@ async function main() {
 	}
 	for (const y of years) y.newArtists = newByYear[nowYearIdx(y.year)];
 
-	const months = [...monthPlays.keys()].sort().map((ym) => ({ ym, plays: num(monthPlays, ym), ms: num(monthMs, ym) }));
 	const days = [...dayPlays.keys()].sort().map((d) => ({ d, plays: num(dayPlays, d), ms: num(dayMs, d) }));
 
 	// sanatçı detay kayıtları: en çok dinlenen ilk 666 (aşağıda LIST_LIMIT ile
@@ -406,7 +400,6 @@ async function main() {
 			skipRate: musicRows ? 1 - scrobbleCount / musicRows : 0,
 		},
 		years,
-		months,
 		days,
 		weekdayHour,
 		milestones: {
@@ -420,8 +413,6 @@ async function main() {
 			mostPlayedTrack: trackArr[0] ? { name: trackArr[0].name, artist: trackArr[0].artist, slug: trackArr[0].slug, plays: trackArr[0].plays } : null,
 		},
 		topArtists: artistArr.slice(0, 10).map((a) => ({ slug: a.slug, name: a.name, plays: a.plays, ms: a.ms })),
-		topAlbums: albumArr.slice(0, 10).map((a) => ({ slug: a.slug, name: a.name, artist: a.artist, plays: a.plays, ms: a.ms })),
-		topTracks: trackArr.slice(0, 10).map((t) => ({ slug: t.slug, name: t.name, artist: t.artist, album: t.album, plays: t.plays, ms: t.ms })),
 	};
 
 	await mkdir(OUT_DIR, { recursive: true });

@@ -7,7 +7,6 @@
   - "öfke"
   - "blasphemy"
   - "misantropi"
-  - "sphinx"
 "draft": false
 "source": "/2010/05/i-hate-you.html"
 "encrypted": true

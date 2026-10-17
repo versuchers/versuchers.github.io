@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Rail from '../components/Rail.astro';
 import { getCollection } from 'astro:content';
-import { formatTrDate } from '../lib/format';
+import { formatDate } from '../lib/format';
 import { titleCaseTr } from '../lib/text';
 import { latestWatched, latestRead, latestReviewed } from '../lib/data';
 
@@ -10,8 +10,8 @@ const watched = latestWatched(6);
 const read = latestRead(6);
 const reviewed = latestReviewed(6);
 
-// Şifreli (sphinx etiketli) yazılar anasayfada gösterilmez: içerikleri görünmez.
-const posts = (await getCollection('blog', ({ data }) => !data.draft && !data.tags.includes('sphinx')))
+// Şifreli yazılar anasayfada gösterilmez: içeriklerinin ilk satırları görünür ve kilitli hâli çirkin durur.
+const posts = (await getCollection('blog', ({ data }) => !data.draft && !data.encrypted))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 6);
 ---
@@ -38,7 +38,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft && !data.ta
 							<li>
 								<a class="post" href={`/blog/${post.id}`}>
 									<time datetime={post.data.pubDate.toISOString()}>
-										{formatTrDate(post.data.pubDate.toLocaleDateString('tr-TR'))}
+										{formatDate(post.data.pubDate)}
 									</time>
 									<h3>{titleCaseTr(post.data.title)}</h3>
 									{post.data.description && <p class="muted">{post.data.description}</p>}

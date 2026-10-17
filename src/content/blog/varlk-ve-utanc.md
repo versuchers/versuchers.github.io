@@ -3,8 +3,7 @@
 "description": ""
 "pubDate": "2016-03-21"
 "updatedDate": "2026-03-17"
-"tags":
-  - "sphinx"
+"tags": []
 "draft": false
 "source": "/2026/03/varlk-ve-utanc.html"
 "encrypted": true

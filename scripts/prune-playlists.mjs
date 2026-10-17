@@ -17,14 +17,12 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadPlaylistFolderMap, isKeptByFolder } from './playlist-folders.mjs';
+import { sleep, createSpotifyApi, hasSpotifyCreds } from './lib/spotify.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'src/data/spotify-playlists.json');
 const GENRE_CACHE = path.join(ROOT, 'src/data/spotify-artist-genres.json');
 
-const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || '';
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || '';
-const REFRESH_TOKEN = process.env.SPOTIFY_REFRESH_TOKEN || '';
 const OFFLINE = process.argv.includes('--offline');
 
 const TRACK_PREVIEW = 12;
@@ -42,8 +40,6 @@ const isExcluded = (n) => EXCLUDE_SET.has(normName(n));
 const OST_NAME_RE = /^\s*\[ost\]/i;
 const isExcludedPlaylist = (name) => OST_NAME_RE.test(String(name ?? '')) || !String(name ?? '').trim();
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const b64 = (s) => Buffer.from(s).toString('base64');
 const readJson = async (p, f) => { try { return JSON.parse(await readFile(p, 'utf8')); } catch { return f; } };
 
 function genreCounts(playlist, genreCache) {
@@ -88,29 +84,8 @@ function pruneOffline(p) {
 }
 
 // ------------------------------------------------------------------- API yolu
-let token = '';
-async function getToken() {
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: { Authorization: `Basic ${b64(`${CLIENT_ID}:${CLIENT_SECRET}`)}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: REFRESH_TOKEN }).toString(),
-  });
-  if (!res.ok) throw new Error(`Token: ${res.status} ${await res.text()}`);
-  return (await res.json()).access_token;
-}
-async function api(u, retries = 4) {
-  for (let i = 0; i <= retries; i++) {
-    const res = await fetch(`https://api.spotify.com/v1${u}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (res.status === 429) {
-      const wait = Math.min(Number(res.headers.get('retry-after') || 5), 30);
-      console.warn(`   ⏳ 429 — ${wait}s bekleniyor`);
-      await sleep(wait * 1000);
-      continue;
-    }
-    return res;
-  }
-  throw new Error(`Üst üste 429: ${u}`);
-}
+const { api } = createSpotifyApi({ retries: 4 });
+
 async function fetchTracks(id) {
   const tracks = [];
   let next = `/playlists/${id}/items?limit=100`;
@@ -171,8 +146,7 @@ async function main() {
       playlists.push(np);
     }
   } else {
-    if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) { console.error('❌ Eksik env (.env)'); process.exit(1); }
-    token = await getToken();
+    if (!hasSpotifyCreds()) { console.error('❌ Eksik env (.env)'); process.exit(1); }
     const affected = data.playlists.filter((p) => (p.artists || []).some((a) => isExcluded(a.name)));
     console.log(`🎯 etkilenen playlist: ${affected.length} / ${data.playlists.length}`);
     const byId = new Map();

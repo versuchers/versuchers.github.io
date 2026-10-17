@@ -9,20 +9,20 @@ export interface BrowseRow {
 	src?: string;
 	round?: boolean;
 	plays: number;
-	/** arama için sadeleştirilmiş metin */
-	search: string;
 }
 
 interface Props {
 	label: string;
 	unit: string;
+	/** Arama indeksi adresi (/search-index/*.json); yalnızca arama yapılınca çekilir. */
+	indexUrl?: string;
 	rows: BrowseRow[];
 }
 
-const { label, unit, rows } = Astro.props;
+const { label, unit, indexUrl, rows } = Astro.props;
 ---
 
-<div class="mbrowse" data-mbrowse>
+<div class="mbrowse" data-mbrowse data-unit={unit} data-index={indexUrl}>
 	<div class="controls">
 		<label class="search">
 			<span class="visually-hidden">{label} içinde ara</span>
@@ -46,16 +46,10 @@ const { label, unit, rows } = Astro.props;
 	<ol class="mrow-list">
 		{
 			rows.map((r, i) => (
-				<li
-					class="mrow"
-					data-search={r.search}
-					data-title={r.title.toLocaleLowerCase('tr')}
-					data-plays={String(r.plays)}
-					data-index={String(i)}
-				>
+				<li class="mrow" data-title={r.title.toLocaleLowerCase('tr')} data-plays={String(r.plays)}>
 					<span class="rk">{i + 1}</span>
 					<a class="row-link" href={r.href}>
-						<MusicCover src={r.src} alt={r.title} round={r.round} />
+						<MusicCover src={r.src} alt="" name={r.title} round={r.round} />
 						<span class="txt">
 							<span class="t">{r.title}</span>
 							{r.sub && <span class="s muted">{r.sub}</span>}
@@ -70,176 +64,233 @@ const { label, unit, rows } = Astro.props;
 		}
 	</ol>
 
+	<div class="more-wrap">
+		<button type="button" class="btn" data-more hidden>Daha fazla göster</button>
+	</div>
+
 	<p class="empty muted" data-empty hidden>Aramanla eşleşen kayıt yok.</p>
 </div>
 
 <script>
 	import { fold } from '../lib/text';
 
+	/** Her seferinde gösterilecek kayıt sayısı. */
+	const PAGE = 66;
+
 	document.querySelectorAll<HTMLElement>('[data-mbrowse]').forEach((root) => {
 		const list = root.querySelector<HTMLElement>('.mrow-list');
 		if (!list) return;
-		const rows = Array.from(list.children) as HTMLElement[];
+
+		const els = Array.from(list.children) as HTMLElement[];
+		const position = new Map<HTMLElement, number>();
+		els.forEach((el, i) => position.set(el, i));
+
 		const search = root.querySelector<HTMLInputElement>('[data-f="search"]')!;
 		const sort = root.querySelector<HTMLSelectElement>('[data-f="sort"]')!;
 		const reset = root.querySelector<HTMLButtonElement>('[data-f="reset"]')!;
 		const count = root.querySelector<HTMLElement>('[data-count]')!;
 		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
-		const unit = count.textContent?.replace(/^\d+\s*/, '') ?? '';
+		const more = root.querySelector<HTMLButtonElement>('[data-more]');
+		const unit = root.dataset.unit || '';
+		const indexUrl = root.dataset.index || '';
 
-		function apply() {
-			const q = fold(search.value.trim());
-			for (const row of rows) {
-				const ok = !q || (row.dataset.search ?? '').includes(q);
-				row.hidden = !ok;
+		let loaded: string[] | null = null;
+		let loading: Promise<string[]> | null = null;
+		let matches: Set<HTMLElement> = new Set(els);
+		let searching = false;
+		let shown = PAGE;
+
+		/** Arama metinlerini (gerekiyorsa ve yalnızca bir kez) ağdan getirir. */
+		function loadIndex(): Promise<string[]> {
+			if (loaded) return Promise.resolve(loaded);
+			if (loading) return loading;
+			if (!indexUrl) {
+				loaded = [];
+				return Promise.resolve(loaded);
 			}
-			const mode = sort.value;
-			const sorted = [...rows].sort((a, b) => {
-				if (mode === 'title') return (a.dataset.title ?? '').localeCompare(b.dataset.title ?? '', 'tr');
-				return Number(b.dataset.plays ?? 0) - Number(a.dataset.plays ?? 0);
-			});
-			let visible = 0;
-			for (const row of sorted) {
-				list!.appendChild(row);
-				const rk = row.querySelector<HTMLElement>('.rk');
-				if (!row.hidden) {
-					visible++;
-					if (rk) rk.textContent = String(visible);
-				}
-			}
-			count.textContent = `${visible} ${unit}`;
-			empty.hidden = visible !== 0;
+			loading = fetch(indexUrl)
+				.then((r) => (r.ok ? r.json() : []))
+				.then((arr: unknown) => (loaded = Array.isArray(arr) ? (arr as string[]) : []))
+				.catch(() => (loaded = []));
+			return loading;
 		}
 
-		search.addEventListener('input', apply);
-		sort.addEventListener('change', apply);
+		/** Seçili sıralamaya göre öğe sırası. */
+		function sortedEls(): HTMLElement[] {
+			const mode = sort.value;
+			return [...els].sort((a, b) => {
+				if (mode === 'title')
+					return (a.dataset.title || '').localeCompare(b.dataset.title || '', 'tr');
+				return Number(b.dataset.plays || 0) - Number(a.dataset.plays || 0);
+			});
+		}
+
+		/** Arama + sıralama + sayfalamayı ekrana uygular. */
+		function render() {
+			const order = sortedEls();
+			const matched = order.filter((el) => matches.has(el));
+			const limit = searching ? matched.length : Math.min(shown, matched.length);
+			const visible = new Set(matched.slice(0, limit));
+
+			let rank = 0;
+			const frag = document.createDocumentFragment();
+			for (const el of order) {
+				const show = visible.has(el);
+				el.hidden = !show;
+				if (show) {
+					rank += 1;
+					const rk = el.querySelector<HTMLElement>('.rk');
+					if (rk) rk.textContent = String(rank);
+				}
+				frag.appendChild(el);
+			}
+			list!.appendChild(frag);
+
+			count.textContent = `${matched.length} ${unit}`;
+			empty.hidden = matched.length !== 0;
+
+			if (more) {
+				const remaining = matched.length - limit;
+				more.hidden = searching || remaining <= 0;
+				more.textContent = `Daha fazla göster (${remaining} kaldı)`;
+			}
+		}
+
+		async function onSearch() {
+			const q = fold(search.value.trim());
+			searching = q.length > 0;
+			if (!searching) {
+				matches = new Set(els);
+				render();
+				return;
+			}
+			const index = await loadIndex();
+			matches = new Set(els.filter((el) => (index[position.get(el) ?? -1] || '').includes(q)));
+			render();
+		}
+
+		search.addEventListener('input', () => void onSearch());
+		sort.addEventListener('change', render);
+		more?.addEventListener('click', () => {
+			shown += PAGE;
+			render();
+		});
 		reset.addEventListener('click', () => {
 			search.value = '';
 			sort.value = 'plays';
-			apply();
+			matches = new Set(els);
+			searching = false;
+			shown = PAGE;
+			render();
 		});
-		apply();
+
+		render();
 	});
 </script>
 
 <style>
-	.controls {
+	.mbrowse .controls {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.75rem;
-		align-items: flex-end;
-		padding: 1rem;
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		background: var(--surface);
+		align-items: center;
+		gap: 1rem;
 		margin-bottom: 1rem;
 	}
-	.search {
-		flex: 1 1 240px;
+	.mbrowse .search {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+		flex: 1 1 240px;
+		min-width: 200px;
+		padding: 0 0.85rem;
+		height: 2.6rem;
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
-		background: var(--bg-2);
-		padding: 0 0.75rem;
-		height: 2.6rem;
+		background: var(--surface);
 	}
-	.search:focus-within {
-		border-color: var(--accent);
+	.mbrowse .search .icon {
+		color: var(--text-faint);
+		font-size: 1.05rem;
 	}
-	.search .icon {
-		color: var(--text-muted);
-		font-size: 1.1rem;
-	}
-	.search input {
+	.mbrowse .search input {
 		border: 0;
 		background: transparent;
 		color: var(--text);
 		width: 100%;
 		height: 100%;
+		font-family: var(--font-ui);
 		font-size: 0.95rem;
 		outline: none;
 	}
-	.field {
+	.mbrowse .field {
 		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
+		align-items: center;
+		gap: 0.5rem;
 		font-family: var(--font-ui);
 		font-size: 0.72rem;
-		letter-spacing: 0.06em;
+		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		color: var(--text-muted);
+		color: var(--text-faint);
 	}
-	.field > span {
-		padding-left: 0.15rem;
-	}
-	select {
+	.mbrowse select {
 		height: 2.6rem;
+		padding: 0 0.6rem;
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
-		background: var(--bg-2);
+		background: var(--surface);
 		color: var(--text);
-		font-size: 0.82rem;
-		padding: 0 0.6rem;
-		min-width: 12rem;
+		font-family: var(--font-ui);
+		font-size: 0.85rem;
 	}
-	select:focus {
-		outline: none;
-		border-color: var(--accent);
-	}
-	.reset {
+	.mbrowse .btn {
 		height: 2.6rem;
 	}
-	.status {
+	.mbrowse .status {
 		margin-bottom: 0.75rem;
-		font-size: 0.88rem;
+		font-size: 0.85rem;
 	}
-
-	.mrow-list {
+	.mbrowse .mrow-list {
 		list-style: none;
 		margin: 0;
 		padding: 0;
+	}
+	.mbrowse .mrow {
+		content-visibility: auto;
+		contain-intrinsic-size: auto 66px;
 		border-top: 1px solid var(--border);
 	}
-	.mrow {
-		border-bottom: 1px solid var(--border);
-	}
-	.mrow[hidden] {
+	.mbrowse .mrow[hidden] {
 		display: none;
 	}
-	.row-link {
+	.mbrowse .row-link {
 		display: grid;
-		grid-template-columns: 1.9rem 48px 1fr auto;
+		grid-template-columns: 2rem 48px 1fr auto;
 		align-items: center;
-		gap: 1rem;
+		gap: 0.9rem;
 		padding: 0.55rem 0.4rem;
-		transition: background-color var(--dur) var(--ease);
-		border-radius: var(--radius-sm);
+		color: inherit;
+		text-decoration: none;
 	}
-	.row-link:hover {
-		background: var(--accent-soft);
+	.mbrowse .row-link:hover {
+		background: var(--surface-2);
 	}
-	.rk {
+	.mbrowse .rk {
 		font-family: var(--font-ui);
-		font-size: 0.8rem;
+		font-size: 0.78rem;
 		color: var(--text-faint);
 		text-align: right;
 	}
-	.row-link :global(.mcover) {
-		width: 48px;
-	}
-	.txt {
+	.mbrowse .txt {
 		display: flex;
 		flex-direction: column;
 		min-width: 0;
 	}
-	.t {
+	.mbrowse .t {
 		font-family: var(--font-card);
 		font-size: 1.05rem;
 		line-height: 1.25;
 	}
-	.s {
+	.mbrowse .s {
 		font-family: var(--font-meta);
 		font-size: 0.85rem;
 		line-height: 1.3;
@@ -247,7 +298,7 @@ const { label, unit, rows } = Astro.props;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-	.plays {
+	.mbrowse .plays {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
@@ -257,20 +308,25 @@ const { label, unit, rows } = Astro.props;
 		text-transform: uppercase;
 		color: var(--text-faint);
 	}
-	.plays strong {
+	.mbrowse .plays strong {
 		font-size: 1.05rem;
 		font-weight: 600;
 		letter-spacing: 0;
 		color: var(--text);
 	}
+	.mbrowse .more-wrap {
+		display: flex;
+		justify-content: center;
+		margin-top: 1.5rem;
+	}
+	.mbrowse .empty {
+		margin-top: 1rem;
+	}
 
 	@media (max-width: 520px) {
-		.row-link {
+		.mbrowse .row-link {
 			grid-template-columns: 1.4rem 44px 1fr auto;
 			gap: 0.7rem;
-		}
-		.row-link :global(.mcover) {
-			width: 44px;
 		}
 	}
 </style>

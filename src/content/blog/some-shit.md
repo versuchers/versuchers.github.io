@@ -5,7 +5,6 @@
 "updatedDate": "2026-04-06"
 "tags":
   - "ağ günlüğü"
-  - "sphinx"
 "draft": false
 "source": "/2025/03/some-shit.html"
 "encrypted": false

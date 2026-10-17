@@ -25,9 +25,20 @@ let dir = process.env.LOG_REPO_DIR || '';
 const pending = new Set();
 let commitMsg = 'görsel aynası';
 
+// Token'ı argv'ye ya da klonun .git/config'ine yazmak yerine git'e ortam
+// değişkeni üzerinden HTTP başlığı verilir (process listesinde görünmez).
+const gitEnv = TOKEN
+	? {
+			...process.env,
+			GIT_CONFIG_COUNT: '1',
+			GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader',
+			GIT_CONFIG_VALUE_0: `Authorization: Basic ${Buffer.from(`x-access-token:${TOKEN}`).toString('base64')}`,
+		}
+	: process.env;
+
 const run = (cmd, args, cwd) =>
 	new Promise((res) => {
-		const p = spawn(cmd, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+		const p = spawn(cmd, args, { cwd, env: gitEnv, stdio: ['ignore', 'pipe', 'pipe'] });
 		let out = '';
 		p.stdout.on('data', (d) => (out += d));
 		p.stderr.on('data', (d) => (out += d));
@@ -48,8 +59,7 @@ async function ensureDir() {
 	if (d) return d;
 	if (!TOKEN) return '';
 	const dest = path.join(tmpdir(), 'versuchers-log');
-	const url = `https://x-access-token:${TOKEN}@github.com/versuchers/log.git`;
-	const r = await run('git', ['clone', '--depth', '1', url, dest]);
+	const r = await run('git', ['clone', '--depth', '1', 'https://github.com/versuchers/log.git', dest]);
 	if (r.code === 0) {
 		dir = dest;
 		return dest;

@@ -5,7 +5,6 @@
 "updatedDate": "2026-03-16"
 "tags":
   - "ağ günlüğü"
-  - "sphinx"
 "draft": false
 "source": "/2026/01/kitap-cevirisi-ve-diger-seyler.html"
 "encrypted": true

@@ -114,17 +114,26 @@ try {
 				return;
 			}
 			btn.disabled = true;
+			input.disabled = true;
+			wrap.setAttribute('aria-busy', 'true');
 			setMsg('çözülüyor…');
 			try {
 				const key = await deriveKey(pw, payload.salt);
 				const plain = await decrypt(payload, key);
 				const out = document.createElement('div');
 				out.className = 'sp-decrypted';
+				out.setAttribute('tabindex', '-1');
+				out.setAttribute('role', 'region');
+				out.setAttribute('aria-label', 'çözülen içerik');
 				out.textContent = plain;
 				wrap.replaceWith(out);
+				// Odak içeriğe taşınır: klavye/ekran okuyucu kullanıcısı kaybolmaz, içerik duyurulur.
+				out.focus();
 			} catch {
+				wrap.removeAttribute('aria-busy');
 				setMsg('yanlış parola.');
 				btn.disabled = false;
+				input.disabled = false;
 				input.value = '';
 				input.focus();
 			}

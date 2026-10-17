@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro';
 import MusicBrowse from '../../components/MusicBrowse.astro';
 import { albums, cover, integer } from '../../lib/music';
-import { fold } from '../../lib/text';
 
 const rows = albums.map((al) => ({
 	href: `/muzik/album/${al.slug}`,
@@ -10,21 +9,25 @@ const rows = albums.map((al) => ({
 	sub: `${al.artist} · ${integer(al.trackCount)} şarkı`,
 	src: cover('album', al.slug),
 	plays: al.plays,
-	search: fold(`${al.name} ${al.artist}`),
 }));
 ---
 
 <Base
 	title="Müzik — Albümler"
-	description={`En çok dinlediğim ${albums.length} albüm.`}
+	description="En çok dinlediğim ilk 666 albüm."
 >
 	<div class="container section">
 		<header class="page-head">
 			<p class="eyebrow">Müzik</p>
 			<h1>Albümler</h1>
-			<p class="lede">En çok dinlediğim {albums.length} albüm; çalma sayısına göre.</p>
+			<p class="lede">En çok dinlediğim ilk 666 albüm; çalma sayısına göre.</p>
 		</header>
-		<MusicBrowse label="Albümler" unit="albüm" rows={rows} />
+		<MusicBrowse
+			label="Albümler"
+			unit="albüm"
+			indexUrl="/search-index/muzik-album.json"
+			rows={rows}
+		/>
 	</div>
 </Base>
 

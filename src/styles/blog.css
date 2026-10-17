@@ -167,7 +167,6 @@ body.is-blog .chip::before {
 	line-height: 1.15;
 	letter-spacing: 0.02em;
 	color: var(--text-muted);
-	text-transform: capitalize;
 	transition: color 0.15s ease;
 }
 .blog-feed .post:hover h2 {

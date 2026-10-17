@@ -6,7 +6,6 @@
 "tags":
   - "poetik"
   - "blasphemy"
-  - "sphinx"
 "draft": false
 "source": "/2013/09/agt.html"
 "encrypted": true

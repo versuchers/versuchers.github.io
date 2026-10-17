@@ -5,7 +5,6 @@
 "updatedDate": "2026-04-06"
 "tags":
   - "poetik"
-  - "sphinx"
 "draft": false
 "source": "/2014/01/ansal.html"
 "encrypted": true

@@ -6,7 +6,6 @@
 "tags":
   - "misantropi"
   - "öfke"
-  - "sphinx"
 "draft": false
 "source": "/2012/01/disavurum.html"
 "encrypted": true

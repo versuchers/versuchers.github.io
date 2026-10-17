@@ -389,11 +389,14 @@ async function main() {
 
 	console.log('');
 	if (failed) {
-		console.error('Bazı sheet\'ler çekilemedi. Mevcut JSON dosyaları korundu.');
-		process.exitCode = 1;
+		// Ağ/toplu kesinti site dağıtımını DÜŞÜRMESİN: mevcut JSON'lar korunur.
+		console.warn("⚠️  Bazı sheet'ler çekilemedi. Mevcut JSON dosyaları korundu.");
 	} else {
 		console.log(`✓ Veri yazıldı: src/data/`);
 	}
 }
 
-main();
+main().catch((e) => {
+	console.error('❌ Hata:', e.message || e);
+	process.exit(1);
+});

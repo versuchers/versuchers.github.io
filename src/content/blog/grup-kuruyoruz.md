@@ -5,7 +5,6 @@
 "updatedDate": "2026-03-16"
 "tags":
   - "ağ günlüğü"
-  - "sphinx"
 "draft": false
 "source": "/2008/04/grup-kuruyoruz.html"
 "encrypted": true

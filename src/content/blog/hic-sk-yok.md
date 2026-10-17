@@ -4,7 +4,6 @@
 "pubDate": "2025-11-29"
 "updatedDate": "2026-03-16"
 "tags":
-  - "sphinx"
   - "ağ günlüğü"
 "draft": false
 "source": "/2026/03/hic-sk-yok.html"

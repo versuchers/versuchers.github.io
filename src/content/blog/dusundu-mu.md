@@ -5,7 +5,6 @@
 "updatedDate": "2026-04-06"
 "tags":
   - "rüya"
-  - "sphinx"
 "draft": false
 "source": "/2013/05/dusundu-mu.html"
 "encrypted": true

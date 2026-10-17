@@ -4,7 +4,6 @@
 "pubDate": "2008-02-25"
 "updatedDate": "2026-03-15"
 "tags":
-  - "sphinx"
   - "blasphemy"
 "draft": false
 "source": "/2026/03/test-surusu.html"

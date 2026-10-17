@@ -1,14 +1,25 @@
 ---
 interface Props {
 	src?: string;
-	alt: string;
+	/** Görselin alternatif metni; yanında aynı ad yazıyorsa boş bırakın (dekoratif). */
+	alt?: string;
+	/** Harf madalyonu için kayıt adı (yoksa `alt` kullanılır). */
+	name?: string;
 	/** Sanatçı görselleri yuvarlak gösterilir. */
 	round?: boolean;
 	eager?: boolean;
 }
 
-const { src, alt, round = false, eager = false } = Astro.props;
-const initial = (alt || '?').trim().charAt(0).toLocaleUpperCase('tr');
+const { src, alt = '', name, round = false, eager = false } = Astro.props;
+
+/** İlk anlamlı harf: görünmez karakterler ve vekil çiftler (emoji) dikkate alınır. */
+function firstLetter(value: string): string {
+	const clean = (value || '').replace(/[\u200b-\u200d\ufeff\u00ad]/gi, '').trim();
+	const ch = Array.from(clean)[0];
+	return ch ? ch.toLocaleUpperCase('tr') : '?';
+}
+
+const initial = firstLetter(name ?? alt);
 ---
 
 <figure class:list={['mcover', { round }]}>

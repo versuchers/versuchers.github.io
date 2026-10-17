@@ -5,7 +5,6 @@
 "updatedDate": "2026-03-16"
 "tags":
   - "ağ günlüğü"
-  - "sphinx"
 "draft": false
 "source": "/2025/07/yedi.html"
 "encrypted": true

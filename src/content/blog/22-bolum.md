@@ -5,7 +5,6 @@
 "updatedDate": "2026-03-18"
 "tags":
   - "ağ günlüğü"
-  - "sphinx"
 "draft": false
 "source": "/2013/01/22-bolum.html"
 "encrypted": true

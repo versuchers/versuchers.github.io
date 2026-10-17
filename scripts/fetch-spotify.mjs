@@ -23,14 +23,12 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadPlaylistFolderMap, isKeptByFolder } from './playlist-folders.mjs';
+import { sleep, createThrottle, createSpotifyApi, hasSpotifyCreds } from './lib/spotify.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'src/data/spotify-playlists.json');
 const GENRE_CACHE = path.join(ROOT, 'src/data/spotify-artist-genres.json');
 
-const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID || '';
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || '';
-const REFRESH_TOKEN = process.env.SPOTIFY_REFRESH_TOKEN || '';
 const GENRE_BUDGET = Number(process.env.SPOTIFY_GENRE_BUDGET || 3000);
 const GENRES_ONLY = process.argv.includes('--genres-only');
 const LASTFM_KEY = process.env.LASTFM_API_KEY || '';
@@ -64,9 +62,6 @@ let playlistFolderMap = { exists: false };
 
 // ---------------------------------------------------------------- yardımcılar
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const b64 = (s) => Buffer.from(s).toString('base64');
-
 async function readJson(p, fallback) {
   try {
     return JSON.parse(await readFile(p, 'utf8'));
@@ -75,37 +70,9 @@ async function readJson(p, fallback) {
   }
 }
 
-let token = '';
-let lastWindow = [];
-
-/** Kaba hız sınırı: 30 sn'lik pencerede 170 isteği geçme. */
-async function throttle() {
-  const now = Date.now();
-  lastWindow = lastWindow.filter((t) => now - t < 30000);
-  if (lastWindow.length >= 170) {
-    const wait = 30000 - (now - lastWindow[0]) + 50;
-    if (wait > 0) await sleep(wait);
-  }
-  lastWindow.push(Date.now());
-}
-
+const throttle = createThrottle();
 /** Tek API çağrısı; 429'da bekleyip tekrar dener. */
-async function api(u, { retries = 3 } = {}) {
-  for (let i = 0; i <= retries; i++) {
-    await throttle();
-    const res = await fetch(`https://api.spotify.com/v1${u}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.status === 429) {
-      const retry = Number(res.headers.get('retry-after') || 3);
-      console.warn(`   ⏳ 429 — ${retry}s bekleniyor`);
-      await sleep(retry * 1000);
-      continue;
-    }
-    return res;
-  }
-  throw new Error(`Üst üste 429: ${u}`);
-}
+const { api } = createSpotifyApi({ retries: 3, throttle });
 
 /** Sayfalama; her sayfayı handler'a verir. `next` yoksa biter. */
 async function paged(u, handler) {
@@ -120,19 +87,6 @@ async function paged(u, handler) {
     await handler(json);
     next = json.next ? json.next.replace('https://api.spotify.com/v1', '') : null;
   }
-}
-
-async function getAccessToken() {
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${b64(`${CLIENT_ID}:${CLIENT_SECRET}`)}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: REFRESH_TOKEN }).toString(),
-  });
-  if (!res.ok) throw new Error(`Token alınamadı: ${res.status} ${await res.text()}`);
-  return (await res.json()).access_token;
 }
 
 // ------------------------------------------------------------- tür zenginleştirme
@@ -321,11 +275,10 @@ async function fullFetch() {
 }
 
 async function main() {
-  if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
+  if (!hasSpotifyCreds()) {
     console.error('❌ Eksik env: SPOTIFY_CLIENT_ID/SECRET/REFRESH_TOKEN (.env)');
     process.exit(1);
   }
-  token = await getAccessToken();
   genreCache = await readJson(GENRE_CACHE, {});
   // Hariç tutulan sanatçıların tür önbelleğini kalıcı olarak temizle.
   for (const k of Object.keys(genreCache)) {

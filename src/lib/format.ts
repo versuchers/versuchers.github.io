@@ -30,6 +30,21 @@ export function formatTrDate(value?: string | null): string {
 	return `${Number(d)} ${month} ${y}`;
 }
 
+/**
+ * Bir Date'i Türkçe "18 Kasım 2017" olarak biçimlendirir.
+ * `timeZone: 'UTC'` sayesinde build sunucusunun saat dilimi tarihi kaydırmaz.
+ */
+const DATE_FMT = new Intl.DateTimeFormat('tr-TR', {
+	day: 'numeric',
+	month: 'long',
+	year: 'numeric',
+	timeZone: 'UTC',
+});
+
+export function formatDate(date: Date): string {
+	return DATE_FMT.format(date);
+}
+
 const TR_MONTHS_LOWER = TR_MONTHS.map((m) => m.toLocaleLowerCase('tr'));
 
 /**
@@ -67,14 +82,4 @@ export function formatYearRange(value?: string | null, fallback = ''): string {
 	const raw = String(value ?? '').trim();
 	if (!raw) return fallback;
 	return raw.replace(/-/g, '–');
-}
-
-/** Yalnızca yıl (4 hane) içeren değerleri döner. */
-export function yearOnly(value?: string | null): string {
-	const m = String(value ?? '').match(/\d{4}/);
-	return m ? m[0] : '';
-}
-
-export function pluralTr(n: number, one: string, many: string): string {
-	return `${n} ${n === 1 ? one : many}`;
 }

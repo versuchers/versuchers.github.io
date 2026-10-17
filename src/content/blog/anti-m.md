@@ -6,7 +6,6 @@
 "tags":
   - "blasphemy"
   - "öfke"
-  - "sphinx"
   - "öykü"
 "draft": false
 "source": "/2008/07/anti-m.html"

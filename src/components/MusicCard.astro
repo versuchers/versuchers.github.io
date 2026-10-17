@@ -19,7 +19,7 @@ const { href, title, sub, src, round = false, plays, rank, eager = false } = Ast
 <li class="mcard">
 	<a class="card" href={href}>
 		<div class="cvr">
-			<MusicCover src={src} alt={title} round={round} eager={eager} />
+			<MusicCover src={src} alt="" name={title} round={round} eager={eager} />
 			{rank && <span class="rank">{rank}</span>}
 		</div>
 		<div class="body">

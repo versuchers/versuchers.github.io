@@ -8,7 +8,6 @@ import artistsJson from '../data/music/artists.json';
 import albumsJson from '../data/music/albums.json';
 import tracksJson from '../data/music/tracks.json';
 import coversJson from '../data/music/covers.json';
-import lastfmJson from '../data/music/lastfm.json';
 
 export interface MiniTrack {
 	name: string;
@@ -101,34 +100,16 @@ export interface Stats {
 		skipRate: number;
 	};
 	years: YearStat[];
-	months: { ym: string; plays: number; ms: number }[];
 	days: { d: string; plays: number; ms: number }[];
 	weekdayHour: number[][];
 	milestones: Milestones;
 	topArtists: { slug: string; name: string; plays: number; ms: number }[];
-	topAlbums: { slug: string; name: string; artist: string; plays: number; ms: number }[];
-	topTracks: { slug: string; name: string; artist: string; album: string; plays: number; ms: number }[];
 }
 
 export const stats = statsJson as unknown as Stats;
 export const artists = artistsJson as unknown as Artist[];
 export const albums = albumsJson as unknown as Album[];
 export const tracks = tracksJson as unknown as Track[];
-
-export interface LastfmEntry {
-	artist: string;
-	name: string;
-	album: string;
-	/** Unix saniye; null = şu an çalıyor. */
-	date: number | null;
-	image: string | null;
-}
-export interface LastfmData {
-	fetchedAt?: string;
-	tracks?: LastfmEntry[];
-}
-/** scripts/fetch-lastfm.mjs yazar; anahtarsızsa dosya boş kalır. */
-export const lastfm = lastfmJson as LastfmData;
 
 const covers = coversJson as Record<string, string>;
 
@@ -181,6 +162,13 @@ export function durationText(ms: number): string {
 	const m = totalMin % 60;
 	if (h <= 0) return `${m} dk`;
 	return `${h} sa ${m} dk`;
+}
+
+/** Kısa süre damgası: "2s 14d" / "18d". */
+export function durationShort(ms: number): string {
+	const h = Math.floor(ms / 3_600_000);
+	const m = Math.floor((ms % 3_600_000) / 60_000);
+	return h > 0 ? `${h}s ${m}d` : `${m}d`;
 }
 
 export function spotifyTrackUrl(uri: string): string {

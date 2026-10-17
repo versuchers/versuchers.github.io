@@ -23,7 +23,7 @@ const { rows } = Astro.props;
 			<li class="mr">
 				<span class="rk">{i + 1}</span>
 				<div class="cv">
-					{r.src ? <MusicCover src={r.src} alt={r.title} /> : <span class="cv-empty" aria-hidden="true" />}
+					{r.src ? <MusicCover src={r.src} alt="" name={r.title} /> : <span class="cv-empty" aria-hidden="true" />}
 				</div>
 				<div class="txt">
 					{r.href ? (

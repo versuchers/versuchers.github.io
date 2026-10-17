@@ -4,7 +4,6 @@
 "pubDate": "2016-04-19"
 "updatedDate": "2026-03-17"
 "tags":
-  - "sphinx"
   - "suicidal"
 "draft": false
 "source": "/2016/03/hicten-de-az.html"

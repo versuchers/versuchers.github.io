@@ -4,7 +4,6 @@
 "pubDate": "2020-01-07"
 "updatedDate": "2026-03-18"
 "tags":
-  - "sphinx"
   - "suicidal"
 "draft": false
 "source": "/2020/01/agzma-gore-kulaklar.html"

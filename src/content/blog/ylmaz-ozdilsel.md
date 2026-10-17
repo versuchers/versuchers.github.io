@@ -6,7 +6,6 @@
 "tags":
   - "blasphemy"
   - "öfke"
-  - "sphinx"
 "draft": false
 "source": "/2014/04/ylmaz-ozdilsel.html"
 "encrypted": true

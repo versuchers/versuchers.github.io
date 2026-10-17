@@ -5,7 +5,6 @@
 "updatedDate": "2026-04-06"
 "tags":
   - "ağ günlüğü"
-  - "sphinx"
 "draft": false
 "source": "/2023/05/ac-kotas.html"
 "encrypted": true

@@ -1,117 +1,110 @@
+#!/usr/bin/env node
 /**
- * Last.fm "son dinlenenler" — build zamanı çekimi (nearly live).
- *
- *   LASTFM_API_KEY zorunlu (https://www.last.fm/api/account/create).
- *   LASTFM_USER     varsayılan: versucher666
- *   LASTFM_LIMIT    varsayılan: 50
- *
- * Çıktı: src/data/music/lastfm.json
- * Gizlilik: yalnızca sanatçı / şarkı / albüm / tarih / kapak yazılır;
- * ip_addr, kullanıcı adı, platform gibi alanlar asla saklanmaz.
- * Anahtar repoya yazılmaz; anahtarsız betik sessizce çıkar.
- *
- * Kapaklar mümkünse log deposuna aynalanır (indir → webp → push) ve
- * https://versucher.com/log/music/son/<ad>.webp adresi yazılır.
- * Aynalama yoksa (CI'da klon/PAT yoksa) daha önce aynalanmış görseller yine
- * log adresinden, yeni görseller Last.fm CDN'inden gelir — asla kırık olmaz.
+ * Last.fm scrobble'larını (7 Ekim 2026 sonrası) veriye ekler.
+ * Toplam dinleme sayıları, son tarih ve istatistikler güncellenir.
  */
-import { writeFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { mirror, flush, hosted, logUrl } from './lib/mirror.mjs';
+import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const OUT = path.join(ROOT, 'src/data/music/lastfm.json');
+const STATS = path.join(ROOT, 'src/data/music/stats.json');
+const ARTISTS = path.join(ROOT, 'src/data/music/artists.json');
+const ALBUMS = path.join(ROOT, 'src/data/music/albums.json');
+const TRACKS = path.join(ROOT, 'src/data/music/tracks.json');
 
-const KEY = process.env.LASTFM_API_KEY;
-if (!KEY) {
-	// Anahtar yoksa mevcut dosyayı olduğu gibi bırak, sessiz çık.
-	process.exit(0);
-}
-
+const KEY = process.env.LASTFM_API_KEY || process.env.LASTFM_APIKEY;
+if (!KEY) { console.error('LASTFM_API_KEY eksik'); process.exit(1); }
 const USER = process.env.LASTFM_USER || 'versucher666';
-const LIMIT = Math.min(200, Math.max(1, Number(process.env.LASTFM_LIMIT) || 50));
 
-// Last.fm'in yer tutucu (placeholder) kapak görseli.
-const PLACEHOLDER = '2a96cbd8b46e442fc41c2b86b821562f';
-
-// Görsel adı: Last.fm URL'inin kendi hash'i (kararlı, okunabilir, benzersiz).
-const sonName = (u) => {
-	const tail = String(u).split('/').pop().replace(/\.(jpe?g|png|gif|webp)$/i, '');
-	return /^[a-f0-9]{32}$/i.test(tail) ? `${tail}.webp` : null;
-};
-
-const url =
-	'https://ws.audioscrobbler.com/2.0/?method=user.getRecentTracks' +
-	`&user=${encodeURIComponent(USER)}` +
-	`&api_key=${encodeURIComponent(KEY)}` +
-	`&limit=${LIMIT}&format=json`;
-
-const res = await fetch(url, { headers: { 'user-agent': 'versucher.com music archive' } });
-if (!res.ok) {
-	console.error(`Last.fm HTTP ${res.status}`);
-	process.exit(1);
-}
-const json = await res.json();
-if (json.error) {
-	console.error(`Last.fm hata ${json.error}: ${json.message}`);
-	process.exit(1);
+async function fetchRecent(fromTs, limit = 200) {
+	const params = new URLSearchParams({ method:'user.getrecenttracks', user:USER, api_key:KEY, format:'json', limit:String(limit) });
+	if (fromTs != null) params.set('from', String(fromTs));
+	const res = await fetch(`https://ws.audioscrobbler.com/2.0/?${params}`, { headers:{'user-agent':'versucher.com'} });
+	if (!res.ok) throw new Error(`lastfm ${res.status}`);
+	const j = await res.json();
+	if (j.error) throw new Error(`lastfm ${j.error}`);
+	return j.recenttracks?.track || [];
 }
 
-const recent = json?.recenttracks?.track ?? [];
-const tracks = [];
-for (const t of Array.isArray(recent) ? recent : [recent]) {
-	const img = (t.image || [])
-		.find((i) => i.size === 'large' && i['#text'] && !i['#text'].includes(PLACEHOLDER))?.['#text']
-		|| (t.image || [])
-			.find((i) => i.size === 'medium' && i['#text'] && !i['#text'].includes(PLACEHOLDER))?.['#text']
-		|| null;
-	const nm = img ? sonName(img) : null;
-	tracks.push({
-		artist: String(t.artist?.['#text'] ?? '').trim(),
-		name: String(t.name ?? '').trim(),
-		album: String(t.album?.['#text'] ?? '').trim(),
-		date: t.date?.uts ? Number(t.date.uts) : null, // null = şu an çalıyor
-		image: img,
-		rel: nm ? `music/son/${nm}` : null,
-	});
-}
+const lk = s => String(s||'').toLowerCase().trim();
+const tsKey = s => lk(s).replace(/\s+/g,' ');
 
-// ---- kapakları log deposuna aynala ---------------------------------------
-// Kaynak hâlâ canlı mı? (Ölü Last.fm URL'lerini panele taşımamak için.)
-const alive = async (u) => {
-	try {
-		const r = await fetch(u, { method: 'HEAD', redirect: 'follow' });
-		return r.ok;
-	} catch {
-		return false;
+async function main() {
+	const stats = JSON.parse(await readFile(STATS,'utf8'));
+	const artists = JSON.parse(await readFile(ARTISTS,'utf8'));
+	const albums = JSON.parse(await readFile(ALBUMS,'utf8'));
+	const tracks = JSON.parse(await readFile(TRACKS,'utf8'));
+
+	const lastTsDate = stats.range?.last ? new Date(stats.range.last) : null;
+	let fromTs = null;
+	if (lastTsDate) fromTs = Math.floor(lastTsDate.getTime()/1000) + 5;
+
+	const recent = await fetchRecent(fromTs, 200);
+
+	let added = 0;
+	const trackByKey = new Map();
+	for (const t of tracks) {
+		trackByKey.set(`${tsKey(t.artist)}||${tsKey(t.album)}||${tsKey(t.name)}`, t);
 	}
-};
+	for (const r of recent) {
+		const uts = r.date?.uts ? Number(r.date.uts) : null;
+		if (!uts) continue;
+		const k1 = `${tsKey(r.artist?.['#text']||r.artist)}||${tsKey(r.album?.['#text']||r.album)}||${tsKey(r.name)}`;
+		let found = trackByKey.get(k1);
+		if (!found) {
+			for (const [k,t] of trackByKey) {
+				if (k.startsWith(tsKey(r.artist?.['#text']||r.artist)+'||') && k.endsWith('||'+tsKey(r.name))) { found = t; break; }
+			}
+		}
+		if (!found) continue;
+		const before = found.plays || 0;
+		const avg = before > 0 ? Math.round(found.ms / before) : (found.ms || 0);
+		found.plays += 1;
+		found.ms += avg || 0;
+		const iso = new Date(uts*1000).toISOString();
+		if (!found.last || iso > found.last) found.last = iso;
+		added++;
+	}
+	if (added === 0) { console.log('0 yeni scrobble'); return; }
+	// recompute aggregates
+	const totalsScrobbles = tracks.reduce((s,t)=>s+(t.plays||0),0);
+	const totalsMs = tracks.reduce((s,t)=>s+(t.ms||0),0);
+	stats.totals.scrobbles = totalsScrobbles;
+	stats.totals.ms = totalsMs;
+	stats.totals.hours = Math.round(totalsMs / 3600000);
+	stats.range.last = tracks.reduce((max,t)=>{ if (!t.last) return max; if (!max) return t.last; return t.last > max ? t.last : max; }, stats.range.last);
+	// days: append today's count
+	const today = new Date().toISOString().slice(0,10);
+	const lastDay = stats.days[stats.days.length-1]?.d;
+	if (!lastDay || lastDay !== today) {
+		const cnt = tracks.reduce((s,t)=>{ const d=t.last?.slice(0,10); if (d===today) return s+1; return s; }, 0); // rough
+		stats.days.push({d:today, plays:0, ms:0});
+	}
+	// mostPlayedTrack
+	let mT = null;
+	for (const t of tracks) if (!mT || (t.plays||0)>(mT.plays||0)) mT = t;
+	if (mT) stats.milestones.mostPlayedTrack = { name:mT.name, artist:mT.artist, slug:mT.slug, plays:mT.plays };
+	// mostPlayedArtist
+	for (const a of artists) {
+		const p = tracks.filter(t=>lk(t.artist)===lk(a.name)).reduce((s,t)=>s+(t.plays||0),0);
+		if (p>=0) a.plays = p;
+	}
+	let mA=null; for (const a of artists) if (!mA||(a.plays||0)>(mA.plays||0)) mA=a;
+	if (mA) stats.milestones.mostPlayedArtist = { name:mA.name, slug:mA.slug, plays:mA.plays };
+	// albums
+	for (const al of albums) {
+		const p = tracks.filter(t=>lk(t.artist)===lk(al.artist)&&lk(t.album)===lk(al.name)).reduce((s,t)=>s+(t.plays||0),0);
+		const ms = tracks.filter(t=>lk(t.artist)===lk(al.artist)&&lk(t.album)===lk(al.name)).reduce((s,t)=>s+(t.ms||0),0);
+		al.plays = p; al.ms = ms;
+	}
+	let mAl=null; for (const al of albums) if (!mAl||(al.plays||0)>(mAl.plays||0)) mAl=al;
+	if (mAl) stats.milestones.mostPlayedAlbum = { name:mAl.name, artist:mAl.artist, slug:mAl.slug, plays:mAl.plays };
 
-const planned = tracks.filter((t) => t.rel && t.image);
-for (const t of planned) {
-	t.orig = t.image;
-	t.a = await mirror(t.image, t.rel, 'lastfm: son dinlenenler');
+	await writeFile(TRACKS, JSON.stringify(tracks,null,2)+'\n');
+	await writeFile(ARTISTS, JSON.stringify(artists,null,2)+'\n');
+	await writeFile(ALBUMS, JSON.stringify(albums,null,2)+'\n');
+	await writeFile(STATS, JSON.stringify(stats,null,2)+'\n');
+	console.log(`✓ ${added} scrobble eklendi`);
 }
-const pushed = planned.length ? await flush() : false;
-for (const t of planned) {
-	// push başarılıysa HEAD sormaya gerek yok; değilse yayında mı diye bak.
-	const u = t.a && pushed ? logUrl(t.rel) : await hosted(t.rel);
-	if (u) t.image = u;
-	// Ne aynalanabildi ne yayında: kaynak da ölüyse denemeye değmez (null →
-	// arayüzde panel arşiv kapağına düşer, kırık görsel gösterilmez).
-	else if (!(await alive(t.orig))) t.image = null;
-}
-for (const t of tracks) {
-	delete t.rel;
-	delete t.a;
-	delete t.orig;
-}
-
-const out = { fetchedAt: new Date().toISOString(), tracks };
-await writeFile(OUT, JSON.stringify(out) + '\n', 'utf-8');
-const self = tracks.filter((t) => t.image && String(t.image).includes('/log/')).length;
-console.log(
-	`lastfm.json: ${tracks.length} kayıt yazıldı (${self} kapak log deposundan, ` +
-		`${tracks.length - self} harici CDN)`,
-);
+main().catch(e=>{console.error('HATA', e);process.exit(1);});

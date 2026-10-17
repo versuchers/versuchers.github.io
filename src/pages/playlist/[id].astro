@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import MusicCover from '../../components/MusicCover.astro';
+import { durationShort } from '../../lib/music';
 import {
 	getPlaylistById,
 	listedPlaylists,
@@ -20,12 +21,6 @@ if (!pl) {
 	throw new Error(`Playlist bulunamadı: ${id}`);
 }
 
-function formatMs(ms: number) {
-	const h = Math.floor(ms / 3600000);
-	const m = Math.floor((ms % 3600000) / 60000);
-	return h > 0 ? `${h}s ${m}d` : `${m}d`;
-}
-
 const maxArtist = pl.artists[0]?.count || 1;
 const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim() : '';
 const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
@@ -40,7 +35,7 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 
 		<header class="pl-head">
 			<div class="pl-cover">
-				<MusicCover src={pl.cover ?? undefined} alt={pl.name} eager />
+				<MusicCover src={pl.cover ?? undefined} alt="" name={pl.name} eager />
 			</div>
 			<div class="pl-info">
 				<p class="eyebrow">Playlist</p>
@@ -55,7 +50,7 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 				{description && <p class="lede">{description}</p>}
 				<p class="muted">
 					{pl.trackCount} şarkı · {pl.artistCount} artist · {pl.albumCount} albüm
-					{pl.durationMs > 0 ? ` · ${formatMs(pl.durationMs)}` : ''}
+					{pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
 				</p>
 				<div class="pl-actions">
 					<a class="btn btn--accent" href={pl.url} target="_blank" rel="noopener">

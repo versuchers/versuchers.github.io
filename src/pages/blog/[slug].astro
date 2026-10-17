@@ -2,8 +2,8 @@
 import Base from '../../layouts/Base.astro';
 import EncryptedPost from '../../components/EncryptedPost.astro';
 import { getCollection, render } from 'astro:content';
-import { formatTrDate } from '../../lib/format';
-import { tagSlug } from '../../lib/text';
+import { formatDate } from '../../lib/format';
+import { tagSlug, titleCaseTr } from '../../lib/text';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
@@ -12,16 +12,16 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
-const dateLabel = formatTrDate(post.data.pubDate.toLocaleDateString('tr-TR'));
+const dateLabel = formatDate(post.data.pubDate);
 ---
 
-<Base title={post.data.title} description={post.data.description || undefined} ogImage={post.data.cover}>
+<Base title={titleCaseTr(post.data.title)} description={post.data.description || undefined} ogImage={post.data.cover}>
 	<article class="blog-post">
 		<nav class="crumbs" aria-label="Kırıntı">
 			<a href="/">Ana sayfa</a><span aria-hidden="true">/</span><a href="/blog">Blog</a>
 		</nav>
 
-		<h1 class="post-title">{post.data.title}</h1>
+		<h1 class="post-title">{titleCaseTr(post.data.title)}</h1>
 
 
 		{post.data.encrypted ? (

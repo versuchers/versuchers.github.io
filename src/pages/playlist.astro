@@ -2,13 +2,8 @@
 import Base from '../layouts/Base.astro';
 import MusicCover from '../components/MusicCover.astro';
 import { listedPlaylists, folderChips, getPlaylistFolderIds, spotifyPlaylists } from '../lib/playlists';
-
-function formatMs(ms: number) {
-	const h = Math.floor(ms / 3600000);
-	const m = Math.floor((ms % 3600000) / 60000);
-	if (h > 0) return `${h}s ${m}d`;
-	return `${m}d`;
-}
+import { durationShort } from '../lib/music';
+import { formatDate } from '../lib/format';
 
 const playlists = listedPlaylists();
 const hasData = playlists.length > 0;
@@ -20,11 +15,16 @@ const createdMs = (iso?: string | null) => (iso ? Date.parse(iso) || 0 : 0);
 const chips = folderChips();
 const chipCount = new Map(chips.map((c) => [c.id, 0]));
 for (const p of playlists) {
-	const [first] = getPlaylistFolderIds(p.id);
-	if (first && chipCount.has(first)) chipCount.set(first, chipCount.get(first)! + 1);
+	for (const id of getPlaylistFolderIds(p.id)) {
+		if (chipCount.has(id)) chipCount.set(id, chipCount.get(id)! + 1);
+	}
 }
 const folderName = new Map(chips.map((c) => [c.id, c.name]));
 const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
+
+// Varsayılan klasör sunucuda uygulanır: kullanıcı sorgusuz açtığında diğer
+// kartlar zaten gizli gelir, süzgeç "sonradan" uygulanmış gibi görünmez.
+const defaultFolder = chips[0]?.id ?? '__all';
 ---
 
 <Base title="Playlistler" description="Public Spotify playlistlerim.">
@@ -38,7 +38,7 @@ const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
 				</p>
 			</div>
 			{hasData && spotifyFetchedAt && (
-				<p class="muted">Güncellenme: {new Date(spotifyFetchedAt).toLocaleDateString('tr-TR')}</p>
+				<p class="muted">Güncellenme: {formatDate(new Date(spotifyFetchedAt))}</p>
 			)}
 		</header>
 
@@ -78,11 +78,19 @@ const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
 						</select>
 					</div>
 					<div class="fchips">
-						<button class="fchip" type="button" data-folder="__all">
+						<button
+							class:list={['fchip', { 'is-on': defaultFolder === '__all' }]}
+							type="button"
+							data-folder="__all"
+						>
 							Tümü <span class="n">{playlists.length}</span>
 						</button>
 						{chips.map((c) => (
-							<button class="fchip" type="button" data-folder={c.id}>
+							<button
+								class:list={['fchip', { 'is-on': c.id === defaultFolder }]}
+								type="button"
+								data-folder={c.id}
+							>
 								{c.name} <span class="n">{chipCount.get(c.id) ?? 0}</span>
 							</button>
 						))}
@@ -93,42 +101,46 @@ const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
 
 		{
 			hasData && (
-				<ul class="grid" style="--col: 200px" data-pl-grid>
-					{playlists.map((pl) => (
-						<li
-							class="card pl"
-							data-folders={getPlaylistFolderIds(pl.id).join(' ')}
-							data-name={pl.name.trim().toLocaleLowerCase('tr')}
-							data-created={createdMs(pl.createdAt)}
-						>
-							<a class="pl-cover" href={`/playlist/${pl.id}`} aria-label={pl.name}>
-								<MusicCover src={pl.cover ?? undefined} alt={pl.name} />
-							</a>
-							<div class="pl-body">
-								<h3 class="t">
-									<a href={`/playlist/${pl.id}`}>{pl.name.trim() || '(isimsiz)'}</a>
-								</h3>
-								<p class="s muted">
-									{pl.trackCount} şarkı · {pl.artistCount} artist
-									{pl.durationMs > 0 ? ` · ${formatMs(pl.durationMs)}` : ''}
-								</p>
-								<p class="pl-folder-tag">
-									{getPlaylistFolderIds(pl.id)
-										.map((id) => folderName.get(id))
-										.filter(Boolean)
-										.join(' · ')}
-								</p>
-								<div class="pl-actions">
-									<a class="btn btn--accent" href={`/playlist/${pl.id}`}>
-										Detay
-									</a>
-									<a class="btn" href={pl.url} target="_blank" rel="noopener">
-										Spotify
-									</a>
+				<ul class="grid pl-list" data-pl-grid>
+					{playlists.map((pl) => {
+						const folders = getPlaylistFolderIds(pl.id);
+						return (
+							<li
+								class="card pl"
+								data-folders={folders.join(' ')}
+								data-name={pl.name.trim().toLocaleLowerCase('tr')}
+								data-created={createdMs(pl.createdAt)}
+								hidden={defaultFolder !== '__all' && !folders.includes(defaultFolder)}
+							>
+								<a class="pl-cover" href={`/playlist/${pl.id}`} aria-label={pl.name}>
+									<MusicCover src={pl.cover ?? undefined} alt="" name={pl.name} />
+								</a>
+								<div class="pl-body">
+									<h3 class="t">
+										<a href={`/playlist/${pl.id}`}>{pl.name.trim() || '(isimsiz)'}</a>
+									</h3>
+									<p class="s muted">
+										{pl.trackCount} şarkı · {pl.artistCount} artist
+										{pl.name === '𝔰𝔢𝔯𝔭𝔢𝔫𝔱 𝔠𝔲𝔩𝔱𝔲𝔯𝔢 ⛧' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
+									</p>
+									<p class="pl-folder-tag">
+										{folders
+											.map((id) => folderName.get(id))
+											.filter(Boolean)
+											.join(' · ')}
+									</p>
+									<div class="pl-actions">
+										<a class="btn btn--accent" href={`/playlist/${pl.id}`}>
+											Detay
+										</a>
+										<a class="btn" href={pl.url} target="_blank" rel="noopener">
+											Spotify
+										</a>
+									</div>
 								</div>
-							</div>
-						</li>
-					))}
+							</li>
+						);
+					})}
 				</ul>
 			)
 		}
@@ -265,6 +277,20 @@ const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
 	}
 	.fchip .n {
 		font-size: 0.72rem;
+	}
+	/* Playlist kartları: ekran genişliğine göre 6 / 3 / 2 sütun. */
+	.grid.pl-list {
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+	}
+	@media (max-width: 1100px) {
+		.grid.pl-list {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+	@media (max-width: 620px) {
+		.grid.pl-list {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
 	}
 	.pl {
 		display: flex;

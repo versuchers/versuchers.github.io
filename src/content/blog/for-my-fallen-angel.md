@@ -5,7 +5,6 @@
 "updatedDate": "2026-04-06"
 "tags":
   - "poetik"
-  - "sphinx"
 "draft": false
 "source": "/2014/01/for-my-fallen-angel.html"
 "encrypted": true

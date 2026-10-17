@@ -5,7 +5,6 @@
 "updatedDate": "2026-03-15"
 "tags":
   - "ağ günlüğü"
-  - "sphinx"
 "draft": false
 "source": "/2025/01/guess-whos-back.html"
 "encrypted": true

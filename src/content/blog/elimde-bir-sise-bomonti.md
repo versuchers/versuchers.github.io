@@ -5,7 +5,6 @@
 "updatedDate": "2026-03-16"
 "tags":
   - "ağ günlüğü"
-  - "sphinx"
 "draft": false
 "source": "/2023/05/elimde-bir-sise-bomonti.html"
 "encrypted": true

@@ -166,13 +166,6 @@ export function watchedTime(entry: Entry): number {
 	return parseLooseTrDate(entry.readYear)?.getTime() ?? reviewTime(entry);
 }
 
-/** İzleme/okuma tarihinin gösterilecek hâli. */
-export function watchedLabel(entry: Entry): string {
-	if (entry.type === 'film') return entry.watchDate;
-	if (entry.type === 'dizi') return entry.startedYear ? String(entry.startedYear) : '';
-	return entry.readYear ? formatLooseTrDate(entry.readYear) : '';
-}
-
 /** Son yorum yapılanlar (tüm türler). */
 export function latestReviewed(limit = 6): Entry[] {
 	return [...allEntries].sort((a, b) => reviewTime(b) - reviewTime(a)).slice(0, limit);
@@ -186,15 +179,6 @@ export function latestWatched(limit = 6): Entry[] {
 /** Son okunanlar. */
 export function latestRead(limit = 6): Kitap[] {
 	return [...books].sort((a, b) => watchedTime(b) - watchedTime(a)).slice(0, limit);
-}
-
-/** Yüksek puanlılar. */
-export function topRated(kind?: Kind, limit = 6): Entry[] {
-	const pool = kind ? byKind[kind] : allEntries;
-	return [...pool]
-		.filter((e) => (e.rating ?? 0) > 0)
-		.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-		.slice(0, limit);
 }
 
 /** Bir kaydın tüm etiketlerini (tür + etiket + tema) dizi olarak döner. */
@@ -220,40 +204,6 @@ export function tagList(entry: Entry): string[] {
 		push(entry.mainTheme);
 	}
 	return [...out];
-}
-
-/** Bir tür için filtre panelinde kullanılacak değerleri toplar. */
-export interface Facets {
-	genres: string[];
-	tags: string[];
-	years: string[];
-}
-
-export function facets(kind: Kind): Facets {
-	const items = byKind[kind];
-	const genres = new Set<string>();
-	const tags = new Set<string>();
-	const years = new Set<string>();
-
-	for (const it of items) {
-		if (it.type === 'film') {
-			(it.genre || '').split(',').forEach((g) => g.trim() && genres.add(g.trim()));
-			(it.tags || '').split(',').forEach((g) => g.trim() && tags.add(g.trim()));
-		} else if (it.type === 'dizi') {
-			(it.genre || '').split(',').forEach((g) => g.trim() && genres.add(g.trim()));
-			(it.tags || '').split(',').forEach((g) => g.trim() && tags.add(g.trim()));
-		} else {
-			(it.mainGenre || '').split(',').forEach((g) => g.trim() && genres.add(g.trim()));
-			(it.subGenre || '').split(',').forEach((g) => g.trim() && tags.add(g.trim().replace(/\/+/g, ' ')));
-		}
-		if (it.year) years.add(it.year);
-	}
-
-	return {
-		genres: [...genres].sort((a, b) => a.localeCompare(b, 'tr')),
-		tags: [...tags].sort((a, b) => a.localeCompare(b, 'tr')),
-		years: [...years].sort((a, b) => Number(b) - Number(a)),
-	};
 }
 
 /** Detay sayfası için künye satırları (boş olanlar atlanır). */
@@ -351,7 +301,7 @@ export function facts(entry: Entry): Fact[] {
 }
 
 /** Dış bağlantı listesi. */
-export const LINK_LABELS: Record<string, string> = {
+const LINK_LABELS: Record<string, string> = {
 	tmdb: 'TMDB',
 	imdb: 'IMDb',
 	letterboxd: 'Letterboxd',
