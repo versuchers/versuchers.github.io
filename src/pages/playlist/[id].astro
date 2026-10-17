@@ -50,7 +50,7 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 				{description && <p class="lede">{description}</p>}
 				<p class="muted">
 					{pl.trackCount} şarkı · {pl.artistCount} artist · {pl.albumCount} albüm
-					{pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
+					{pl.name === '𝔰𝔢𝔯𝔭𝔢𝔫𝔱 𝔠𝔲𝔩𝔱𝔲𝔯𝔢 ⛧' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
 				</p>
 				<div class="pl-actions">
 					<a class="btn btn--accent" href={pl.url} target="_blank" rel="noopener">
