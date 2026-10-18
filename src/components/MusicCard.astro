@@ -3,7 +3,8 @@ import MusicCover from './MusicCover.astro';
 import { integer } from '../lib/music';
 
 interface Props {
-	href: string;
+	/** Detay sayfası olmayan öğelerde (ör. türler) boş bırakılabilir. */
+	href?: string;
 	title: string;
 	sub?: string;
 	src?: string;
@@ -37,15 +38,26 @@ const { href, title, sub, src, round = false, plays, rank, eager = false } = Ast
 	.mcard .card {
 		display: block;
 		height: 100%;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
 	}
+
+	.mcard .card:hover {
+		box-shadow: var(--shadow-hover, var(--shadow));
+	}
+
 	.mcard .card:hover :global(.mcover img) {
 		transform: scale(1.05);
 	}
+
 	.mcard .card:hover .rank {
 		color: var(--accent);
 	}
+
 	.cvr {
 		position: relative;
+		aspect-ratio: 1 / 1;
+		overflow: hidden;
+		background: var(--bg-2);
 	}
 	.rank {
 		position: absolute;
@@ -67,8 +79,8 @@ const { href, title, sub, src, round = false, plays, rank, eager = false } = Ast
 	.body {
 		display: flex;
 		flex-direction: column;
-		gap: 0.15rem;
-		padding: 0.6rem 0.7rem 0.75rem;
+		gap: 0.3rem;
+		padding: 0.75rem 0.85rem 0.9rem;
 	}
 	.t {
 		font-family: var(--font-card);

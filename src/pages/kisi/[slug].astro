@@ -1,0 +1,50 @@
+---
+import Base from '../../layouts/Base.astro';
+import PersonBrowse from '../../components/PersonBrowse.astro';
+import { peopleIndex, ROLE_LABEL } from '../../lib/data';
+
+/**
+ * Kişi sayfası: `/kisi/ben-affleck`.
+ * Bir kişinin tüm rollerini (yönetmen, senarist, oyuncu, yazar…) tek yerde
+ * gösterir; rol ve tür çipleriyle süzülür. Yalnızca en az `MIN_PERSON_WORKS`
+ * yapımı olan kişiler için üretilir; altındakiler aramaya bağlanır.
+ */
+export function getStaticPaths() {
+	return peopleIndex.list.map((p) => ({
+		params: { slug: p.slug },
+		props: { slug: p.slug },
+	}));
+}
+
+const { slug } = Astro.props as { slug: string };
+const person = peopleIndex.bySlug.get(slug)!;
+
+const roleSummary = person.roleIds.map((r) => ROLE_LABEL[r]).join(' · ');
+const title = person.name;
+const desc = `${person.name}: ${person.works.length} yapım (${roleSummary}).`;
+---
+
+<Base title={title} description={desc}>
+	<main class="container" style="padding:1.5rem 1rem 3rem">
+		<header class="tag-head">
+			<p class="eyebrow">Kişi</p>
+			<h1>{person.name}</h1>
+			<p class="lede muted">{roleSummary} — {person.works.length} yapım</p>
+		</header>
+		<PersonBrowse works={person.works} />
+	</main>
+</Base>
+
+<style>
+	.tag-head {
+		margin-bottom: 1.25rem;
+	}
+	.tag-head h1 {
+		margin: 0.15rem 0 0;
+	}
+	.lede {
+		margin: 0.35rem 0 0;
+		font-family: var(--font-ui);
+		font-size: 0.9rem;
+	}
+</style>

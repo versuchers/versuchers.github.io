@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import MusicBrowse from '../../components/MusicBrowse.astro';
+import { genres, stats } from '../../lib/music';
+
+const rows = genres.map((g) => ({
+	title: g.name,
+	sub: `${g.artists} sanatçı`,
+	plays: g.plays,
+}));
+const kat = 'tur';
+const baseUrl = '/muzik/turler';
+const yearsArr = stats.years.map((y) => y.year);
+---
+
+<Base
+	title="Müzik — Türler"
+	description="En çok dinlediğim 66 müzik türü; 2016–2026 arası dinlemelere göre. Yıla göre filtreleyebilirsiniz."
+>
+	<div class="container section">
+		<header class="page-head">
+			<p class="eyebrow">Müzik</p>
+			<h1>Türler</h1>
+			<p class="lede">2016–2026 arası en çok dinlediğim 66 tür; dinleme süresine göre. Yıl sekmeleriyle o yılın sıralamasını görebilirsiniz.</p>
+		</header>
+		<MusicBrowse
+			label="Türler"
+			unit="tür"
+			rows={rows}
+			kat={kat}
+			baseUrl={baseUrl}
+			years={yearsArr}
+		/>
+	</div>
+</Base>
+
+<style>
+	.page-head {
+		margin-bottom: 2rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+</style>

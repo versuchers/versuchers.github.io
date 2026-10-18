@@ -1,0 +1,266 @@
+---
+import { KIND_LABEL, ROLE_LABEL, ROLE_ORDER, type Kind, type PersonWork } from '../lib/data';
+import { parseTrDate } from '../lib/format';
+import { fold } from '../lib/text';
+import EntryCard from './EntryCard.astro';
+
+interface Props {
+	works: PersonWork[];
+	/** Açılış sıralaması. */
+	defaultSort?: 'title' | 'rating' | 'year' | 'review' | 'added';
+}
+
+const { works, defaultSort = 'rating' } = Astro.props;
+
+const displayTitle = (e: PersonWork['entry']) => (e.type === 'film' ? e.fullTitle || e.title : e.title);
+
+// Yalnızca listede bulunan roller / türler için çip göster.
+const presentRoles = ROLE_ORDER.filter((r) => works.some((w) => w.roles.includes(r)));
+const presentTypes = (['kitap', 'film', 'dizi'] as Kind[]).filter((k) =>
+	works.some((w) => w.entry.type === k),
+);
+
+const sortOptions = [
+	{ id: 'rating', label: 'Puana göre (yüksek→düşük)' },
+	{ id: 'title', label: 'Başlığa göre (A→Z)' },
+	{ id: 'year', label: 'Yıla göre (yeni→eski)' },
+	{ id: 'review', label: 'Son yorumlanan' },
+	{ id: 'added', label: 'Ekleme sırası' },
+];
+
+// Sunucu da açılış sıralamasını uygular; ilk boyama bu sırada olur.
+const collator = new Intl.Collator('tr');
+const sorters: Record<string, (a: PersonWork, b: PersonWork) => number> = {
+	title: (a, b) => collator.compare(fold(displayTitle(a.entry)), fold(displayTitle(b.entry))),
+	rating: (a, b) => (b.entry.rating ?? 0) - (a.entry.rating ?? 0),
+	year: (a, b) => Number(b.entry.year || 0) - Number(a.entry.year || 0),
+	review: (a, b) =>
+		(parseTrDate(b.entry.reviewDate)?.getTime() ?? 0) -
+		(parseTrDate(a.entry.reviewDate)?.getTime() ?? 0),
+	added: () => 0,
+};
+const sorted = works
+	.map((w, index) => ({ w, index }))
+	.sort((a, b) => (sorters[defaultSort] ?? sorters.rating)(a.w, b.w));
+---
+
+<div class="browse pbrowse" data-pbrowse>
+	<div class="controls">
+		<div class="chips chips--role" role="group" aria-label="Role göre süz">
+			<button type="button" class="chip is-active" data-role="">Tüm roller</button>
+			{
+				presentRoles.map((r) => (
+					<button type="button" class="chip" data-role={r}>
+						{ROLE_LABEL[r]}
+					</button>
+				))
+			}
+		</div>
+
+		{
+			presentTypes.length > 1 && (
+				<div class="chips chips--type" role="group" aria-label="Türe göre süz">
+					<button type="button" class="chip is-active" data-type="">
+						Tüm türler
+					</button>
+					{presentTypes.map((k) => (
+						<button type="button" class="chip" data-type={k}>
+							{KIND_LABEL[k]}
+						</button>
+					))}
+				</div>
+			)
+		}
+
+		<label class="field">
+			<span>Sırala</span>
+			<select data-f="sort">
+				{sortOptions.map((s) => (
+					<option value={s.id} selected={s.id === defaultSort}>{s.label}</option>
+				))}
+			</select>
+		</label>
+	</div>
+
+	<div class="status">
+		<span data-count class="muted">{works.length} kayıt</span>
+	</div>
+
+	<ul class="grid browse-grid pbrowse-grid">
+		{
+			sorted.map(({ w, index }) => (
+				<li
+					class="cell"
+					data-type={w.entry.type}
+					data-roles={w.roles.join(' ')}
+					data-title={fold(displayTitle(w.entry))}
+					data-year={w.entry.year || ''}
+					data-rating={String(w.entry.rating ?? 0)}
+					data-review={String(parseTrDate(w.entry.reviewDate)?.getTime() ?? 0)}
+					data-index={String(index)}
+				>
+					<EntryCard
+						entry={w.entry}
+						showType
+						hideAuthor
+						roles={w.roles.map((r) => ROLE_LABEL[r])}
+					/>
+				</li>
+			))
+		}
+	</ul>
+
+	<p class="empty muted" data-empty hidden>Kayıt yok.</p>
+</div>
+
+<script>
+	type SortId = 'title' | 'rating' | 'year' | 'review' | 'added';
+
+	document.querySelectorAll<HTMLElement>('[data-pbrowse]').forEach((root) => {
+		const grid = root.querySelector<HTMLElement>('.pbrowse-grid');
+		if (!grid) return;
+		const cells = Array.from(grid.children) as HTMLElement[];
+		const roleChips = Array.from(root.querySelectorAll<HTMLButtonElement>('.chips--role .chip'));
+		const typeChips = Array.from(root.querySelectorAll<HTMLButtonElement>('.chips--type .chip'));
+		const sort = root.querySelector<HTMLSelectElement>('[data-f="sort"]')!;
+		const count = root.querySelector<HTMLElement>('[data-count]')!;
+		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+
+		const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
+		const roleActive = new Set<string>();
+		const typeActive = new Set<string>();
+
+		// Bağlantıdan gelen rol (ör. /kisi/ben-affleck?rol=oyuncu) ön-seçili açılır.
+		const wanted = new URLSearchParams(location.search).get('rol');
+		if (wanted && roleChips.some((c) => (c.dataset.role ?? '') === wanted)) {
+			roleActive.add(wanted);
+		}
+
+		function paintChips() {
+			for (const chip of roleChips) {
+				const r = chip.dataset.role ?? '';
+				chip.classList.toggle('is-active', r ? roleActive.has(r) : roleActive.size === 0);
+			}
+			for (const chip of typeChips) {
+				const t = chip.dataset.type ?? '';
+				chip.classList.toggle('is-active', t ? typeActive.has(t) : typeActive.size === 0);
+			}
+		}
+
+		function apply() {
+			let visible = 0;
+			for (const cell of cells) {
+				const okType = typeActive.size === 0 || typeActive.has(cell.dataset.type ?? '');
+				const roles = (cell.dataset.roles ?? '').split(' ').filter(Boolean);
+				const okRole = roleActive.size === 0 || roles.some((r) => roleActive.has(r));
+				const ok = okType && okRole;
+				cell.hidden = !ok;
+				if (ok) visible++;
+			}
+
+			// Tek tür seçiliyken kartlardaki tür şeridi gereksiz: gizle.
+			root.classList.toggle('is-single-type', typeActive.size === 1);
+
+			const mode = sort.value as SortId;
+			const ordered = [...cells].sort((a, b) => {
+				switch (mode) {
+					case 'title':
+						return (a.dataset.title ?? '').localeCompare(b.dataset.title ?? '', 'tr');
+					case 'year':
+						return num(b, 'year') - num(a, 'year');
+					case 'review':
+						return num(b, 'review') - num(a, 'review');
+					case 'added':
+						return num(a, 'index') - num(b, 'index');
+					default:
+						return num(b, 'rating') - num(a, 'rating');
+				}
+			});
+			for (const cell of ordered) grid!.appendChild(cell);
+
+			count.textContent = `${visible} kayıt`;
+			empty.hidden = visible !== 0;
+		}
+
+		roleChips.forEach((chip) => {
+			chip.addEventListener('click', () => {
+				const r = chip.dataset.role ?? '';
+				if (!r) roleActive.clear();
+				else if (roleActive.has(r)) roleActive.delete(r);
+				else roleActive.add(r);
+				paintChips();
+				apply();
+			});
+		});
+		typeChips.forEach((chip) => {
+			chip.addEventListener('click', () => {
+				const t = chip.dataset.type ?? '';
+				if (!t) typeActive.clear();
+				else if (typeActive.has(t)) typeActive.delete(t);
+				else typeActive.add(t);
+				paintChips();
+				apply();
+			});
+		});
+
+		sort.addEventListener('change', apply);
+		paintChips();
+		apply();
+	});
+</script>
+
+<style>
+	.pbrowse .controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.65rem 0.9rem;
+		margin-bottom: 0.5rem;
+	}
+	.pbrowse .chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+	.pbrowse .chip {
+		cursor: pointer;
+	}
+	.pbrowse .chip.is-active {
+		color: var(--text);
+		border-color: var(--accent);
+		background: var(--accent-soft);
+	}
+	.pbrowse .field {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-left: auto;
+		font-family: var(--font-ui);
+		font-size: 0.82rem;
+		color: var(--text-muted);
+	}
+	.pbrowse select {
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		background: var(--bg-2);
+		color: var(--text);
+		font-family: var(--font-ui);
+		font-size: 0.82rem;
+		padding: 0 0.6rem;
+		height: 2.4rem;
+	}
+	.pbrowse select:focus {
+		outline: none;
+		border-color: var(--accent);
+	}
+	.pbrowse .status {
+		margin-bottom: 0.75rem;
+		font-size: 0.88rem;
+	}
+	.pbrowse .cell[hidden] {
+		display: none;
+	}
+	.pbrowse .empty {
+		padding: 2rem 0;
+	}
+</style>

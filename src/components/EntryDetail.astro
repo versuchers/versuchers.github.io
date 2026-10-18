@@ -6,6 +6,7 @@ import {
 	related,
 	KIND_LABEL,
 	KIND_PLURAL,
+	personHref,
 	type Entry,
 } from '../lib/data';
 import { formatTrDate, formatYearRange } from '../lib/format';
@@ -144,7 +145,7 @@ const listLabel = KIND_PLURAL[entry.type];
 						<ul class="cast">
 							{cast.map((c) => (
 								<li>
-									<a href={`/ara?q=${encodeURIComponent(c.name)}`}>{c.name}</a>
+									<a href={personHref(c.name, 'oyuncu')}>{c.name}</a>
 									{c.role && <span class="role muted"> — {c.role}</span>}
 								</li>
 							))}
@@ -206,6 +207,14 @@ const listLabel = KIND_PLURAL[entry.type];
 		position: sticky;
 		top: 5.5rem;
 		--poster-max: 300px;
+	}
+
+	/* Detaya ait kapak: koyu temada siyah gölge zeminde görünmez; onun yerine
+	   görünür çerçeve + hafif zemin onu yere sabitler (havada durma hissini kırar). */
+	.left :global(.frame) {
+		border: 1px solid var(--border-strong);
+		background: var(--surface);
+		box-shadow: var(--shadow);
 	}
 
 	.links {

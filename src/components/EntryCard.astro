@@ -1,15 +1,18 @@
 ---
-import { href, KIND_LABEL, type Entry } from '../lib/data';
-import { formatYearRange } from '../lib/format';
+import { href, KIND_LABEL, cardText, authorLine, type Entry } from '../lib/data';
 import Poster from './Poster.astro';
 
 interface Props {
 	entry: Entry;
-	/** Görseldeki tür rozeti gösterilsin mi? */
+	/** Poster'in altındaki tür şeridi (Film/Dizi/Kitap) gösterilsin mi? */
 	showType?: boolean;
 	eager?: boolean;
 	/** Alt bilgi düzeyi: 'compact' → film yalnız yıl, dizi/kitap yalnız ad. */
 	subMode?: 'full' | 'compact';
+	/** Kart altında gösterilecek rol etiketleri (kişi sayfası). */
+	roles?: string[];
+	/** Yazar satırını gizle (kişi sayfasında kişinin kendi adı gereksiz tekrar). */
+	hideAuthor?: boolean;
 }
 
 const {
@@ -17,92 +20,35 @@ const {
 	showType = false,
 	eager = false,
 	subMode = 'full',
+	roles = [],
+	hideAuthor = false,
 } = Astro.props;
 
 const displayTitle = entry.type === 'film' ? entry.fullTitle || entry.title : entry.title;
 
-// Alt satırda gösterilecek ikincil bilgi (tarih değil: yalnız yapım yılı / yazar).
+const authorText = authorLine(entry);
+const ct = cardText(entry);
 let sub = '';
 if (entry.type === 'film') {
-	sub = formatYearRange(entry.year);
+	sub = ct;
 } else if (entry.type === 'dizi' && subMode === 'full') {
-	sub = formatYearRange(entry.yearRange, entry.year);
+	sub = ct;
 }
-
-const authorLine = entry.type === 'kitap' ? entry.author : '';
 ---
 
 <a class="card entry-card" href={href(entry)}>
 	<div class="poster-wrap">
 		<Poster src={entry.poster} alt={displayTitle} kind={entry.type} eager={eager} />
-		{showType && <span class="type-badge">{KIND_LABEL[entry.type]}</span>}
 	</div>
+	{showType && <span class="type-strip">{KIND_LABEL[entry.type]}</span>}
 	<div class="body">
 		<h3 class="title" title={displayTitle}>{displayTitle}</h3>
 		<p class="sub">
-			{authorLine && <span class="author">{authorLine}</span>}
+			{authorText && !hideAuthor && <span class="author">{authorText}</span>}
 			{sub && <span class="year">{sub}</span>}
 		</p>
+		{roles.length > 0 && <p class="card-roles">{roles.join(' · ')}</p>}
 	</div>
 </a>
 
-<style>
-	.entry-card {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		font-family: var(--font-card);
-	}
 
-	.poster-wrap {
-		position: relative;
-	}
-
-	.type-badge {
-		position: absolute;
-		left: 0.5rem;
-		top: 0.5rem;
-		background: var(--accent);
-		color: var(--accent-contrast);
-		font-family: var(--font-card);
-		font-size: 0.66rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		padding: 0.12rem 0.5rem;
-		border-radius: 999px;
-	}
-
-	.body {
-		padding: 0.7rem 0.8rem 0.85rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
-	}
-
-	.title {
-		font-family: var(--font-card);
-		font-size: 1.05rem;
-		margin: 0;
-		line-height: 1.3;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-
-	.sub {
-		margin: 0;
-		font-size: 0.8rem;
-		color: var(--text-muted);
-		display: flex;
-		gap: 0.4rem;
-		flex-wrap: wrap;
-		align-items: baseline;
-	}
-	.sub > span + span::before {
-		content: '·';
-		margin-right: 0.4rem;
-		opacity: 0.5;
-	}
-</style>

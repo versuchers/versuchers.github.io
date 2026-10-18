@@ -1,15 +1,9 @@
 ---
-import { type Entry } from '../lib/data';
-import { fold } from '../lib/text';
-import { parseTrDate } from '../lib/format';
-import EntryCard from './EntryCard.astro';
-
 interface Props {
-	items: Entry[];
+	total: number;
 }
 
-const { items } = Astro.props;
-
+const { total } = Astro.props;
 const typeOptions = [
 	{ id: '', label: 'Tümü' },
 	{ id: 'film', label: 'Film' },
@@ -24,6 +18,7 @@ const sortOptions = [
 	{ id: 'year', label: 'Yıla göre (yeni→eski)' },
 	{ id: 'review', label: 'Son yorumlanan' },
 ];
+
 ---
 
 <div class="browse" data-search-root>
@@ -59,170 +54,269 @@ const sortOptions = [
 	<div class="chips" data-chips hidden aria-label="Etkin süzgeçler"></div>
 
 	<div class="status">
-		<span data-count class="muted">{items.length} kayıt</span>
+		<span data-count class="muted">{total} kayıt</span>
 	</div>
 
-	<h2 class="visually-hidden">Sonuçlar</h2>
+			<h2 class="visually-hidden">Sonuçlar</h2>
 
-	<ul class="grid browse-grid">
-		{
-			items.map((e, index) => (
-				<li
-					class="cell"
-					data-type={e.type}
-					data-title={fold(e.type === 'film' ? e.fullTitle || e.title : e.title)}
-					data-rating={String(e.rating ?? 0)}
-					data-year={e.year || ''}
-					data-review={String(parseTrDate(e.reviewDate)?.getTime() ?? 0)}
-					data-index={String(index)}
-				>
-					<EntryCard entry={e} showType />
-				</li>
-			))
-		}
-	</ul>
+		<template data-card-template>
+			<li class="cell" data-type="" data-title="" data-rating="" data-year="" data-review="" data-index="">
+				<a class="card entry-card" href="">
+					<div class="poster-wrap">
+						<figure class="frame poster">
+							<img class="poster-img" src="" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+						</figure>
+					</div>
+					<span class="type-strip"></span>
+					<div class="body">
+						<h3 class="title"></h3>
+						<p class="sub">
+							<span class="author"></span>
+							<span class="year"></span>
+						</p>
+						<p class="card-roles" hidden></p>
+					</div>
+				</a>
+			</li>
+		</template>
+
+		<ul class="grid browse-grid" aria-live="polite" aria-label="Arama sonuçları"></ul>
 
 	<p class="empty muted" data-empty hidden>Aramayla eşleşen kayıt yok.</p>
 </div>
 
-<script>
-	import { fold } from '../lib/text';
+	<script>
+		import { fold, tagSlug } from '../lib/text';
 
-	document.querySelectorAll<HTMLElement>('[data-search-root]').forEach((root) => {
-		const grid = root.querySelector<HTMLElement>('.browse-grid');
-		if (!grid) return;
-		const cells = Array.from(grid.children) as HTMLElement[];
-		const search = root.querySelector<HTMLInputElement>('[data-f="search"]')!;
-		const type = root.querySelector<HTMLSelectElement>('[data-f="type"]')!;
-		const sort = root.querySelector<HTMLSelectElement>('[data-f="sort"]')!;
-		const reset = root.querySelector<HTMLButtonElement>('[data-f="reset"]')!;
-		const count = root.querySelector<HTMLElement>('[data-count]')!;
-		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
-		const chips = root.querySelector<HTMLElement>('[data-chips]');
+		interface Item {
+			u: string;
+			t: string;
+			ty: 'film' | 'dizi' | 'kitap';
+			p: string;
+			a: string;
+			s: string;
+			r: number;
+			y: string;
+			rt: number;
+			ft: string;
+			q: string;
+			idx: number;
+		}
 
-		// Detay sayfalarından gelen terimler arama kutusunu doldurmaz; sonuçların
-		// üstünde kaldırılabilir birer etiket (süzgeç) olarak gösterilir.
-		const tags: string[] = [];
+		/** Kişi → rol indeksi (yalnız aranan kişi için kart altı etiket üretir). */
+		interface RolesFile {
+			labels: Record<string, string>;
+			people: Record<string, [number, string][]>;
+		}
 
-		function renderChips() {
-			if (!chips) return;
-			chips.replaceChildren();
-			chips.hidden = tags.length === 0;
-			tags.forEach((tag, i) => {
-				const chip = document.createElement('span');
-				chip.className = 'fchip';
-				const label = document.createElement('span');
-				label.textContent = tag;
-				const btn = document.createElement('button');
-				btn.type = 'button';
-				btn.textContent = '×';
-				btn.setAttribute('aria-label', `${tag} etiketini kaldır`);
-				btn.addEventListener('click', () => {
-					tags.splice(i, 1);
-					renderChips();
-					apply();
+		const TYPE_STRIP: Record<string, string> = { film: 'Film', dizi: 'Dizi', kitap: 'Kitap' };
+
+		document.querySelectorAll<HTMLElement>('[data-search-root]').forEach((root) => {
+			const grid = root.querySelector<HTMLElement>('.browse-grid');
+			const tpl = root.querySelector<HTMLTemplateElement>('[data-card-template]')!;
+			if (!grid || !tpl) return;
+			const search = root.querySelector<HTMLInputElement>('[data-f="search"]')!;
+			const type = root.querySelector<HTMLSelectElement>('[data-f="type"]')!;
+			const sort = root.querySelector<HTMLSelectElement>('[data-f="sort"]')!;
+			const reset = root.querySelector<HTMLButtonElement>('[data-f="reset"]')!;
+			const count = root.querySelector<HTMLElement>('[data-count]')!;
+			const status = root.querySelector<HTMLElement>('.status');
+			const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+			const chips = root.querySelector<HTMLElement>('[data-chips]');
+
+			const tags: string[] = [];
+			let items: Item[] = [];
+			let roles: RolesFile | null = null;
+			let loaded = false;
+			let loading = false;
+			let err = false;
+
+			function renderChips() {
+				if (!chips) return;
+				chips.replaceChildren();
+				chips.hidden = tags.length === 0;
+				tags.forEach((tag, i) => {
+					const chip = document.createElement('span');
+					chip.className = 'fchip';
+					const label = document.createElement('span');
+					label.textContent = tag;
+					const btn = document.createElement('button');
+					btn.type = 'button';
+					btn.textContent = '×';
+					btn.setAttribute('aria-label', `${tag} etiketini kaldır`);
+					btn.addEventListener('click', () => {
+						tags.splice(i, 1);
+						renderChips();
+						apply();
+					});
+					chip.append(label, btn);
+					chips.appendChild(chip);
 				});
-				chip.append(label, btn);
-				chips.appendChild(chip);
-			});
-		}
+			}
 
-		const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
-
-		// Arama metni DOM'da tutulmaz; sayfa boyutunu küçük tutmak için yalnız
-		// gerektiğinde (ilk aramada) ayrı bir indeks dosyasından indirilir.
-		let index: string[] | null = null;
-		let indexLoading = false;
-		let indexError = false;
-		async function ensureIndex() {
-			if (index || indexLoading || indexError) return;
-			indexLoading = true;
-			try {
-				const url = '/search-index/ara.json';
-				let data: string[] = await (await fetch(url)).json();
-				// Sayfa ile indeks sürümü uyuşmuyorsa (ör. CDN önbelleği) tazele.
-				if (data.length !== cells.length) {
-					data = await (await fetch(`${url}?t=${Date.now()}`)).json();
+			async function load() {
+				if (loaded || loading || err) return;
+				loading = true;
+				try {
+					const url = '/search-index/ara-kartlar.json';
+					const data = await (await fetch(url)).json();
+					items = data as Item[];
+					loaded = true;
+				} catch {
+					err = true;
+				} finally {
+					loading = false;
 				}
-				index = data;
-			} catch {
-				indexError = true;
-			} finally {
-				indexLoading = false;
-			}
-		}
-
-		function apply() {
-			const tokens = fold(search.value.trim()).split(/\s+/).filter(Boolean);
-			const tagTokens = tags.map((tag) => fold(tag));
-			const t = type.value;
-			const needText = tokens.length > 0 || tagTokens.length > 0;
-
-			if (needText && !index) {
-				if (!indexError) ensureIndex().then(apply);
-				count.textContent = indexError ? 'Arama indeksi yüklenemedi' : 'Aranıyor…';
-				return;
+				// Kişi-rol indeksi yardımcı veri: alınamazsa arama yine çalışır.
+				try {
+					roles = (await (await fetch('/search-index/kisi-roller.json')).json()) as RolesFile;
+				} catch {
+					roles = null;
+				}
 			}
 
-			let visible = 0;
-			for (const cell of cells) {
-				const text = index?.[num(cell, 'index')] ?? '';
-				const matches =
-					tokens.every((tok) => text.includes(tok)) && tagTokens.every((tok) => text.includes(tok));
-				const ok = matches && (!t || cell.dataset.type === t);
-				cell.hidden = !ok;
-				if (ok) visible++;
-			}
-
-			const mode = sort.value;
-			const sorted = [...cells].sort((a, b) => {
-				switch (mode) {
-					case 'rating':
-						return num(b, 'rating') - num(a, 'rating');
-					case 'year':
-						return num(b, 'year') - num(a, 'year');
-					case 'review':
-						return num(b, 'review') - num(a, 'review');
-					case 'title':
-						return (a.dataset.title ?? '').localeCompare(b.dataset.title ?? '', 'tr');
-					default: {
-						if (!tokens.length) return num(a, 'index') - num(b, 'index');
-						const pa = fold(a.dataset.title ?? '').startsWith(tokens[0]) ? 0 : 1;
-						const pb = fold(b.dataset.title ?? '').startsWith(tokens[0]) ? 0 : 1;
-						return pa - pb || num(a, 'index') - num(b, 'index');
+			/** Aranan metin bir kişiye tam denk geliyorsa o kişinin rollerini toplar. */
+			function personRoles(): Map<number, string[]> {
+				const map = new Map<number, string[]>();
+				const r = roles;
+				if (!r) return map;
+				const candidates = [search.value.trim(), ...tags];
+				const seen = new Set<string>();
+				for (const cand of candidates) {
+					if (!cand) continue;
+					const slug = tagSlug(cand);
+					if (!slug || seen.has(slug)) continue;
+					const credits = r.people[slug];
+					if (!credits) continue;
+					seen.add(slug);
+					for (const [idx, mask] of credits) {
+						let labels = map.get(idx);
+						if (!labels) {
+							labels = [];
+							map.set(idx, labels);
+						}
+						for (const ch of mask) {
+							const label = r.labels[ch];
+							if (label && !labels.includes(label)) labels.push(label);
+						}
 					}
 				}
+				return map;
+			}
+
+			function buildList(list: Item[], roleMap: Map<number, string[]>) {
+				grid!.replaceChildren();
+				for (const it of list) {
+					const node = (tpl.content.firstElementChild as HTMLElement | null)!.cloneNode(true) as HTMLElement;
+					node.dataset.type = it.ty;
+					node.dataset.title = it.ft;
+					node.dataset.rating = String(it.r);
+					node.dataset.year = it.y;
+					node.dataset.review = String(it.rt);
+					node.dataset.index = String(it.idx);
+					const a = node.querySelector('a')!;
+					a.href = it.u;
+					const img = node.querySelector('img') as HTMLImageElement | null;
+					if (img) {
+						img.src = it.p;
+						img.alt = it.t;
+					}
+					const t = node.querySelector('.title')!;
+					t.textContent = it.t;
+					const auth = node.querySelector('.author') as HTMLElement | null;
+					if (auth) auth.textContent = it.a;
+					const yr = node.querySelector('.year') as HTMLElement | null;
+					if (yr) yr.textContent = it.s;
+					const strip = node.querySelector('.type-strip') as HTMLElement | null;
+					if (strip) strip.textContent = TYPE_STRIP[it.ty] ?? '';
+					const rolesEl = node.querySelector('.card-roles') as HTMLElement | null;
+					if (rolesEl) {
+						const labels = roleMap.get(it.idx);
+						rolesEl.textContent = labels && labels.length ? labels.join(' · ') : '';
+						rolesEl.hidden = !(labels && labels.length);
+					}
+					grid!.appendChild(node);
+				}
+			}
+
+			function apply() {
+				const tokens = fold(search.value.trim()).split(/\s+/).filter(Boolean);
+				const tagTokens = tags.map((tag) => fold(tag));
+				const t = type.value;
+				const needText = tokens.length > 0 || tagTokens.length > 0;
+				const idle = !needText && !t;
+				if (grid) grid.hidden = idle;
+				if (status) status.hidden = idle;
+				if (empty) empty.hidden = true;
+				if (idle) {
+					if (grid) grid.replaceChildren();
+					return;
+				}
+				if (!loaded) {
+					if (!err) load().then(apply);
+					if (count) count.textContent = err ? 'Arama verisi yüklenemedi' : 'Aranıyor…';
+					if (grid) grid.replaceChildren();
+					return;
+				}
+				let res = items.filter((it) => {
+					if (t && it.ty !== t) return false;
+					if (tokens.length || tagTokens.length) {
+						const qf = it.q + ' ' + it.ft;
+						if (!tokens.every((tok) => qf.includes(tok))) return false;
+						if (!tagTokens.every((tok) => qf.includes(tok))) return false;
+					}
+					return true;
+				});
+				const mode = sort.value;
+				res = res.sort((a, b) => {
+					switch (mode) {
+						case 'rating':
+							return (b.r ?? 0) - (a.r ?? 0);
+						case 'year':
+							return Number(b.y || 0) - Number(a.y || 0);
+						case 'review':
+							return (b.rt ?? 0) - (a.rt ?? 0);
+						case 'title':
+							return a.ft.localeCompare(b.ft, 'tr');
+						default: {
+							if (!tokens.length) return a.idx - b.idx;
+							const pa = a.ft.startsWith(tokens[0]) ? 0 : 1;
+							const pb = b.ft.startsWith(tokens[0]) ? 0 : 1;
+							return pa - pb || a.idx - b.idx;
+						}
+					}
+				});
+				buildList(res, personRoles());
+				if (count) count.textContent = `${res.length} kayıt`;
+				if (empty) empty.hidden = res.length !== 0;
+				// Tek tür seçiliyken (Tür = Film/Dizi/Kitap) kart şeridi gereksiz: gizle.
+				root.classList.toggle('is-single-type', !!t);
+			}
+
+			[search, type, sort].forEach((el) => el.addEventListener('input', apply));
+			search.addEventListener('focus', load, { once: true });
+			reset.addEventListener('click', () => {
+				search.value = '';
+				type.value = '';
+				sort.value = 'relevant';
+				tags.length = 0;
+				renderChips();
+				apply();
 			});
-			for (const cell of sorted) grid!.appendChild(cell);
 
-			count.textContent = `${visible} kayıt`;
-			empty.hidden = visible !== 0;
-		}
-
-		[search, type, sort].forEach((el) => el.addEventListener('input', apply));
-		search.addEventListener('focus', ensureIndex, { once: true });
-		reset.addEventListener('click', () => {
-			search.value = '';
-			type.value = '';
-			sort.value = 'relevant';
-			tags.length = 0;
-			renderChips();
+			const params = new URLSearchParams(location.search);
+			const q = params.get('q');
+			if (q) {
+				tags.push(q);
+				renderChips();
+			}
+			if (params.get('tur')) {
+				const tur = params.get('tur')!;
+				if (['film', 'dizi', 'kitap'].includes(tur)) type.value = tur;
+			}
 			apply();
 		});
-
-		const params = new URLSearchParams(location.search);
-		const q = params.get('q');
-		if (q) {
-			tags.push(q);
-			renderChips();
-		}
-		if (params.get('tur')) {
-			const tur = params.get('tur')!;
-			if (['film', 'dizi', 'kitap'].includes(tur)) type.value = tur;
-		}
-		apply();
-	});
-</script>
+	</script>
 
 <style>
 	.controls {
@@ -344,6 +438,11 @@ const sortOptions = [
 	}
 
 	.cell[hidden] {
+		display: none;
+	}
+
+	/* [hidden] .grid{display:grid} tarafından eziliyor; gizliyken gerçekten gizlenir. */
+	.browse-grid[hidden] {
 		display: none;
 	}
 

@@ -1,0 +1,398 @@
+[
+ {
+  "name": "metal",
+  "ms": 1719436440.7833338,
+  "plays": 7064,
+  "artists": 1070
+ },
+ {
+  "name": "black metal",
+  "ms": 1324161673.033334,
+  "plays": 4628,
+  "artists": 812
+ },
+ {
+  "name": "rock",
+  "ms": 1208886344.0499997,
+  "plays": 5441,
+  "artists": 1071
+ },
+ {
+  "name": "alternative",
+  "ms": 791462939.5333335,
+  "plays": 3600,
+  "artists": 525
+ },
+ {
+  "name": "hard rock",
+  "ms": 565827717.8666668,
+  "plays": 2589,
+  "artists": 442
+ },
+ {
+  "name": "electronic",
+  "ms": 548665765.2666668,
+  "plays": 2543,
+  "artists": 1315
+ },
+ {
+  "name": "heavy metal",
+  "ms": 478060287.3833333,
+  "plays": 2106,
+  "artists": 354
+ },
+ {
+  "name": "doom metal",
+  "ms": 452849169.46666676,
+  "plays": 1510,
+  "artists": 340
+ },
+ {
+  "name": "death metal",
+  "ms": 433632916.85,
+  "plays": 1821,
+  "artists": 391
+ },
+ {
+  "name": "hip hop",
+  "ms": 382812521.68333334,
+  "plays": 1884,
+  "artists": 437
+ },
+ {
+  "name": "turkish rock",
+  "ms": 365566752.15000004,
+  "plays": 1663,
+  "artists": 79
+ },
+ {
+  "name": "experimental",
+  "ms": 337256522.4666667,
+  "plays": 1280,
+  "artists": 472
+ },
+ {
+  "name": "atmospheric black metal",
+  "ms": 275147627.1666666,
+  "plays": 905,
+  "artists": 264
+ },
+ {
+  "name": "alternative rock",
+  "ms": 265315045.25,
+  "plays": 1274,
+  "artists": 372
+ },
+ {
+  "name": "classic rock",
+  "ms": 264809167.66666666,
+  "plays": 1133,
+  "artists": 263
+ },
+ {
+  "name": "ambient",
+  "ms": 264431234.08333337,
+  "plays": 1037,
+  "artists": 601
+ },
+ {
+  "name": "instrumental",
+  "ms": 259770390.03333342,
+  "plays": 1015,
+  "artists": 557
+ },
+ {
+  "name": "thrash metal",
+  "ms": 235216936.91666666,
+  "plays": 1031,
+  "artists": 205
+ },
+ {
+  "name": "experimental rock",
+  "ms": 233310659.3333333,
+  "plays": 1018,
+  "artists": 12
+ },
+ {
+  "name": "electronic pop",
+  "ms": 230569167.91666666,
+  "plays": 1007,
+  "artists": 2
+ },
+ {
+  "name": "industrial",
+  "ms": 222430690.90000004,
+  "plays": 979,
+  "artists": 225
+ },
+ {
+  "name": "alternative metal",
+  "ms": 220637319.83333328,
+  "plays": 1099,
+  "artists": 193
+ },
+ {
+  "name": "post rock",
+  "ms": 215875184.24999994,
+  "plays": 757,
+  "artists": 257
+ },
+ {
+  "name": "post metal",
+  "ms": 214740655.20000005,
+  "plays": 674,
+  "artists": 147
+ },
+ {
+  "name": "psychedelic",
+  "ms": 207358431.98333335,
+  "plays": 760,
+  "artists": 239
+ },
+ {
+  "name": "nu metal",
+  "ms": 198637211.91666666,
+  "plays": 1017,
+  "artists": 131
+ },
+ {
+  "name": "industrial metal",
+  "ms": 196882230.98333332,
+  "plays": 896,
+  "artists": 94
+ },
+ {
+  "name": "indie",
+  "ms": 193750967.11666667,
+  "plays": 891,
+  "artists": 519
+ },
+ {
+  "name": "metalcore",
+  "ms": 192919739.98333332,
+  "plays": 1019,
+  "artists": 253
+ },
+ {
+  "name": "darkwave",
+  "ms": 181960571.18333334,
+  "plays": 792,
+  "artists": 219
+ },
+ {
+  "name": "psychedelic rock",
+  "ms": 179451284.35000002,
+  "plays": 683,
+  "artists": 196
+ },
+ {
+  "name": "depressive black metal",
+  "ms": 176198269.03333333,
+  "plays": 536,
+  "artists": 130
+ },
+ {
+  "name": "sludge",
+  "ms": 175429388.74999997,
+  "plays": 525,
+  "artists": 144
+ },
+ {
+  "name": "progressive metal",
+  "ms": 175417652.46666664,
+  "plays": 632,
+  "artists": 219
+ },
+ {
+  "name": "shoegaze",
+  "ms": 173428708.29999992,
+  "plays": 648,
+  "artists": 320
+ },
+ {
+  "name": "folk",
+  "ms": 172448055.23333338,
+  "plays": 729,
+  "artists": 356
+ },
+ {
+  "name": "jazz",
+  "ms": 164253143.15000004,
+  "plays": 703,
+  "artists": 503
+ },
+ {
+  "name": "progressive rock",
+  "ms": 157884513.76666668,
+  "plays": 605,
+  "artists": 197
+ },
+ {
+  "name": "orthodox black metal",
+  "ms": 154322672.7,
+  "plays": 501,
+  "artists": 34
+ },
+ {
+  "name": "stoner rock",
+  "ms": 152505031.21666664,
+  "plays": 513,
+  "artists": 166
+ },
+ {
+  "name": "post punk",
+  "ms": 152168796.4166666,
+  "plays": 682,
+  "artists": 222
+ },
+ {
+  "name": "synthpop",
+  "ms": 149071709.51666665,
+  "plays": 649,
+  "artists": 163
+ },
+ {
+  "name": "hardcore",
+  "ms": 144184817.76666668,
+  "plays": 780,
+  "artists": 255
+ },
+ {
+  "name": "swedish black metal",
+  "ms": 138273626.56666666,
+  "plays": 494,
+  "artists": 39
+ },
+ {
+  "name": "dark ambient",
+  "ms": 136398177.68333334,
+  "plays": 424,
+  "artists": 176
+ },
+ {
+  "name": "polish black metal",
+  "ms": 127655355.03333332,
+  "plays": 400,
+  "artists": 27
+ },
+ {
+  "name": "blues",
+  "ms": 121602339.6166667,
+  "plays": 518,
+  "artists": 342
+ },
+ {
+  "name": "melodic black metal",
+  "ms": 117761607.85000001,
+  "plays": 446,
+  "artists": 139
+ },
+ {
+  "name": "blues rock",
+  "ms": 115310467.98333333,
+  "plays": 499,
+  "artists": 247
+ },
+ {
+  "name": "norwegian black metal",
+  "ms": 112521715.6,
+  "plays": 434,
+  "artists": 44
+ },
+ {
+  "name": "raw black metal",
+  "ms": 110141955.68333334,
+  "plays": 411,
+  "artists": 69
+ },
+ {
+  "name": "melodic death metal",
+  "ms": 109922146.16666666,
+  "plays": 497,
+  "artists": 141
+ },
+ {
+  "name": "gothic rock",
+  "ms": 109398368.44999999,
+  "plays": 445,
+  "artists": 122
+ },
+ {
+  "name": "indie rock",
+  "ms": 107182005.46666667,
+  "plays": 492,
+  "artists": 272
+ },
+ {
+  "name": "singer songwriter",
+  "ms": 103180954.06666666,
+  "plays": 443,
+  "artists": 262
+ },
+ {
+  "name": "folk metal",
+  "ms": 102657780.53333333,
+  "plays": 342,
+  "artists": 89
+ },
+ {
+  "name": "dance",
+  "ms": 100683872.69999999,
+  "plays": 470,
+  "artists": 219
+ },
+ {
+  "name": "gothic metal",
+  "ms": 100605701.18333332,
+  "plays": 377,
+  "artists": 96
+ },
+ {
+  "name": "new wave",
+  "ms": 100216463,
+  "plays": 445,
+  "artists": 124
+ },
+ {
+  "name": "groove metal",
+  "ms": 98148672.2,
+  "plays": 483,
+  "artists": 69
+ },
+ {
+  "name": "post black metal",
+  "ms": 96510162.75,
+  "plays": 301,
+  "artists": 119
+ },
+ {
+  "name": "symphonic metal",
+  "ms": 93937125.6,
+  "plays": 363,
+  "artists": 77
+ },
+ {
+  "name": "true black metal",
+  "ms": 90743108.16666666,
+  "plays": 344,
+  "artists": 16
+ },
+ {
+  "name": "techno",
+  "ms": 90499841.13333336,
+  "plays": 346,
+  "artists": 271
+ },
+ {
+  "name": "classical",
+  "ms": 89548506.1333333,
+  "plays": 372,
+  "artists": 190
+ },
+ {
+  "name": "sludge metal",
+  "ms": 88519166.89999999,
+  "plays": 249,
+  "artists": 85
+ }
+]

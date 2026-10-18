@@ -77,3 +77,20 @@ export function tagSlug(input: string): string {
 			.slice(0, 80) || 'etiket'
 	);
 }
+
+/**
+ * Çoklu alan değerlerini tek tek ayraçlara böler.
+ *
+ * Sheet'te iki ayrı ayraç kullanılıyor: film/dizi türleri virgülle
+ * (`Suç, Drama`), kitap türleri ise çoğunlukla `//` ile (`Suç // Gizem`) yazılı.
+ * Global etiketlerin kitap ile film/dizi tarafında aynı havuzda buluşması için
+ * ikisini de kırmak şart; aksi hâlde `/tur/suc` kitapları kaçırır.
+ */
+export function splitMulti(value?: string | null): string[] {
+	const v = String(value ?? '').trim();
+	if (!v || v === '-' || v === '—') return [];
+	return v
+		.split(/\s*\/\/\s*|,/g)
+		.map((s) => s.trim())
+		.filter(Boolean);
+}

@@ -5,8 +5,19 @@
 import filmsJson from '../data/film.json';
 import seriesJson from '../data/dizi.json';
 import booksJson from '../data/kitap.json';
-import { parseTrDate, parseLooseTrDate, formatLooseTrDate } from './format';
-import { fold } from './text';
+import { parseTrDate, parseLooseTrDate, formatLooseTrDate, formatYearRange } from './format';
+import { fold, splitMulti, tagSlug } from './text';
+import {
+	buildPeople,
+	personHrefFrom,
+	ROLES,
+	ROLE_LABEL,
+	ROLE_ORDER,
+	type PeopleIndex,
+	type Person,
+	type PersonWork,
+	type RoleId,
+} from './people';
 
 export type Kind = 'film' | 'dizi' | 'kitap';
 
@@ -95,8 +106,8 @@ export interface Kitap extends BaseEntry {
 	protagonist: string;
 	workType: string;
 	format: string;
-	mainGenre: string;
-	subGenre: string;
+	category: string;
+	genre: string;
 	country: string;
 	owned: string;
 	city: string;
@@ -136,6 +147,22 @@ export const KIND_PLURAL: Record<Kind, string> = {
 	kitap: 'Kitaplar',
 };
 
+/* --------------------------------------------------------------------------
+   Kişi indeksi.
+   Film/dizi/kitap künyelerindeki tüm roller (yönetmen, senarist, oyuncu,
+   yazar, çevirmen…) kişi bazında toplanır. En az MIN_PERSON_WORKS yapımı olan
+   kişiler `/kisi/<slug>` sayfası alır; altındakiler aramaya bağlanır.
+   -------------------------------------------------------------------------- */
+export const peopleIndex: PeopleIndex = buildPeople(allEntries);
+
+/** Bir ismi kişi sayfasına (eşik altıysa aramaya) bağlar. */
+export function personHref(name: string, role?: RoleId): string {
+	return personHrefFrom(peopleIndex, name, role);
+}
+
+export { ROLES, ROLE_LABEL, ROLE_ORDER };
+export type { PeopleIndex, Person, PersonWork, RoleId };
+
 /** Detay sayfası yolu. /film/matrix-1999 */
 export function href(entry: Entry): string {
 	return `/${entry.type}/${entry.slug}`;
@@ -167,6 +194,35 @@ export function watchedTime(entry: Entry): number {
 }
 
 /** Son yorum yapılanlar (tüm türler). */
+
+/** Kart alt satırı: film→yıl, dizi→yıl aralığı/yıl, kitap→yazar. */
+export function cardText(e: Entry): string {
+	if (e.type === 'film') return formatYearRange(e.year);
+	if (e.type === 'dizi') return formatYearRange(e.yearRange, e.year);
+	return e.type === 'kitap' ? e.author : '';
+}
+
+/* --------------------------------------------------------------------------
+   Kalabalık kişi listeleri.
+   Kitap detay sayfası ile film detay sayfası tüm adları gösterir; liste/kart
+   gibi diğer gösterimlerde 3 ve üzeri kişi tek bir özet etikete indirilir.
+   -------------------------------------------------------------------------- */
+export const MANY_AUTHORS_LABEL = 'çok yazarlı';
+export const MANY_DIRECTORS_LABEL = 'çok yönetmenli';
+
+/** Kart/liste için yazar satırı: 3+ yazar → "çok yazarlı", aksi hâlde adlar. */
+export function authorLine(entry: Entry): string {
+	if (entry.type !== 'kitap') return '';
+	return splitMulti(entry.author).length > 2 ? MANY_AUTHORS_LABEL : entry.author;
+}
+
+/** Kart/liste için yönetmen satırı: 3+ yönetmen → "çok yönetmenli", aksi hâlde adlar. */
+export function directorLine(entry: Entry): string {
+	if (entry.type !== 'film') return '';
+	return splitMulti(entry.director).length > 2 ? MANY_DIRECTORS_LABEL : entry.director;
+}
+
+
 export function latestReviewed(limit = 6): Entry[] {
 	return [...allEntries].sort((a, b) => reviewTime(b) - reviewTime(a)).slice(0, limit);
 }
@@ -199,8 +255,8 @@ export function tagList(entry: Entry): string[] {
 		push(entry.genre);
 		push(entry.mainLabel);
 	} else {
-		push(entry.mainGenre);
-		push(entry.subGenre);
+		push(entry.category);
+		push(entry.genre);
 		push(entry.mainTheme);
 	}
 	return [...out];
@@ -217,85 +273,107 @@ export interface Fact {
 
 export function facts(entry: Entry): Fact[] {
 	const f: Fact[] = [];
-	// Tıklanabilir alanlar global aramaya gider (/ara?q=...), böylece bir kişi
-	// hem kitap yazarı hem kaynak yazarsa her iki kayıt da sonuçta çıkar.
 	const q = (val?: string | number | null) => {
 		const v = String(val ?? '').trim();
 		return v && v !== '-' ? `/ara?q=${encodeURIComponent(v)}` : undefined;
 	};
-	const add = (label: string, value?: string | number | null, href?: string) => {
+	const tax = (ns: string, val?: string | number | null) => {
+		const v = String(val ?? '').trim();
+		if (!v || v === '-') return undefined;
+		return `/${ns}/${tagSlug(v)}`;
+	};
+	const add = (
+		label: string,
+		value?: string | number | null,
+		ns?: string,
+		opts?: { plain?: boolean },
+	) => {
 		const v = value === 0 ? '0' : String(value ?? '').trim();
 		if (!v || v === '-') return;
-		// Virgülle ayrılan değerleri tek tek tıklanabilir hâle getir.
-		if (href && v.includes(',')) {
-			const parts = v
-				.split(',')
-				.map((s) => s.trim())
-				.filter((s) => s && s !== '-');
-			if (parts.length > 1) {
-				f.push({ label, values: parts.map((p) => ({ value: p, href: q(p) as string })) });
-				return;
-			}
+		// Ayraçlı değerleri ("," ve/veya "//") tek tek tıklanabilir hâle getir.
+		const parts = splitMulti(v);
+		if (parts.length > 1) {
+			f.push({
+				label,
+				values: parts.map((p) => ({
+					value: p,
+					href: ns ? (tax(ns, p) as string) : (q(p) as string),
+				})),
+			});
+			return;
 		}
-		f.push({ label, value: v, href });
+		if (opts?.plain) {
+			f.push({ label, value: v });
+			return;
+		}
+		f.push({ label, value: v, href: ns ? tax(ns, v) : q(v) });
+	};
+	/** Kişi alanları: her ad kişi sayfasına (eşik altıysa aramaya) bağlanır. */
+	const addPeople = (label: string, value: string | undefined | null, role: RoleId) => {
+		const v = String(value ?? '').trim();
+		if (!v || v === '-') return;
+		const parts = splitMulti(v);
+		if (!parts.length) return;
+		f.push({ label, values: parts.map((p) => ({ value: p, href: personHref(p, role) })) });
 	};
 
 	if (entry.type === 'film') {
-		add('Yönetmen', entry.director, q(entry.director));
-		add('Senaryo', entry.screenplay, q(entry.screenplay));
-		add('Tür', entry.genre, q(entry.genre));
-		add('Ana Tema', entry.mainTheme, q(entry.mainTheme));
-		add('Dil', entry.language, q(entry.language));
-		add('Ülke', entry.country, q(entry.country));
-		add('Yapım Yılı', entry.year);
-		add('İzleme Tarihi', entry.watchDate);
-		add('İlk İzlediğim Şehir', entry.firstCity);
-		add('Platform', entry.platform);
-		add('Kaç Kez İzledim', entry.rewatchCount);
-		add('Kaynak Eser', entry.sourceWork, q(entry.sourceWork));
-		add('Kaynak Yazar', entry.sourceAuthor, q(entry.sourceAuthor));
-		add('Nasıl Keşfettim', entry.discovery);
-		add('İzleme Sebebim', entry.reason);
+		addPeople('Yönetmen', entry.director, 'yonetmen');
+		addPeople('Senaryo', entry.screenplay, 'senaryo');
+		addPeople('Hikâye', entry.story, 'hikaye');
+		add('Tür', entry.genre, 'tur');
+		add('Ana Tema', entry.mainTheme, 'ana-tema');
+		add('Dil', entry.language, 'orijinal-dil');
+		add('Ülke', entry.country, 'ulke');
+		add('Yapım Yılı', entry.year, undefined, { plain: true });
+		add('İzleme Tarihi', entry.watchDate, undefined, { plain: true });
+		add('İlk İzlediğim Şehir', entry.firstCity, 'sehir');
+		add('Platform', entry.platform, 'erisim-seklim');
+		add('Kaç Kez İzledim', entry.rewatchCount, undefined, { plain: true });
+		add('Kaynak Eser', entry.sourceWork);
+		addPeople('Kaynak Yazar', entry.sourceAuthor, 'kaynak-yazar');
+		add('Nasıl Keşfettim', entry.discovery, undefined, { plain: true });
+		add('İzleme Sebebim', entry.reason, undefined, { plain: true });
 	} else if (entry.type === 'dizi') {
-		add('Creator', entry.creator, q(entry.creator));
-		add('Tür', entry.genre, q(entry.genre));
-		add('Ana Etiket', entry.mainLabel, q(entry.mainLabel));
-		add('Dil', entry.language, q(entry.language));
-		add('Ülke', entry.country, q(entry.country));
-		add('Yıllar', entry.yearRange);
-		add('Durumu', entry.status, q(entry.status));
-		add('Format', entry.format, q(entry.format));
-		add('İzlenen', entry.watched);
-		add('Network', entry.network, q(entry.network));
-		add('Medium', entry.medium, q(entry.medium));
-		add('Favori Sezon', entry.favoriteSeason);
-		add('İlk İzlediğim Şehir', entry.firstCity, q(entry.firstCity));
-		add('Platform', entry.platform, q(entry.platform));
-		add('Bitirdim mi', entry.finished);
-		add('Kaç Kez Bitirdim', entry.finishCount);
-		add('Kaynak Eser', entry.sourceWork, q(entry.sourceWork));
-		add('Kaynak Yazar', entry.sourceAuthor, q(entry.sourceAuthor));
+		addPeople('Creator', entry.creator, 'yaratici');
+		add('Tür', entry.genre, 'tur');
+		add('Ana Etiket', entry.mainLabel, 'ana-tema');
+		add('Dil', entry.language, 'orijinal-dil');
+		add('Ülke', entry.country, 'ulke');
+		add('Yıllar', entry.yearRange, undefined, { plain: true });
+		add('Durumu', entry.status);
+		add('Format', entry.format, 'format');
+		add('İzlenen', entry.watched, undefined, { plain: true });
+		add('Network', entry.network);
+		add('Medium', entry.medium);
+		add('Favori Sezon', entry.favoriteSeason, undefined, { plain: true });
+		add('İlk İzlediğim Şehir', entry.firstCity, 'sehir');
+		add('Platform', entry.platform, 'erisim-seklim');
+		add('Bitirdim mi', entry.finished, undefined, { plain: true });
+		add('Kaç Kez Bitirdim', entry.finishCount, undefined, { plain: true });
+		add('Kaynak Eser', entry.sourceWork);
+		addPeople('Kaynak Yazar', entry.sourceAuthor, 'kaynak-yazar');
 	} else {
-		add('Yazar', entry.author, q(entry.author));
-		add('Çevirmen', entry.translator, q(entry.translator));
-		add('Yayınevi', entry.publisher, q(entry.publisher));
-		add('Ana Tür', entry.mainGenre, q(entry.mainGenre));
-		add('Alt Tür', entry.subGenre, q(entry.subGenre));
-		add('Ana Tema', entry.mainTheme, q(entry.mainTheme));
-		add('Eser Türü', entry.workType, q(entry.workType));
-		add('Orijinal Dil', entry.originalLanguage, q(entry.originalLanguage));
-		add('Ülke', entry.country);
-		add('Sayfa', entry.pages);
-		add('Orijinal Basım Yılı', entry.originalYear);
-		add('Okuduğum Yıl', formatLooseTrDate(entry.readYear));
-		add('Okuduğum Şehir', entry.city, q(entry.city));
-		add('Format', entry.format, q(entry.format));
-		add('Erişim Şeklim', entry.access, q(entry.access));
-		add('Kaç Kez Okudum', entry.readCount);
-		add('Tekrar Okur muyum', entry.wouldReread);
+		addPeople('Yazar', entry.author, 'yazar');
+		addPeople('Çevirmen', entry.translator, 'cevirmen');
+		add('Yayınevi', entry.publisher, 'yayinevi');
+		add('Kategori', entry.category, 'kategori');
+		add('Tür', entry.genre, 'tur');
+		add('Ana Tema', entry.mainTheme, 'ana-tema');
+		add('Eser Türü', entry.workType, 'eser-turu');
+		add('Orijinal Dil', entry.originalLanguage, 'orijinal-dil');
+		add('Ülke', entry.country, 'ulke');
+		add('Sayfa', entry.pages, undefined, { plain: true });
+		add('Orijinal Basım Yılı', entry.originalYear, undefined, { plain: true });
+		add('Okuduğum Yıl', formatLooseTrDate(entry.readYear), undefined, { plain: true });
+		add('Okuduğum Şehir', entry.city, 'sehir');
+		add('Format', entry.format, 'format');
+		add('Erişim Şeklim', entry.access, 'erisim-seklim');
+		add('Kaç Kez Okudum', entry.readCount, undefined, { plain: true });
+		add('Tekrar Okur muyum', entry.wouldReread, undefined, { plain: true });
 	}
 
-	if (entry.reviewDate) add('Yorum Tarihi', entry.reviewDate);
+	if (entry.reviewDate) add('Yorum Tarihi', entry.reviewDate, undefined, { plain: true });
 
 	return f;
 }
@@ -407,8 +485,8 @@ export function searchText(e: Entry): string {
 			e.authorName,
 			e.translator,
 			e.publisher,
-			e.mainGenre,
-			e.subGenre,
+			e.category,
+			e.genre,
 			e.mainTheme,
 			e.workType,
 			e.originalLanguage,

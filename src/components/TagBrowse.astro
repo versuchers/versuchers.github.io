@@ -1,0 +1,221 @@
+---
+import { KIND_LABEL, type Entry, type Kind } from '../lib/data';
+import { parseTrDate } from '../lib/format';
+import { fold } from '../lib/text';
+import EntryCard from './EntryCard.astro';
+
+interface Props {
+	items: Entry[];
+	/** Açılış sıralaması. */
+	defaultSort?: 'title' | 'rating' | 'year' | 'review' | 'added';
+}
+
+const { items, defaultSort = 'rating' } = Astro.props;
+
+const displayTitle = (e: Entry) => (e.type === 'film' ? e.fullTitle || e.title : e.title);
+
+// Yalnızca listede bulunan türler için çip göster.
+const presentTypes = (['kitap', 'film', 'dizi'] as Kind[]).filter((k) =>
+	items.some((e) => e.type === k),
+);
+
+const sortOptions = [
+	{ id: 'rating', label: 'Puana göre (yüksek→düşük)' },
+	{ id: 'title', label: 'Başlığa göre (A→Z)' },
+	{ id: 'year', label: 'Yıla göre (yeni→eski)' },
+	{ id: 'review', label: 'Son yorumlanan' },
+	{ id: 'added', label: 'Ekleme sırası' },
+];
+
+// Sunucu da açılış sıralamasını uygular; ilk boyama zaten bu sırada olur,
+// istemci yeniden sıraladığında kartlar yerinde durur (sıçrama olmaz).
+const collator = new Intl.Collator('tr');
+const sorters: Record<string, (a: Entry, b: Entry) => number> = {
+	title: (a, b) => collator.compare(fold(displayTitle(a)), fold(displayTitle(b))),
+	rating: (a, b) => (b.rating ?? 0) - (a.rating ?? 0),
+	year: (a, b) => Number(b.year || 0) - Number(a.year || 0),
+	review: (a, b) =>
+		(parseTrDate(b.reviewDate)?.getTime() ?? 0) -
+		(parseTrDate(a.reviewDate)?.getTime() ?? 0),
+	added: () => 0,
+};
+const sortedItems = items
+	.map((e, index) => ({ e, index }))
+	.sort((a, b) => (sorters[defaultSort] ?? sorters.rating)(a.e, b.e));
+---
+
+<div class="browse tbrowse" data-tbrowse>
+	<div class="controls">
+		<div class="chips" role="group" aria-label="Türe göre süz">
+			<button type="button" class="chip is-active" data-type="">Tümü</button>
+			{
+				presentTypes.map((k) => (
+					<button type="button" class="chip" data-type={k}>
+						{KIND_LABEL[k]}
+					</button>
+				))
+			}
+		</div>
+
+		<label class="field">
+			<span>Sırala</span>
+			<select data-f="sort">
+				{sortOptions.map((s) => (
+					<option value={s.id} selected={s.id === defaultSort}>{s.label}</option>
+				))}
+			</select>
+		</label>
+	</div>
+
+	<div class="status">
+		<span data-count class="muted">{items.length} kayıt</span>
+	</div>
+
+	<ul class="grid browse-grid tbrowse-grid">
+		{
+			sortedItems.map(({ e, index }) => (
+				<li
+					class="cell"
+					data-type={e.type}
+					data-title={fold(displayTitle(e))}
+					data-year={e.year || ''}
+					data-rating={String(e.rating ?? 0)}
+					data-review={String(parseTrDate(e.reviewDate)?.getTime() ?? 0)}
+					data-index={String(index)}
+				>
+					<EntryCard entry={e} showType />
+				</li>
+			))
+		}
+	</ul>
+
+	<p class="empty muted" data-empty hidden>Bu etikette kayıt yok.</p>
+</div>
+
+<script>
+	type SortId = 'title' | 'rating' | 'year' | 'review' | 'added';
+
+	document.querySelectorAll<HTMLElement>('[data-tbrowse]').forEach((root) => {
+		const grid = root.querySelector<HTMLElement>('.tbrowse-grid');
+		if (!grid) return;
+		const cells = Array.from(grid.children) as HTMLElement[];
+		const chips = Array.from(root.querySelectorAll<HTMLButtonElement>('.chips .chip'));
+		const sort = root.querySelector<HTMLSelectElement>('[data-f="sort"]')!;
+		const count = root.querySelector<HTMLElement>('[data-count]')!;
+		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+
+		const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
+		const active = new Set<string>();
+
+		function paintChips() {
+			for (const chip of chips) {
+				const type = chip.dataset.type ?? '';
+				const on = type ? active.has(type) : active.size === 0;
+				chip.classList.toggle('is-active', on);
+			}
+		}
+
+		function apply() {
+			let visible = 0;
+			for (const cell of cells) {
+				const ok = active.size === 0 || active.has(cell.dataset.type ?? '');
+				cell.hidden = !ok;
+				if (ok) visible++;
+			}
+
+			// Yalnızca TEK tür seçiliyken kartlardaki tür şeridi gereksiz: gizle.
+			// "Tümü" veya çoklu tür seçiminde şeritler ayırt edici olduğu için kalır.
+			root.classList.toggle('is-single-type', active.size === 1);
+
+			const mode = sort.value as SortId;
+			const sorted = [...cells].sort((a, b) => {
+				switch (mode) {
+					case 'title':
+						return (a.dataset.title ?? '').localeCompare(b.dataset.title ?? '', 'tr');
+					case 'year':
+						return num(b, 'year') - num(a, 'year');
+					case 'review':
+						return num(b, 'review') - num(a, 'review');
+					case 'added':
+						return num(a, 'index') - num(b, 'index');
+					default:
+						return num(b, 'rating') - num(a, 'rating');
+				}
+			});
+			for (const cell of sorted) grid!.appendChild(cell);
+
+			count.textContent = `${visible} kayıt`;
+			empty.hidden = visible !== 0;
+		}
+
+		chips.forEach((chip) => {
+			chip.addEventListener('click', () => {
+				const type = chip.dataset.type ?? '';
+				if (!type) active.clear();
+				else if (active.has(type)) active.delete(type);
+				else active.add(type);
+				paintChips();
+				apply();
+			});
+		});
+
+		sort.addEventListener('change', apply);
+		apply();
+	});
+</script>
+
+<style>
+	.tbrowse .controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.65rem 0.9rem;
+		margin-bottom: 0.5rem;
+	}
+	.tbrowse .chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+	.tbrowse .chip {
+		cursor: pointer;
+	}
+	.tbrowse .chip.is-active {
+		color: var(--text);
+		border-color: var(--accent);
+		background: var(--accent-soft);
+	}
+	.tbrowse .field {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-left: auto;
+		font-family: var(--font-ui);
+		font-size: 0.82rem;
+		color: var(--text-muted);
+	}
+	.tbrowse select {
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		background: var(--bg-2);
+		color: var(--text);
+		font-family: var(--font-ui);
+		font-size: 0.82rem;
+		padding: 0 0.6rem;
+		height: 2.4rem;
+	}
+	.tbrowse select:focus {
+		outline: none;
+		border-color: var(--accent);
+	}
+	.status {
+		margin-bottom: 0.75rem;
+		font-size: 0.88rem;
+	}
+	.cell[hidden] {
+		display: none;
+	}
+	.empty {
+		padding: 2rem 0;
+	}
+</style>

@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import MusicBrowse from '../../components/MusicBrowse.astro';
-import { albums, cover, integer } from '../../lib/music';
+import { albums, cover, integer, stats } from '../../lib/music';
 
 const rows = albums.map((al) => ({
 	href: `/muzik/album/${al.slug}`,
@@ -10,23 +10,29 @@ const rows = albums.map((al) => ({
 	src: cover('album', al.slug),
 	plays: al.plays,
 }));
+const kat = 'album';
+const baseUrl = '/muzik/albumler';
+const yearsArr = stats.years.map((y) => y.year);
 ---
 
 <Base
 	title="Müzik — Albümler"
-	description="En çok dinlediğim ilk 666 albüm."
+	description="En çok dinlediğim ilk 666 albüm; çalma sayısına göre. Yıla göre filtreleyebilirsiniz."
 >
 	<div class="container section">
 		<header class="page-head">
 			<p class="eyebrow">Müzik</p>
 			<h1>Albümler</h1>
-			<p class="lede">En çok dinlediğim ilk 666 albüm; çalma sayısına göre.</p>
+			<p class="lede">En çok dinlediğim ilk 666 albüm; çalma sayısına göre. Yıl sekmeleriyle o yılın ilk 100'ünü görebilirsiniz.</p>
 		</header>
 		<MusicBrowse
 			label="Albümler"
 			unit="albüm"
 			indexUrl="/search-index/muzik-album.json"
 			rows={rows}
+			kat={kat}
+			baseUrl={baseUrl}
+			years={yearsArr}
 		/>
 	</div>
 </Base>

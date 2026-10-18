@@ -7,14 +7,16 @@ import EntryCard from './EntryCard.astro';
 interface Props {
 	kind: Kind;
 	items: Entry[];
+	/** Açılış sıralaması; varsayılan başlığa göre (A→Z). */
+	defaultSort?: 'title' | 'rating' | 'year' | 'review' | 'added';
 }
 
-const { kind, items } = Astro.props;
+const { kind, items, defaultSort = 'title' } = Astro.props;
 
 function primaryGenre(e: Entry): string {
 	if (e.type === 'film') return e.genre;
 	if (e.type === 'dizi') return e.genre;
-	return e.mainGenre;
+	return e.category;
 }
 
 // Facet değerleri
@@ -37,6 +39,27 @@ const sortOptions = [
 	{ id: 'review', label: 'Son yorumlanan' },
 	{ id: 'added', label: 'Ekleme sırası' },
 ];
+
+// Sunucu da açılış sıralamasını uygular: ilk boyama zaten bu sırada olur,
+// istemci tarafındaki yeniden sıralama geldiğinde kartlar yerinde durur
+// (alfabetik → puan sıçraması yaşanmaz). Karşılaştırıcılar aşağıdaki
+// istemci script'indeki switch ile birebir aynıdır; JS sort kararlı olduğu
+// için eşit öğeler de her iki tarafta aynı sırada kalır.
+const collator = new Intl.Collator('tr');
+const sorters: Record<string, (a: Entry, b: Entry) => number> = {
+	title: (a, b) => collator.compare(fold(a.title), fold(b.title)),
+	rating: (a, b) => (b.rating ?? 0) - (a.rating ?? 0),
+	year: (a, b) => Number(b.year || 0) - Number(a.year || 0),
+	review: (a, b) =>
+		(parseTrDate(b.reviewDate)?.getTime() ?? 0) -
+		(parseTrDate(a.reviewDate)?.getTime() ?? 0),
+	added: () => 0,
+};
+// Orijinal indeks korunur: data-index her zaman kaynak dizideki konumdur
+// ("Ekleme sırası" seçeneği ve arama indeksi buna göre çalışır).
+const sortedItems = items
+	.map((e, index) => ({ e, index }))
+	.sort((a, b) => (sorters[defaultSort] ?? sorters.title)(a.e, b.e));
 ---
 
 <div class="browse" data-browse data-kind={kind}>
@@ -83,7 +106,9 @@ const sortOptions = [
 		<label class="field">
 			<span>Sırala</span>
 			<select data-f="sort">
-				{sortOptions.map((s) => <option value={s.id}>{s.label}</option>)}
+				{sortOptions.map((s) => (
+					<option value={s.id} selected={s.id === defaultSort}>{s.label}</option>
+				))}
 			</select>
 		</label>
 
@@ -98,7 +123,7 @@ const sortOptions = [
 
 	<ul class="grid browse-grid">
 		{
-			items.map((e, index) => (
+			sortedItems.map(({ e, index }) => (
 				<li
 					class="cell"
 					data-title={fold(e.title)}
@@ -135,6 +160,11 @@ const sortOptions = [
 		const reset = root.querySelector<HTMLButtonElement>('[data-f="reset"]')!;
 		const count = root.querySelector<HTMLElement>('[data-count]')!;
 		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+
+		// Başlangıç sıralaması: sunucunun işaretlediği varsayılan seçenekten okunur
+		// (frontmatter değişkeni istemci bloğuna taşınmaz).
+		const defaultSort =
+			sort.querySelector<HTMLOptionElement>('option[selected]')?.value ?? 'title';
 
 		const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
 
@@ -216,7 +246,7 @@ const sortOptions = [
 			genre.value = '';
 			year.value = '';
 			rating.value = '';
-			sort.value = 'title';
+			sort.value = defaultSort;
 			apply();
 		});
 

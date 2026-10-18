@@ -8,6 +8,7 @@ import artistsJson from '../data/music/artists.json';
 import albumsJson from '../data/music/albums.json';
 import tracksJson from '../data/music/tracks.json';
 import coversJson from '../data/music/covers.json';
+import genresJson from '../data/music/genres.json';
 
 export interface MiniTrack {
 	name: string;
@@ -110,6 +111,15 @@ export const stats = statsJson as unknown as Stats;
 export const artists = artistsJson as unknown as Artist[];
 export const albums = albumsJson as unknown as Album[];
 export const tracks = tracksJson as unknown as Track[];
+
+/** 2016–2026 en çok dinlenen türler (ilk 66); scripts/build-genres.mjs üretir. */
+export interface Genre {
+	name: string;
+	ms: number;
+	plays: number;
+	artists: number;
+}
+export const genres = genresJson as unknown as Genre[];
 
 const covers = coversJson as Record<string, string>;
 

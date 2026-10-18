@@ -56,11 +56,17 @@ function makeSlug(name) {
 const nowYearIdx = (y) => y - Y0;
 const blank = () => new Array(YN).fill(0);
 
+// Sanatçı eşleme anahtarı: trim + küçük harf (locale YOK, 'tr' DEĞİL).
+// "Buz" ile "BUZ" aynı sanatçıdır: çalmalar toplanır, görünen ad en çok
+// çalınan yazımdır (aşağıda slug bölümünde çözülür).
+const artistKey = (name) => String(name ?? '').trim().toLowerCase();
+
 function getArtist(map, name) {
-	let a = map.get(name);
+	const key = artistKey(name);
+	let a = map.get(key);
 	if (!a) {
-		a = { name, plays: 0, ms: 0, first: null, last: null, byYear: blank() };
-		map.set(name, a);
+		a = { key, name, spellings: new Map(), plays: 0, ms: 0, first: null, last: null, byYear: blank() };
+		map.set(key, a);
 	}
 	return a;
 }
@@ -167,17 +173,20 @@ async function main() {
 
 			if (isScrobble) {
 				a.plays++;
+				const sp = a.spellings.get(artist) || { name: artist, plays: 0 };
+				sp.plays++;
+				a.spellings.set(artist, sp);
 				touch(a, ts, yIdx);
 				al.plays++;
 				touch(al, ts, yIdx);
 				tr.plays++;
 				touch(tr, ts, yIdx);
 
-				// iç içe indeksler
-				let aa = artistAlbums.get(artist);
-				if (!aa) { aa = new Map(); artistAlbums.set(artist, aa); }
+				// iç içe indeksler (sanatçı katmanı normalize anahtarla)
+				let aa = artistAlbums.get(a.key);
+				if (!aa) { aa = new Map(); artistAlbums.set(a.key, aa); }
 				let aav = aa.get(albKey);
-				if (!aav) { aav = { name: album, plays: 0, ms: 0 }; aa.set(albKey, aav); }
+				if (!aav) { aav = { name: album, key: albKey, plays: 0, ms: 0 }; aa.set(albKey, aav); }
 				aav.plays++; aav.ms += ms;
 			}
 		}
@@ -185,13 +194,20 @@ async function main() {
 
 	// ---------------------------------------------------------------- slug'lar
 	const usedArtist = new Map();
-	const artistSlug = new Map();
-	for (const name of artists.keys()) {
-		let s = makeSlug(name);
+	const artistSlug = new Map(); // normalize edilmiş sanatçı anahtarı -> slug
+	for (const a of artists.values()) {
+		// Görünen ad: en çok çalınan yazım (beraberlikte ilk görülen korunur).
+		let best = a.name;
+		let bestPlays = a.spellings.get(best)?.plays ?? 0;
+		for (const sp of a.spellings.values()) {
+			if (sp.plays > bestPlays) { best = sp.name; bestPlays = sp.plays; }
+		}
+		a.name = best;
+		let s = makeSlug(a.name);
 		const n = usedArtist.get(s) || 0;
 		usedArtist.set(s, n + 1);
 		if (n > 0) s = `${s}-${n + 1}`;
-		artistSlug.set(name, s);
+		artistSlug.set(a.key, s);
 	}
 	const usedAlbum = new Map();
 	const albumSlug = new Map();
@@ -230,8 +246,9 @@ async function main() {
 				plays: 0, ms: 0, first: null, last: null, byYear: blank(), slug: null, best: -1,
 			};
 			mergedTracks.set(k, v);
-			let ma = mergedByArtist.get(t.artist);
-			if (!ma) { ma = new Map(); mergedByArtist.set(t.artist, ma); }
+			const tak = artistKey(t.artist);
+			let ma = mergedByArtist.get(tak);
+			if (!ma) { ma = new Map(); mergedByArtist.set(tak, ma); }
 			ma.set(k, v);
 			let mb = mergedByAlbum.get(albKey);
 			if (!mb) { mb = new Map(); mergedByAlbum.set(albKey, mb); }
@@ -275,27 +292,27 @@ async function main() {
 		if (a.plays <= 0) continue;
 		// En çok dinlenen şarkılar: aynı (albüm + şarkı) adına sahip kayıtlar zaten
 		// tek kayıtta birleşiktir (mergedByArtist) ve çalma/süre toplamıdır.
-		const tops = [...(mergedByArtist.get(a.name)?.values() || [])]
+		const tops = [...(mergedByArtist.get(a.key)?.values() || [])]
 			.filter((x) => x.plays > 0)
 			.sort((x, y) => y.plays - x.plays || x.name.localeCompare(y.name, 'tr'))
 			.slice(0, 25)
 			.map((x) => ({ name: x.name, album: x.album, plays: x.plays, ms: x.ms, slug: x.slug }));
-		const topAlbums = [...(artistAlbums.get(a.name)?.values() || [])]
+		const topAlbums = [...(artistAlbums.get(a.key)?.values() || [])]
 			.sort((x, y) => y.plays - x.plays)
 			.slice(0, 12)
 			.map((x) => {
-				const k = a.name + A0 + x.name;
+				const k = x.key;
 				return { name: x.name, plays: x.plays, ms: x.ms, slug: albumSlug.get(k) ?? null };
 			});
 		artistArr.push({
-			slug: artistSlug.get(a.name),
+			slug: artistSlug.get(a.key),
 			name: a.name,
 			plays: a.plays,
 			ms: a.ms,
 			first: a.first,
 			last: a.last,
-			trackCount: [...(mergedByArtist.get(a.name)?.values() || [])].filter((x) => x.plays > 0).length,
-			albumCount: (artistAlbums.get(a.name) || new Map()).size,
+			trackCount: [...(mergedByArtist.get(a.key)?.values() || [])].filter((x) => x.plays > 0).length,
+			albumCount: (artistAlbums.get(a.key) || new Map()).size,
 			byYear: a.byYear,
 			topTracks: tops,
 			topAlbums,
@@ -315,7 +332,7 @@ async function main() {
 			slug: albumSlug.get(k),
 			name: al.name,
 			artist: al.artist,
-			artistSlug: artistSlug.get(al.artist) ?? null,
+			artistSlug: artistSlug.get(artistKey(al.artist)) ?? null,
 			plays: al.plays,
 			ms: al.ms,
 			first: al.first,
@@ -334,7 +351,7 @@ async function main() {
 			slug: v.slug,
 			name: v.name,
 			artist: v.artist,
-			artistSlug: artistSlug.get(v.artist) ?? null,
+			artistSlug: artistSlug.get(artistKey(v.artist)) ?? null,
 			album: v.album,
 			uri: v.uri,
 			plays: v.plays,
@@ -426,6 +443,79 @@ async function main() {
 	await write('albums.json', albumArr);
 	await write('tracks.json', trackArr);
 
+	// --------------------------------------------------- yıl başına ilk 100
+	// /muzik sayfasındaki yıl sekmeleri: her yıl, her kategoride o yılın en
+	// çok dinlenen 100 kaydı (666 listesi değil; tüm veriden). Detay sayfası
+	// olmayan (666 dışı) kayıtlar href'siz yazılır; kapaklar covers.json'dan
+	// eşlenir, dosya yoksa yıl kartlarında madalyon görünür.
+	const YEAR_LIMIT = 100;
+	const detailPage = {
+		sanatci: new Set(artistArr.map((x) => x.slug)),
+		album: new Set(albumArr.map((x) => x.slug)),
+		sarki: new Set(trackArr.map((x) => x.slug)),
+	};
+	let coverMap = {};
+	try {
+		coverMap = JSON.parse(await readFile(resolve(OUT_DIR, 'covers.json'), 'utf-8'));
+	} catch { /* kapak dosyası yoksa yıl listelerinde görsel olmaz */ }
+	const artistName = new Map([...artists.values()].map((a) => [a.key, a.name]));
+	const YEAR_KINDS = [
+		{
+			kat: 'sanatci',
+			cover: 'artist',
+			entries: () =>
+				[...artists.values()].map((a) => ({ name: a.name, sub: null, plays: a.byYear, slug: artistSlug.get(a.key) })),
+		},
+		{
+			kat: 'album',
+			cover: 'album',
+			entries: () =>
+				[...albums.entries()].map(([k, al]) => ({
+					name: al.name,
+					sub: artistName.get(artistKey(al.artist)) ?? al.artist,
+					plays: al.byYear,
+					slug: albumSlug.get(k),
+				})),
+		},
+		{
+			kat: 'sarki',
+			cover: 'track',
+			entries: () =>
+				[...mergedTracks.values()].map((t) => ({
+					name: t.name,
+					sub: artistName.get(artistKey(t.artist)) ?? t.artist,
+					plays: t.byYear,
+					slug: t.slug,
+				})),
+		},
+	];
+	const YEAR_DIR = resolve(__dirname, '..', 'public', 'data', 'muzik', 'yil');
+	await mkdir(YEAR_DIR, { recursive: true });
+	let yearFiles = 0;
+	for (let i = 0; i < YN; i++) {
+		const year = Y0 + i;
+		for (const kind of YEAR_KINDS) {
+			const items = kind
+				.entries()
+				.filter((e) => e.plays[i] > 0)
+				.sort((a, b) => b.plays[i] - a.plays[i] || a.name.localeCompare(b.name, 'tr'))
+				.slice(0, YEAR_LIMIT)
+				.map((e) => ({
+					name: e.name,
+					...(e.sub ? { sub: e.sub } : {}),
+					plays: e.plays[i],
+					href: detailPage[kind.kat].has(e.slug) ? `/muzik/${kind.kat}/${e.slug}` : null,
+					img: coverMap[`${kind.cover}:${e.slug}`] || null,
+				}));
+			await writeFile(
+				resolve(YEAR_DIR, `${year}-${kind.kat}.json`),
+				JSON.stringify({ year, kat: kind.kat, items }) + '\n',
+				'utf-8',
+			);
+			yearFiles++;
+		}
+	}
+
 	// ------------------------------------------------------------------ özet
 	const f = (n) => n.toLocaleString('tr-TR');
 	console.log(`Ham satır        : ${f(rawRows)}`);
@@ -435,6 +525,7 @@ async function main() {
 	console.log(`Sanatçı / Albüm / Şarkı : ${f(artists.size)} / ${f(albums.size)} / ${f(mergedTracks.size)}`);
 	console.log(`Dinlenen gün     : ${f(sortedDays.length)}`);
 	console.log(`Liste (ilk 666)  : ${f(artistArr.length)} sanatçı, ${f(albumArr.length)} albüm, ${f(trackArr.length)} şarkı`);
+	console.log(`Yıl listeleri   : ${f(yearFiles)} dosya (public/data/muzik/, yılda ${f(YEAR_LIMIT)}er kayıt)`);
 	console.log(`✓ Yazıldı: src/data/music/`);
 }
 

@@ -10,6 +10,7 @@
     "fonts": "python3 scripts/fetch-fonts.py",
     "music": "node scripts/build-music.mjs",
     "music:covers": "node scripts/fetch-music-covers.mjs",
+    "music:genres": "node --env-file-if-exists=.env scripts/build-genres.mjs",
     "spotify": "node --env-file-if-exists=.env scripts/fetch-spotify.mjs",
     "spotify:auth": "node --env-file-if-exists=.env scripts/spotify-auth.mjs",
     "spotify:folders": "node scripts/sync-playlist-folders.mjs",

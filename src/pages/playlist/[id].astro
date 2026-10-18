@@ -21,7 +21,6 @@ if (!pl) {
 	throw new Error(`Playlist bulunamadı: ${id}`);
 }
 
-const maxArtist = pl.artists[0]?.count || 1;
 const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim() : '';
 const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 	id,
@@ -50,7 +49,7 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 				{description && <p class="lede">{description}</p>}
 				<p class="muted">
 					{pl.trackCount} şarkı · {pl.artistCount} artist · {pl.albumCount} albüm
-					{pl.name === '𝔰𝔢𝔯𝔭𝔢𝔫𝔱 𝔠𝔲𝔩𝔱𝔲𝔯𝔢 ⛧' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
+					{pl.name === 'Serpent Culture' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
 				</p>
 				<div class="pl-actions">
 					<a class="btn btn--accent" href={pl.url} target="_blank" rel="noopener">
@@ -59,21 +58,6 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 				</div>
 			</div>
 		</header>
-
-		<section class="panel">
-			<h2>Artistler</h2>
-			<ol class="artists">
-				{pl.artists.map((a) => (
-					<li class="artist">
-						<span class="a-name">{a.name}</span>
-						<span class="a-bar" aria-hidden="true">
-							<span style={`width:${Math.max(4, Math.round((a.count / maxArtist) * 100))}%`} />
-						</span>
-						<span class="a-count">{a.count}</span>
-					</li>
-				))}
-			</ol>
-		</section>
 
 		<div class="two">
 			<section class="panel">
@@ -94,7 +78,7 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 			</section>
 
 			<section class="panel">
-				<h2>İlk şarkılar</h2>
+				<h2>Tüm şarkılar</h2>
 				<ol class="tracks">
 					{pl.tracks.map((t) => (
 						<li class="track">
@@ -122,6 +106,7 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 		margin-bottom: 1.6rem;
 	}
 	.pl-cover :global(.mcover) {
+		border: 1px solid var(--border-strong);
 		border-radius: var(--radius);
 		box-shadow: var(--shadow);
 	}
@@ -154,7 +139,6 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 		grid-template-columns: 1fr 1fr;
 		gap: var(--gap);
 	}
-	.artists,
 	.tracks {
 		list-style: none;
 		margin: 0;
@@ -164,36 +148,6 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 		gap: 0.3rem;
 		max-height: 32rem;
 		overflow: auto;
-	}
-	.artist {
-		display: grid;
-		grid-template-columns: 1fr 90px 2.4rem;
-		gap: 0.6rem;
-		align-items: center;
-		font-size: 0.9rem;
-	}
-	.a-name {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.a-bar {
-		height: 6px;
-		border-radius: 999px;
-		background: var(--surface-2);
-		overflow: hidden;
-	}
-	.a-bar > span {
-		display: block;
-		height: 100%;
-		background: var(--accent);
-		border-radius: 999px;
-	}
-	.a-count {
-		text-align: right;
-		font-family: var(--font-meta);
-		font-size: 0.8rem;
-		color: var(--text-faint);
 	}
 	.track {
 		display: flex;

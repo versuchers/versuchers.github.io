@@ -2,6 +2,8 @@
  * Spotify public playlist'ler verisi.
  */
 import playlistsJson from '../data/spotify-playlists.json';
+import overridesJson from '../data/playlist-overrides.json';
+import { flattenName, cleanPlaylistName } from './playlist-title.mjs';
 import foldersJson from '../data/playlist-folders.json';
 
 export interface SpotifyArtistCount {
@@ -45,7 +47,30 @@ export interface SpotifyPlaylistsData {
   playlists: SpotifyPlaylist[];
 }
 
-export const spotifyPlaylists: SpotifyPlaylistsData = playlistsJson as SpotifyPlaylistsData;
+// ------------------------------------------- ad düzleştirme & başlık override
+// Başlık hattı src/lib/playlist-title.mjs'dedir (site ile sync paylaşır):
+// ham ad -> Unicode normalize -> playlist-overrides.json'da id override'ı
+// varsa o (kural asla ezmez) -> yoksa kural tabanlı Title Case.
+
+/**
+ * Elle başlık düzeltmeleri ve sitede gösterilmeyenler (src/data/playlist-overrides.json):
+ *  - titles: playlist id -> doğru başlık; kural tabanlı biçimlendirme bunu asla ezmez.
+ *  - exclude: playlist id listesi; yalnızca siteyi filtreler, sync verisinden silinmez.
+ * Yeni düzeltmeler koda değil bu dosyaya eklenir.
+ */
+const overrides = overridesJson as { titles?: Record<string, string>; exclude?: string[] };
+const titleOverrides: Record<string, string> = overrides.titles ?? {};
+const excludedIds = new Set<string>(overrides.exclude ?? []);
+
+export const spotifyPlaylists: SpotifyPlaylistsData = {
+  ...(playlistsJson as SpotifyPlaylistsData),
+  playlists: (playlistsJson as SpotifyPlaylistsData).playlists
+    .filter((p) => !excludedIds.has(p.id))
+    .map((p) => ({
+      ...p,
+      name: cleanPlaylistName(p.name, p.id, titleOverrides),
+    })),
+};
 
 export function getPlaylistById(id: string): SpotifyPlaylist | undefined {
   return spotifyPlaylists.playlists.find((p) => p.id === id);
@@ -71,9 +96,26 @@ export interface PlaylistFoldersMap {
 
 export const playlistFolders = foldersJson as PlaylistFoldersMap;
 
-/** Klasör adının başındaki numarayı (₀₁. / 1. vb.) sitede gizle. */
+/**
+ * Spotify klasör adı -> sitede görünen ad (TEK eşleme noktası).
+ * Anahtar, ham Spotify adının numara öneki düşürülmüş düzleştirilmiş hâlidir;
+ * ham adlar değişmez, eşleme sync'den sonra da display katmanında uygulanır.
+ * Değerler site adıdır; sunumda mevcut çip stili (büyük harf) korunur.
+ */
+export const FOLDER_NAME_MAP: Record<string, string> = {
+  versucher: 'sun',
+  'versucher ii': 'moon',
+  'versucher iii': 'eclipse',
+  genre: 'spectrum',
+  artist: 'orbit',
+};
+
+/** Klasör adının başındaki numarayı (₀₁. / 1. vb.) sitede gizle, eşleme varsa uygula. */
 export function folderDisplayName(name: string): string {
-  return name.replace(/^\s*[0-9\u2080-\u2089]+\s*[.·]\s*/, '').trim() || name;
+  const flat = flattenName(name);
+  const stripped = flat.replace(/^\s*[0-9\u2080-\u2089]+\s*[.·]\s*/, '').trim() || flat || name;
+  const mapped = FOLDER_NAME_MAP[stripped.toLowerCase()];
+  return mapped ? mapped.toUpperCase() : stripped;
 }
 
 /** Sitede gösterilecek klasörler (whitelist), verilen sırada. */

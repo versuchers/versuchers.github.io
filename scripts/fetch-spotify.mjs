@@ -24,16 +24,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadPlaylistFolderMap, isKeptByFolder } from './playlist-folders.mjs';
 import { sleep, createThrottle, createSpotifyApi, hasSpotifyCreds } from './lib/spotify.mjs';
+import { cleanPlaylistName } from '../src/lib/playlist-title.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'src/data/spotify-playlists.json');
+const OVERRIDES = path.join(ROOT, 'src/data/playlist-overrides.json');
 const GENRE_CACHE = path.join(ROOT, 'src/data/spotify-artist-genres.json');
 
 const GENRE_BUDGET = Number(process.env.SPOTIFY_GENRE_BUDGET || 3000);
 const GENRES_ONLY = process.argv.includes('--genres-only');
 const LASTFM_KEY = process.env.LASTFM_API_KEY || '';
 
-const TRACK_PREVIEW = 12;
 
 // Siteden ve veriden tamamen çıkarılan sanatçılar (büyük/küçük harf duyarsız).
 // Bir şarkıda bu sanatçılardan herhangi biri geçiyorsa şarkı tamamen atlanır;
@@ -264,7 +265,7 @@ async function fullFetch() {
       createdAt: earliestAddedAt || null,
       artists,
       genres: [],
-      tracks: tracks.slice(0, TRACK_PREVIEW),
+      tracks,
     });
 
     if ((i + 1) % 25 === 0) console.log(`   ... ${i + 1}/${kept.length} playlist`);
@@ -312,6 +313,19 @@ async function main() {
       );
   } else {
     playlists = await fullFetch();
+  }
+
+  // 4) Override'da olmayan YENİ playlist'leri ham + işlenmiş başlığıyla tek satır logla.
+  //    Amaç: Türkçe karakter eksiklerini elle fark edip playlist-overrides.json'a eklemek.
+  const ov = await readJson(OVERRIDES, { titles: {}, exclude: [] });
+  const ovTitles = ov.titles || {};
+  const ovExcluded = new Set(ov.exclude || []);
+  const prevIds = new Set((await readJson(OUT, { playlists: [] })).playlists.map((p) => p.id));
+  for (const p of playlists) {
+    if (prevIds.has(p.id) || ovTitles[p.id] || ovExcluded.has(p.id)) continue;
+    console.log(
+      `🆕 yeni playlist: ${JSON.stringify(p.name)} → ${JSON.stringify(cleanPlaylistName(p.name, p.id, ovTitles))}`,
+    );
   }
 
   const { fetched, remaining } = await enrichGenres(playlists, GENRE_BUDGET);

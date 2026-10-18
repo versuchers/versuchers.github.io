@@ -104,6 +104,7 @@ const defaultFolder = chips[0]?.id ?? '__all';
 				<ul class="grid pl-list" data-pl-grid>
 					{playlists.map((pl) => {
 						const folders = getPlaylistFolderIds(pl.id);
+						const folderLabels = folders.map((id) => folderName.get(id)).filter(Boolean);
 						return (
 							<li
 								class="card pl"
@@ -115,28 +116,30 @@ const defaultFolder = chips[0]?.id ?? '__all';
 								<a class="pl-cover" href={`/playlist/${pl.id}`} aria-label={pl.name}>
 									<MusicCover src={pl.cover ?? undefined} alt="" name={pl.name} />
 								</a>
+								{folderLabels.length ? (
+									<p class="pl-folder-strip">{folderLabels.join(' · ')}</p>
+								) : null}
 								<div class="pl-body">
-									<h3 class="t">
-										<a href={`/playlist/${pl.id}`}>{pl.name.trim() || '(isimsiz)'}</a>
-									</h3>
-									<p class="s muted">
-										{pl.trackCount} şarkı · {pl.artistCount} artist
-										{pl.name === '𝔰𝔢𝔯𝔭𝔢𝔫𝔱 𝔠𝔲𝔩𝔱𝔲𝔯𝔢 ⛧' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
-									</p>
-									<p class="pl-folder-tag">
-										{folders
-											.map((id) => folderName.get(id))
-											.filter(Boolean)
-											.join(' · ')}
-									</p>
-									<div class="pl-actions">
-										<a class="btn btn--accent" href={`/playlist/${pl.id}`}>
-											Detay
-										</a>
-										<a class="btn" href={pl.url} target="_blank" rel="noopener">
-											Spotify
+									<div class="pl-head">
+										<h3 class="t">
+											<a href={`/playlist/${pl.id}`}>{pl.name.trim() || '(isimsiz)'}</a>
+										</h3>
+										<a
+											class="pl-spotify"
+											href={pl.url}
+											target="_blank"
+											rel="noopener"
+											aria-label="Spotify'da aç"
+										>
+											<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+												<path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+											</svg>
 										</a>
 									</div>
+									<p class="s muted">
+										{pl.trackCount} şarkı · {pl.artistCount} artist
+										{pl.name === 'Serpent Culture' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
+									</p>
 								</div>
 							</li>
 						);
@@ -231,7 +234,6 @@ const defaultFolder = chips[0]?.id ?? '__all';
 		font-size: 0.82rem;
 		font-weight: 600;
 		letter-spacing: 0.06em;
-		text-transform: uppercase;
 		color: var(--text-faint);
 	}
 	.pl-sort {
@@ -278,9 +280,9 @@ const defaultFolder = chips[0]?.id ?? '__all';
 	.fchip .n {
 		font-size: 0.72rem;
 	}
-	/* Playlist kartları: ekran genişliğine göre 6 / 3 / 2 sütun. */
+	/* Playlist kartları: ekran genişliğine göre 4 / 3 / 2 sütun. */
 	.grid.pl-list {
-		grid-template-columns: repeat(6, minmax(0, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 	@media (max-width: 1100px) {
 		.grid.pl-list {
@@ -295,6 +297,11 @@ const defaultFolder = chips[0]?.id ?? '__all';
 	.pl {
 		display: flex;
 		flex-direction: column;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+	}
+
+	.pl:hover {
+		box-shadow: var(--shadow-hover, var(--shadow));
 	}
 	/* KRİTİK: yazar kuralı (display:flex) tarayıcının [hidden]{display:none}
 	   kuralını ezdiği için süzgeç görselde işlemiyordu; bu bunu geri kazandırır. */
@@ -303,15 +310,26 @@ const defaultFolder = chips[0]?.id ?? '__all';
 	}
 	.pl-cover {
 		display: block;
+		aspect-ratio: 1 / 1;
+		overflow: hidden;
 	}
+
+	.pl-cover :global(.mcover img) {
+		transition: transform 280ms var(--ease);
+	}
+
+	.pl:hover .pl-cover :global(.mcover img) {
+		transform: scale(1.04);
+	}
+
 	.pl :global(.mcover) {
 		border-radius: 0;
 	}
 	.pl-body {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
-		padding: 0.6rem 0.7rem 0.75rem;
+		gap: 0.3rem;
+		padding: 0.75rem 0.85rem 0.9rem;
 	}
 	.t {
 		margin: 0;
@@ -329,24 +347,67 @@ const defaultFolder = chips[0]?.id ?? '__all';
 		font-size: 0.8rem;
 		line-height: 1.3;
 	}
-	.pl-folder-tag {
-		margin: 0.2rem 0 0;
-		font-family: var(--font-ui);
-		font-size: 0.72rem;
-		line-height: 1.2;
-		letter-spacing: 0.02em;
-		color: var(--text-faint);
-	}
-	.pl-actions {
-		display: flex;
-		gap: 0.4rem;
-		margin-top: 0.5rem;
-	}
-	.pl-actions .btn {
-		flex: 1;
-		padding: 0.4rem 0.6rem;
-		font-size: 0.78rem;
+	/* Kapak altındaki klasör şeridi — film/dizi/kitap şeridiyle aynı dil. */
+	.pl-folder-strip {
+		margin: 0;
+		padding: 0.32rem 0.75rem;
+		background: var(--accent-soft);
+		border-bottom: 1px solid var(--border);
+		font-family: var(--font-card);
+		font-size: 0.62rem;
+		font-weight: 600;
+		letter-spacing: 0.16em;
+		color: var(--accent-2);
 		text-align: center;
+	}
+	/* Başlık satırı: başlık solda, Spotify ikon-linki sağa yaslı + dikey ortalı. */
+	.pl-head {
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+	}
+	.pl-head .t {
+		flex: 1 1 auto;
+		min-width: 0; /* uzun başlık satıra kırılsın, ikon sıkışmasın */
+	}
+	.pl-spotify {
+		flex: 0 0 auto;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.625rem; /* 20px ikon + 2×10px → ≥40×40 dokunma alanı */
+		margin: -0.5rem -0.625rem -0.5rem 0; /* padding kart düzenini bozmasın */
+		color: var(--text-muted);
+		transition: color var(--dur) var(--ease);
+	}
+	.pl-spotify svg {
+		display: block;
+		width: 1.25rem;
+		height: 1.25rem;
+		fill: currentColor;
+	}
+	@media (hover: hover) {
+		.pl-spotify:hover {
+			color: var(--text);
+		}
+	}
+	/* Mobil: hover'a bağlı stil yok; başlık en fazla 2 satır, kart içi
+	   yatay padding azaltılıp başlığa yer açılır, kart yükseklikleri eşit. */
+	@media (max-width: 768px) {
+		.pl-body {
+			padding-left: 0.6rem;
+			padding-right: 0.6rem;
+		}
+		.pl-head .t {
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+		.grid.pl-list {
+			align-items: stretch;
+		}
 	}
 	/* iOS, 16px altı form öğesine odaklanınca sayfayı yakınlaştırır; mobilde
 	   select'i 16px tutarak bunu engelle. */

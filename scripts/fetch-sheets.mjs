@@ -302,8 +302,10 @@ function normalizeKitap(row, map) {
 		protagonist: pick(row, map, 'PROTAGONIST'),
 		workType: pick(row, map, 'ESER TÜRÜ'),
 		format: pick(row, map, 'OKUDUĞUM FORMAT'),
-		mainGenre: pick(row, map, 'ANA TÜR'),
-		subGenre: pick(row, map, 'ALT TÜR'),
+		// KATEGORİ = eski "ANA TÜR" (kitaba özgü üst sınıf)
+		category: pick(row, map, 'KATEGORİ', 'KATEGORI', 'ANA TÜR'),
+		// TÜR = eski "ALT TÜR" (film/dizi "TÜR" ile aynı havuza girer)
+		genre: pick(row, map, 'TÜR', 'ALT TÜR'),
 		country: pick(row, map, 'ÜLKE'),
 		owned: pick(row, map, 'KITAP BENDE VAR MI'),
 		city: pick(row, map, 'OKUDUĞUM ŞEHIR'),

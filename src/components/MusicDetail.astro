@@ -125,6 +125,14 @@ const {
 	}
 	.left {
 		--poster-max: 280px;
+		position: sticky;
+		top: clamp(4.5rem, 6vw, 5.5rem);
+	}
+
+	.left :global(.mcover) {
+		border: 1px solid var(--border-strong);
+		background: var(--surface);
+		box-shadow: var(--shadow);
 	}
 	.links {
 		display: flex;
