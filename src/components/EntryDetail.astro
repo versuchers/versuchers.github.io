@@ -1,7 +1,7 @@
 ---
 import {
 	facts,
-	tagList,
+	sheetTags,
 	externalLinks,
 	related,
 	KIND_LABEL,
@@ -25,7 +25,7 @@ const showOriginal =
 	entry.originalTitle && entry.originalTitle.trim() && entry.originalTitle.trim() !== displayTitle;
 
 const meta = facts(entry);
-const tags = tagList(entry);
+const tags = sheetTags(entry);
 const links = externalLinks(entry);
 const similar = related(entry, 6);
 
@@ -57,6 +57,11 @@ const listLabel = KIND_PLURAL[entry.type];
 		<div class="cols">
 			<div class="left">
 				<Poster src={entry.poster} alt={displayTitle} kind={entry.type} eager />
+				{entry.rating && (
+					<p class="cover-rating">
+						<Rating value={entry.rating} />
+					</p>
+				)}
 				{links.length > 0 && (
 					<div class="links">
 						{links.map((l) => (
@@ -75,12 +80,21 @@ const listLabel = KIND_PLURAL[entry.type];
 
 				<div class="topline">
 					{yearLabel && <span class="year">{yearLabel}</span>}
-					{entry.rating && <Rating value={entry.rating} />}
-					{entry.type === 'kitap' && entry.author && <span class="author">· {entry.author}</span>}
-					{entry.type !== 'kitap' && entry.type === 'film' && entry.director && (
-						<span class="author">· {entry.director}</span>
+					{entry.type === 'kitap' && entry.author && (
+						<span class="author">
+							· <a href={personHref(entry.author, 'yazar')}>{entry.author}</a>
+						</span>
 					)}
-					{entry.type === 'dizi' && entry.creator && <span class="author">· {entry.creator}</span>}
+					{entry.type === 'film' && entry.director && (
+						<span class="author">
+							· <a href={personHref(entry.director, 'yonetmen')}>{entry.director}</a>
+						</span>
+					)}
+					{entry.type === 'dizi' && entry.creator && (
+						<span class="author">
+							· <a href={personHref(entry.creator, 'yaratici')}>{entry.creator}</a>
+						</span>
+					)}
 				</div>
 
 				{reviewText &&
@@ -198,15 +212,27 @@ const listLabel = KIND_PLURAL[entry.type];
 
 	.cols {
 		display: grid;
-		grid-template-columns: minmax(220px, 300px) 1fr;
+		grid-template-columns: minmax(220px, 340px) 1fr;
 		gap: clamp(1.5rem, 4vw, 3rem);
 		align-items: start;
 	}
 
 	.left {
 		position: sticky;
-		top: 5.5rem;
+		top: 8.5rem;
 		--poster-max: 300px;
+	}
+
+	/* Sol (kapak + bağlantılar), sağ (başlık/yorum/künye) ve benzer içerik
+	   ızgarası, anasayfadaki .panel gibi kendi arka planına sahip. */
+	.left,
+	.right,
+	.similar .grid {
+		background: var(--surface);
+		border-radius: 14px;
+		box-shadow: var(--shadow);
+		padding: clamp(1.15rem, 2.6vw, 1.85rem) clamp(1.15rem, 3vw, 2.25rem)
+			clamp(1.4rem, 3vw, 2.25rem);
 	}
 
 	/* Detaya ait kapak: koyu temada siyah gölge zeminde görünmez; onun yerine
@@ -217,6 +243,15 @@ const listLabel = KIND_PLURAL[entry.type];
 		box-shadow: var(--shadow);
 	}
 
+	/* Puan (10/10), afişin / kitap kapağının hemen altında, kapakla aynı
+	   genişlikte ve ortalanmış durur. */
+	.cover-rating {
+		display: flex;
+		justify-content: center;
+		margin: 0.75rem 0 0;
+		max-width: min(100%, var(--poster-max, 280px));
+	}
+
 	.links {
 		display: flex;
 		flex-wrap: wrap;
@@ -225,6 +260,15 @@ const listLabel = KIND_PLURAL[entry.type];
 		gap: 0.5rem;
 		margin-top: 1rem;
 		max-width: min(100%, var(--poster-max, 280px));
+	}
+
+	/* Dış bağlantı butonları: küçük çerçeve, 10px font ve metnin hemen
+	   dışında duran (dar iç boşluklu) çerçeve. */
+	.links .btn {
+		font-size: 10px;
+		line-height: 1;
+		padding: 3px 6px;
+		gap: 0.35em;
 	}
 
 	.eyebrow + h1 {
@@ -265,7 +309,7 @@ const listLabel = KIND_PLURAL[entry.type];
 	.review p {
 		margin: 0;
 		font-family: var(--font-serif);
-		font-size: 25px;
+		font-size: 20px;
 		line-height: 1.8;
 	}
 	.review cite {
@@ -324,7 +368,7 @@ const listLabel = KIND_PLURAL[entry.type];
 	.review--spoiler p {
 		margin: 0;
 		font-family: var(--font-serif);
-		font-size: 25px;
+		font-size: 20px;
 		line-height: 1.8;
 	}
 
@@ -359,7 +403,8 @@ const listLabel = KIND_PLURAL[entry.type];
 
 	/* Tıklanabilir alanlar: alt çizgi yok; üzerine gelince renk belirginleşir */
 	.fact dd a,
-	.cast a {
+	.cast a,
+	.topline .author a {
 		color: inherit;
 		text-decoration: none;
 		transition: color var(--dur) var(--ease);
@@ -372,7 +417,8 @@ const listLabel = KIND_PLURAL[entry.type];
 		color: var(--text-muted);
 	}
 	.fact dd a:hover,
-	.cast a:hover {
+	.cast a:hover,
+	.topline .author a:hover {
 		color: var(--link-hover);
 	}
 
@@ -401,7 +447,7 @@ const listLabel = KIND_PLURAL[entry.type];
 		}
 		.left {
 			position: static;
-			max-width: 280px;
+			max-width: 320px;
 		}
 		.review p,
 		.review--spoiler p {

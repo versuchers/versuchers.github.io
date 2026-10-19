@@ -283,6 +283,20 @@ export function tagList(entry: Entry): string[] {
 	return [...out];
 }
 
+/**
+ * Yalnızca sheet'teki "Etiketler" sütununu döner; tür/ana tema/kategori gibi
+ * alanlardan etiket türetmez. Sayfada "Etiketler" bölümü bunu kullanır:
+ * sheet'te ne yazıyorsa o gösterilir, boşsa hiçbir şey gösterilmez.
+ */
+export function sheetTags(entry: Entry): string[] {
+	const out = new Set<string>();
+	(entry.tags || '').split(',').forEach((s) => {
+		const t = s.trim();
+		if (t && t !== '-') out.add(t);
+	});
+	return [...out];
+}
+
 /** Detay sayfası için künye satırları (boş olanlar atlanır). */
 export interface Fact {
 	label: string;

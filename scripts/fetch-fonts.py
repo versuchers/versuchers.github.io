@@ -20,12 +20,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_DIR = os.path.join(ROOT, 'public', 'fonts')
 CSS_OUT = os.path.join(ROOT, 'src', 'styles', 'fonts.css')
 
-# Site yalnizca bu dort fontu kullanir (bkz. src/styles/global.css).
+# Site genelde bu dort fontu kullanir (bkz. src/styles/global.css);
+# blog yazi govdesi istisna olarak Cormorant Garamond kullanir.
 FAMILIES = [
     'Manufacturing+Consent',
     'Alegreya:ital,wght@0,400..900;1,400..900',
     'Manrope:wght@200..800',
     'Bitter:ital,wght@0,100..900;1,100..900',
+    'Cormorant+Garamond:ital,wght@0,300..700;1,300..700',
 ]
 KEEP = ('latin', 'latin-ext')
 UA = (

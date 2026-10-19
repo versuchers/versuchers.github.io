@@ -273,6 +273,12 @@ body.is-blog .chip::before {
 	border-radius: 14px;
 	box-shadow: var(--shadow);
 	overflow: hidden;
+	/* Eski Blogspot yazılarındaki gövde rengi (#696969). */
+	--prose-ink: #696969;
+}
+[data-theme='dark'] .blog-post .prose {
+	/* Koyu zeminde #696969 okunmaz; aynı kontrastı veren karşılığı. */
+	--prose-ink: #969696;
 }
 .blog-post .prose::before {
 	content: '\2014';
@@ -283,16 +289,19 @@ body.is-blog .chip::before {
 	text-align: center;
 	opacity: 0.2;
 }
+/* Blog yazısı gövdesi: eski Blogspot yazılarıyla aynı görünüm — Cormorant
+   Garamond 25px / 1.85 ve #696969. Site genelindeki font kuralının bilinçli
+   tek istisnası. */
 .blog-post .prose p,
 .blog-post .prose li,
 .blog-post .prose span,
 .blog-post .prose div,
 .blog-post .prose ol,
 .blog-post .prose ul {
-	font-family: var(--font-serif);
+	font-family: 'Cormorant Garamond', var(--font-serif);
 	font-size: 25px;
 	line-height: 1.85;
-	color: var(--text-faint);
+	color: var(--prose-ink);
 }
 .blog-post .prose p {
 	margin: 0 0 1.35em;
