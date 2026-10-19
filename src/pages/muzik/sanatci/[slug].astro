@@ -14,6 +14,7 @@ import {
 	hasAlbum,
 	type Artist,
 } from '../../../lib/music';
+import { artistPlaylists } from '../../../lib/playlist-xref';
 
 export function getStaticPaths() {
 	return artists.map((a) => ({ params: { slug: a.slug }, props: { a } }));
@@ -38,6 +39,9 @@ const albumRows = a.topAlbums.map((al) => ({
 }));
 
 const description = `${a.name} — ${integer(a.plays)} çalma, ${durationText(a.ms)} dinleme.`;
+
+// Public playlistlerdeki varlığı (kural: yalnızca sayfası olan sanatçılar eşleşir).
+const plData = artistPlaylists(a.slug);
 ---
 
 <Base title={`${a.name} — Müzik`} description={description} ogImage={cover('artist', a.slug)}>
@@ -73,11 +77,75 @@ const description = `${a.name} — ${integer(a.plays)} çalma, ${durationText(a.
 				<MusicRows rows={albumRows} />
 			</section>
 		)}
+
+		{plData.rows.length > 0 && (
+			<section class="block">
+				<div class="section-head"><h2>Playlistlerimde</h2></div>
+				<p class="pl-sum muted">
+					{integer(plData.songs)} şarkı · {integer(plData.playlists)} playlist
+				</p>
+				<ol class="pl-list">
+					{plData.rows.map((p) => (
+						<li class="pl-item">
+							<div class="pl-line">
+								<a class="pl-name" href={`/playlist/${p.id}`}>{p.name}</a>
+								<span class="pl-count muted">{integer(p.count)} şarkı</span>
+							</div>
+							<p class="pl-tracks muted">
+								{p.trackNames.join(', ')}
+								{p.extra > 0 && <> +{p.extra}</>}
+							</p>
+						</li>
+					))}
+				</ol>
+			</section>
+		)}
 	</MusicDetail>
 </Base>
 
 <style>
 	.block {
 		margin-top: clamp(2rem, 5vw, 3rem);
+	}
+	.pl-sum {
+		margin: 0 0 0.7rem;
+		font-family: var(--font-meta);
+		font-size: 0.85rem;
+	}
+	.pl-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		border-top: 1px solid var(--border);
+	}
+	.pl-item {
+		padding: 0.55rem 0.2rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.pl-line {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.2rem 0.8rem;
+	}
+	.pl-name {
+		font-family: var(--font-card);
+		font-size: 1.05rem;
+		color: inherit;
+	}
+	.pl-name:hover {
+		color: var(--link-hover);
+	}
+	.pl-count {
+		font-family: var(--font-meta);
+		font-size: 0.8rem;
+		white-space: nowrap;
+	}
+	.pl-tracks {
+		margin: 0.15rem 0 0;
+		font-family: var(--font-meta);
+		font-size: 0.82rem;
+		line-height: 1.35;
 	}
 </style>

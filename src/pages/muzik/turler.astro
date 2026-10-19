@@ -21,7 +21,8 @@ const yearsArr = stats.years.map((y) => y.year);
 		<header class="page-head">
 			<p class="eyebrow">Müzik</p>
 			<h1>Türler</h1>
-			<p class="lede">2016–2026 arası en çok dinlediğim 66 tür; dinleme süresine göre. Yıl sekmeleriyle o yılın sıralamasını görebilirsiniz.</p>
+			<p class="lede">2016–2026 arası en çok dinlediğim 66 tür; dinleme sayısına göre. Yıl sekmeleriyle o yılın sıralamasını görebilirsiniz.</p>
+			<p class="lede-note muted">Bir sanatçı birden fazla türde sayıldığı için türler birbirini kapsar (örn. metal; black, doom ve death metal'i içerir); toplamları toplamayın.</p>
 		</header>
 		<MusicBrowse
 			label="Türler"
@@ -40,5 +41,11 @@ const yearsArr = stats.years.map((y) => y.year);
 	}
 	.page-head h1 {
 		margin-block: 0.2rem 0.6rem;
+	}
+	.lede-note {
+		margin: 0.5rem 0 0;
+		font-family: var(--font-meta);
+		font-size: 0.82rem;
+		line-height: 1.45;
 	}
 </style>

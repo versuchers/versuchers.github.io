@@ -11,49 +11,98 @@ import {
 	musicDate,
 	spotifyTrackUrl,
 	hasArtist,
+	trackSlugSet,
 	type Track,
 } from '../../../lib/music';
+import mergeReport from '../../../data/music/merge-report.json';
 
-export function getStaticPaths() {
-	return tracks.map((t) => ({ params: { slug: t.slug }, props: { t } }));
+interface MergeWinner {
+	name: string;
+	artist?: string;
+	album: string;
+	slug: string;
+	plays: number;
 }
 
-const { t } = Astro.props as { t: Track };
+export function getStaticPaths() {
+	// Birleştirilen sürümlerin eski sayfaları (eski eşik: >=25 çalma) kazananın
+	// sayfasına yönlendirilir; hiçbir iç link 404 vermez.
+	const redirects = [];
+	for (const m of mergeReport.merges as { winner: MergeWinner; merged: { slug: string | null; plays: number }[] }[]) {
+		for (const l of m.merged) {
+			if (l.slug && l.plays >= 25 && !trackSlugSet.has(l.slug)) {
+				redirects.push({ params: { slug: l.slug }, props: { redirect: m.winner } });
+			}
+		}
+	}
+	return [...tracks.map((t) => ({ params: { slug: t.slug }, props: { t } })), ...redirects];
+}
+
+const { t, redirect } = Astro.props as { t?: Track; redirect?: MergeWinner };
 const years = stats.years.map((y) => String(y.year));
 
-const albumRec = albums.find((a) => a.artist === t.artist && a.name === t.album) || null;
+const albumRec = t ? albums.find((a) => a.artist === t.artist && a.name === t.album) || null : null;
 
-const description = `${t.artist} — ${t.name}: ${integer(t.plays)} çalma, ${durationText(t.ms)}.`;
+const description = redirect
+	? `${redirect.artist ?? ''} — ${redirect.name}: bu sürüm tek kayıtta birleştirildi.`
+	: `${t!.artist} — ${t!.name}: ${integer(t!.plays)} çalma, ${durationText(t!.ms)}.`;
 ---
 
-<Base title={`${t.name} — ${t.artist}`} description={description} ogImage={cover('track', t.slug)}>
+{redirect ? (
+	<Base
+		title={`${redirect.name} — ${redirect.artist ?? ''}`.trim()}
+		description={description}
+		redirect={`/muzik/sarki/${redirect.slug}`}
+	>
+		<p class="merge-note">
+			Bu sürüm tek kayıtta birleştirildi →
+			<a href={`/muzik/sarki/${redirect.slug}`}>{redirect.name} — {redirect.artist} ({integer(redirect.plays)} çalma)</a>
+		</p>
+	</Base>
+) : (
+<Base title={`${t!.name} — ${t!.artist}`} description={description} ogImage={cover('track', t!.slug)}>
 	<MusicDetail
 		kindLabel="Şarkı"
 		kindPlural="Şarkılar"
 		kindHref="/muzik/sarkilar"
-		title={t.name}
-		subtitle={t.artist}
-		subtitleHref={hasArtist(t.artistSlug) ? `/muzik/sanatci/${t.artistSlug}` : undefined}
-		coverSrc={cover('track', t.slug)}
-		links={[{ label: 'Spotify', href: spotifyTrackUrl(t.uri) }]}
+		title={t!.name}
+		subtitle={t!.artist}
+		subtitleHref={hasArtist(t!.artistSlug) ? `/muzik/sanatci/${t!.artistSlug}` : undefined}
+		coverSrc={cover('track', t!.slug)}
+		links={[{ label: 'Spotify', href: spotifyTrackUrl(t!.uri) }]}
 		stats={[
-			{ k: 'Çalma', v: integer(t.plays) },
-			{ k: 'Dinleme', v: durationText(t.ms) },
-			{ k: 'Albüm', v: t.album },
-			{ k: 'İlk dinleme', v: musicDate(t.first) },
-			{ k: 'Son dinleme', v: musicDate(t.last) },
+			{ k: 'Çalma', v: integer(t!.plays) },
+			{ k: 'Dinleme', v: durationText(t!.ms) },
+			{ k: 'Albüm', v: t!.album },
+			{ k: 'İlk dinleme', v: musicDate(t!.first) },
+			{ k: 'Son dinleme', v: musicDate(t!.last) },
 		]}
-		values={t.byYear}
+		values={t!.byYear}
 		labels={years}
 	>
 		<section class="block">
 			<div class="section-head"><h2>Albüm</h2></div>
 			<p class="albumline">
-				{albumRec ? <a href={`/muzik/album/${albumRec.slug}`}>{t.album}</a> : t.album}
+				{albumRec ? <a href={`/muzik/album/${albumRec.slug}`}>{t!.album}</a> : t!.album}
 			</p>
+			{t!.alsoPlayed && t!.alsoPlayed.length > 0 && (
+				<p class="also">
+					Şu albümlerde de çalındı:{' '}
+					{t!.alsoPlayed.map((x, i) => {
+						const al = albums.find((a) => a.artist === t!.artist && a.name === x.album);
+						return (
+							<Fragment>
+								{i > 0 && ', '}
+								{al ? <a href={`/muzik/album/${al.slug}`}>{x.album}</a> : x.album} ({integer(x.plays)} çalma)
+							</Fragment>
+						);
+					})}
+				</p>
+			)}
 		</section>
 	</MusicDetail>
 </Base>
+)}
 
 <style>
 	.block {
@@ -66,5 +115,17 @@ const description = `${t.artist} — ${t.name}: ${integer(t.plays)} çalma, ${du
 	}
 	.albumline a:hover {
 		color: var(--link-hover);
+	}
+	.also {
+		font-family: var(--font-meta);
+		font-size: 0.85rem;
+		margin: 0.5rem 0 0;
+	}
+	.merge-note {
+		max-width: 40rem;
+		margin: 4rem auto;
+		padding: 0 1.5rem;
+		font-family: var(--font-card);
+		font-size: 1.05rem;
 	}
 </style>

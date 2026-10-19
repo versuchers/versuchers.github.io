@@ -58,6 +58,8 @@ export interface Track {
 	artist: string;
 	artistSlug: string | null;
 	album: string;
+	/** Birleşen diğer sürümlerin albüm ve çalma toplamları (varsa). */
+	alsoPlayed?: { album: string; plays: number }[];
 	uri: string;
 	plays: number;
 	ms: number;
@@ -119,7 +121,10 @@ export interface Genre {
 	plays: number;
 	artists: number;
 }
-export const genres = genresJson as unknown as Genre[];
+/** Ekrandaki sayı = çalma; sıralama da çalma sayısına göre (eşitlikte ad A→Z). */
+export const byPlays = (a: { name: string; plays: number }, b: { name: string; plays: number }) =>
+	b.plays - a.plays || a.name.localeCompare(b.name, 'tr');
+export const genres = (genresJson as unknown as Genre[]).slice().sort(byPlays);
 
 const covers = coversJson as Record<string, string>;
 
@@ -128,6 +133,7 @@ const covers = coversJson as Record<string, string>;
  * slug her zaman sayfa üretmez. Bağlantı vermeden önce doğrula.
  */
 const trackSlugSet = new Set(tracks.map((t) => t.slug));
+export { trackSlugSet };
 const albumSlugSet = new Set(albums.map((a) => a.slug));
 const artistSlugSet = new Set(artists.map((a) => a.slug));
 

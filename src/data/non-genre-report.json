@@ -1,0 +1,5188 @@
+{
+	"note": "Tür etiketi süzgeç raporu (build sırasında scripts/build-genre-report.mjs ile üretilir). nonGenre = siyah liste (src/data/non-genre-tags.json), threshold = count < 2 eşiği. variantPairs = aynı slug'a düşen farklı yazımlar (birleştirilmedi).",
+	"minCount": 2,
+	"nonGenre": [
+		{
+			"tag": "female vocalists",
+			"playlists": 78
+		},
+		{
+			"tag": "german",
+			"playlists": 77
+		},
+		{
+			"tag": "american",
+			"playlists": 67
+		},
+		{
+			"tag": "swedish",
+			"playlists": 67
+		},
+		{
+			"tag": "british",
+			"playlists": 66
+		},
+		{
+			"tag": "french",
+			"playlists": 51
+		},
+		{
+			"tag": "usa",
+			"playlists": 49
+		},
+		{
+			"tag": "germany",
+			"playlists": 44
+		},
+		{
+			"tag": "russian",
+			"playlists": 42
+		},
+		{
+			"tag": "finnish",
+			"playlists": 39
+		},
+		{
+			"tag": "italian",
+			"playlists": 39
+		},
+		{
+			"tag": "polish",
+			"playlists": 39
+		},
+		{
+			"tag": "australian",
+			"playlists": 38
+		},
+		{
+			"tag": "canadian",
+			"playlists": 38
+		},
+		{
+			"tag": "norwegian",
+			"playlists": 38
+		},
+		{
+			"tag": "sweden",
+			"playlists": 34
+		},
+		{
+			"tag": "danish",
+			"playlists": 28
+		},
+		{
+			"tag": "swiss",
+			"playlists": 28
+		},
+		{
+			"tag": "ukrainian",
+			"playlists": 27
+		},
+		{
+			"tag": "belgium",
+			"playlists": 26
+		},
+		{
+			"tag": "italy",
+			"playlists": 26
+		},
+		{
+			"tag": "russia",
+			"playlists": 22
+		},
+		{
+			"tag": "norway",
+			"playlists": 21
+		},
+		{
+			"tag": "female vocalist",
+			"playlists": 20
+		},
+		{
+			"tag": "france",
+			"playlists": 20
+		},
+		{
+			"tag": "icelandic",
+			"playlists": 20
+		},
+		{
+			"tag": "poland",
+			"playlists": 20
+		},
+		{
+			"tag": "canada",
+			"playlists": 19
+		},
+		{
+			"tag": "australia",
+			"playlists": 18
+		},
+		{
+			"tag": "dutch",
+			"playlists": 18
+		},
+		{
+			"tag": "england",
+			"playlists": 18
+		},
+		{
+			"tag": "switzerland",
+			"playlists": 18
+		},
+		{
+			"tag": "composer",
+			"playlists": 17
+		},
+		{
+			"tag": "united kingdom",
+			"playlists": 17
+		},
+		{
+			"tag": "united states",
+			"playlists": 17
+		},
+		{
+			"tag": "austrian",
+			"playlists": 15
+		},
+		{
+			"tag": "kazakhstan",
+			"playlists": 15
+		},
+		{
+			"tag": "brazilian",
+			"playlists": 14
+		},
+		{
+			"tag": "denmark",
+			"playlists": 14
+		},
+		{
+			"tag": "iceland",
+			"playlists": 14
+		},
+		{
+			"tag": "japanese",
+			"playlists": 13
+		},
+		{
+			"tag": "new york",
+			"playlists": 13
+		},
+		{
+			"tag": "belarus",
+			"playlists": 12
+		},
+		{
+			"tag": "greek",
+			"playlists": 12
+		},
+		{
+			"tag": "hungarian",
+			"playlists": 12
+		},
+		{
+			"tag": "azerbaijan",
+			"playlists": 11
+		},
+		{
+			"tag": "chinese",
+			"playlists": 11
+		},
+		{
+			"tag": "irish",
+			"playlists": 11
+		},
+		{
+			"tag": "istanbul",
+			"playlists": 11
+		},
+		{
+			"tag": "netherlands",
+			"playlists": 11
+		},
+		{
+			"tag": "belgian",
+			"playlists": 10
+		},
+		{
+			"tag": "deutsch",
+			"playlists": 10
+		},
+		{
+			"tag": "good",
+			"playlists": 10
+		},
+		{
+			"tag": "izmir",
+			"playlists": 10
+		},
+		{
+			"tag": "mexico",
+			"playlists": 10
+		},
+		{
+			"tag": "piano",
+			"playlists": 10
+		},
+		{
+			"tag": "spanish",
+			"playlists": 10
+		},
+		{
+			"tag": "ukraine",
+			"playlists": 10
+		},
+		{
+			"tag": "austria",
+			"playlists": 9
+		},
+		{
+			"tag": "colombian",
+			"playlists": 9
+		},
+		{
+			"tag": "czech",
+			"playlists": 9
+		},
+		{
+			"tag": "yandex music",
+			"playlists": 9
+		},
+		{
+			"tag": "ankara",
+			"playlists": 8
+		},
+		{
+			"tag": "faroe islands",
+			"playlists": 8
+		},
+		{
+			"tag": "faroese",
+			"playlists": 8
+		},
+		{
+			"tag": "finland",
+			"playlists": 8
+		},
+		{
+			"tag": "greece",
+			"playlists": 8
+		},
+		{
+			"tag": "london",
+			"playlists": 8
+		},
+		{
+			"tag": "male vocalists",
+			"playlists": 8
+		},
+		{
+			"tag": "slovakia",
+			"playlists": 8
+		},
+		{
+			"tag": "turkce",
+			"playlists": 8
+		},
+		{
+			"tag": "chilean",
+			"playlists": 7
+		},
+		{
+			"tag": "comedy",
+			"playlists": 7
+		},
+		{
+			"tag": "composers",
+			"playlists": 7
+		},
+		{
+			"tag": "eminem",
+			"playlists": 7
+		},
+		{
+			"tag": "english",
+			"playlists": 7
+		},
+		{
+			"tag": "portuguese",
+			"playlists": 7
+		},
+		{
+			"tag": "rutracker",
+			"playlists": 7
+		},
+		{
+			"tag": "slovakian",
+			"playlists": 7
+		},
+		{
+			"tag": "colombia",
+			"playlists": 6
+		},
+		{
+			"tag": "countertenor",
+			"playlists": 6
+		},
+		{
+			"tag": "god",
+			"playlists": 6
+		},
+		{
+			"tag": "guitar",
+			"playlists": 6
+		},
+		{
+			"tag": "hayko",
+			"playlists": 6
+		},
+		{
+			"tag": "hayko cepkin",
+			"playlists": 6
+		},
+		{
+			"tag": "kyrgyzstan",
+			"playlists": 6
+		},
+		{
+			"tag": "murcia",
+			"playlists": 6
+		},
+		{
+			"tag": "romanian",
+			"playlists": 6
+		},
+		{
+			"tag": "teoman",
+			"playlists": 6
+		},
+		{
+			"tag": "beat maker",
+			"playlists": 5
+		},
+		{
+			"tag": "california",
+			"playlists": 5
+		},
+		{
+			"tag": "ceza",
+			"playlists": 5
+		},
+		{
+			"tag": "chile",
+			"playlists": 5
+		},
+		{
+			"tag": "conductor",
+			"playlists": 5
+		},
+		{
+			"tag": "deezer",
+			"playlists": 5
+		},
+		{
+			"tag": "female",
+			"playlists": 5
+		},
+		{
+			"tag": "femalevocal",
+			"playlists": 5
+		},
+		{
+			"tag": "georgian",
+			"playlists": 5
+		},
+		{
+			"tag": "guitar virtuoso",
+			"playlists": 5
+		},
+		{
+			"tag": "saxophone",
+			"playlists": 5
+		},
+		{
+			"tag": "scottish",
+			"playlists": 5
+		},
+		{
+			"tag": "trumpet",
+			"playlists": 5
+		},
+		{
+			"tag": "upcoming album 2023",
+			"playlists": 5
+		},
+		{
+			"tag": "upcoming album 2024",
+			"playlists": 5
+		},
+		{
+			"tag": "4ad",
+			"playlists": 4
+		},
+		{
+			"tag": "argentina",
+			"playlists": 4
+		},
+		{
+			"tag": "argentinian",
+			"playlists": 4
+		},
+		{
+			"tag": "cold meat industry",
+			"playlists": 4
+		},
+		{
+			"tag": "croatia",
+			"playlists": 4
+		},
+		{
+			"tag": "croatian",
+			"playlists": 4
+		},
+		{
+			"tag": "drums",
+			"playlists": 4
+		},
+		{
+			"tag": "dutch female vocalists",
+			"playlists": 4
+		},
+		{
+			"tag": "eurovision",
+			"playlists": 4
+		},
+		{
+			"tag": "female fronted",
+			"playlists": 4
+		},
+		{
+			"tag": "g-unit",
+			"playlists": 4
+		},
+		{
+			"tag": "indonesia",
+			"playlists": 4
+		},
+		{
+			"tag": "iran",
+			"playlists": 4
+		},
+		{
+			"tag": "kadikoy",
+			"playlists": 4
+		},
+		{
+			"tag": "mexican",
+			"playlists": 4
+		},
+		{
+			"tag": "mezzo-soprano",
+			"playlists": 4
+		},
+		{
+			"tag": "netherland",
+			"playlists": 4
+		},
+		{
+			"tag": "portugal",
+			"playlists": 4
+		},
+		{
+			"tag": "sydney",
+			"playlists": 4
+		},
+		{
+			"tag": "texas",
+			"playlists": 4
+		},
+		{
+			"tag": "uzbek",
+			"playlists": 4
+		},
+		{
+			"tag": "uzbekistan",
+			"playlists": 4
+		},
+		{
+			"tag": "wales",
+			"playlists": 4
+		},
+		{
+			"tag": "50 cent",
+			"playlists": 3
+		},
+		{
+			"tag": "arranger",
+			"playlists": 3
+		},
+		{
+			"tag": "azerbaijani",
+			"playlists": 3
+		},
+		{
+			"tag": "azeri",
+			"playlists": 3
+		},
+		{
+			"tag": "beyonce",
+			"playlists": 3
+		},
+		{
+			"tag": "birmingham",
+			"playlists": 3
+		},
+		{
+			"tag": "booba",
+			"playlists": 3
+		},
+		{
+			"tag": "cashis",
+			"playlists": 3
+		},
+		{
+			"tag": "chorus master",
+			"playlists": 3
+		},
+		{
+			"tag": "cologne",
+			"playlists": 3
+		},
+		{
+			"tag": "cover band",
+			"playlists": 3
+		},
+		{
+			"tag": "czech republic",
+			"playlists": 3
+		},
+		{
+			"tag": "drum",
+			"playlists": 3
+		},
+		{
+			"tag": "eindhoven",
+			"playlists": 3
+		},
+		{
+			"tag": "girl band",
+			"playlists": 3
+		},
+		{
+			"tag": "girlband",
+			"playlists": 3
+		},
+		{
+			"tag": "goksel",
+			"playlists": 3
+		},
+		{
+			"tag": "great discovery",
+			"playlists": 3
+		},
+		{
+			"tag": "grizu",
+			"playlists": 3
+		},
+		{
+			"tag": "grup 84",
+			"playlists": 3
+		},
+		{
+			"tag": "israeli",
+			"playlists": 3
+		},
+		{
+			"tag": "j lezhnieva",
+			"playlists": 3
+		},
+		{
+			"tag": "jamaican",
+			"playlists": 3
+		},
+		{
+			"tag": "japan",
+			"playlists": 3
+		},
+		{
+			"tag": "kazakh",
+			"playlists": 3
+		},
+		{
+			"tag": "lord of the rings",
+			"playlists": 3
+		},
+		{
+			"tag": "new zealand",
+			"playlists": 3
+		},
+		{
+			"tag": "ninja tune",
+			"playlists": 3
+		},
+		{
+			"tag": "patreon",
+			"playlists": 3
+		},
+		{
+			"tag": "pianist",
+			"playlists": 3
+		},
+		{
+			"tag": "pilli bebek",
+			"playlists": 3
+		},
+		{
+			"tag": "pink floyd",
+			"playlists": 3
+		},
+		{
+			"tag": "roma",
+			"playlists": 3
+		},
+		{
+			"tag": "serbian",
+			"playlists": 3
+		},
+		{
+			"tag": "shady",
+			"playlists": 3
+		},
+		{
+			"tag": "slovak",
+			"playlists": 3
+		},
+		{
+			"tag": "soprano",
+			"playlists": 3
+		},
+		{
+			"tag": "touhou",
+			"playlists": 3
+		},
+		{
+			"tag": "turkic",
+			"playlists": 3
+		},
+		{
+			"tag": "upcoming album 2022",
+			"playlists": 3
+		},
+		{
+			"tag": "venezuela",
+			"playlists": 3
+		},
+		{
+			"tag": "venezuelan",
+			"playlists": 3
+		},
+		{
+			"tag": "violin",
+			"playlists": 3
+		},
+		{
+			"tag": "vivaldi",
+			"playlists": 3
+		},
+		{
+			"tag": "woman",
+			"playlists": 3
+		},
+		{
+			"tag": "youtube",
+			"playlists": 3
+		},
+		{
+			"tag": "aerosmith",
+			"playlists": 2
+		},
+		{
+			"tag": "allah",
+			"playlists": 2
+		},
+		{
+			"tag": "andre rieu",
+			"playlists": 2
+		},
+		{
+			"tag": "bands seen live",
+			"playlists": 2
+		},
+		{
+			"tag": "baris manco",
+			"playlists": 2
+		},
+		{
+			"tag": "belarusian",
+			"playlists": 2
+		},
+		{
+			"tag": "bookmark",
+			"playlists": 2
+		},
+		{
+			"tag": "boy harsher",
+			"playlists": 2
+		},
+		{
+			"tag": "bronx",
+			"playlists": 2
+		},
+		{
+			"tag": "brony",
+			"playlists": 2
+		},
+		{
+			"tag": "chopin",
+			"playlists": 2
+		},
+		{
+			"tag": "d12",
+			"playlists": 2
+		},
+		{
+			"tag": "dansk",
+			"playlists": 2
+		},
+		{
+			"tag": "detroit",
+			"playlists": 2
+		},
+		{
+			"tag": "dina rae",
+			"playlists": 2
+		},
+		{
+			"tag": "doors",
+			"playlists": 2
+		},
+		{
+			"tag": "duman",
+			"playlists": 2
+		},
+		{
+			"tag": "ecm",
+			"playlists": 2
+		},
+		{
+			"tag": "ersguterjunge",
+			"playlists": 2
+		},
+		{
+			"tag": "excellent",
+			"playlists": 2
+		},
+		{
+			"tag": "favourite vocalists",
+			"playlists": 2
+		},
+		{
+			"tag": "fem vocal goth",
+			"playlists": 2
+		},
+		{
+			"tag": "female vocal",
+			"playlists": 2
+		},
+		{
+			"tag": "game",
+			"playlists": 2
+		},
+		{
+			"tag": "geezer butler",
+			"playlists": 2
+		},
+		{
+			"tag": "geige",
+			"playlists": 2
+		},
+		{
+			"tag": "hard rock artist",
+			"playlists": 2
+		},
+		{
+			"tag": "harmonica",
+			"playlists": 2
+		},
+		{
+			"tag": "hate speech",
+			"playlists": 2
+		},
+		{
+			"tag": "hatebreed",
+			"playlists": 2
+		},
+		{
+			"tag": "jay-z",
+			"playlists": 2
+		},
+		{
+			"tag": "karlsruhe",
+			"playlists": 2
+		},
+		{
+			"tag": "kay one",
+			"playlists": 2
+		},
+		{
+			"tag": "keep an eye on these",
+			"playlists": 2
+		},
+		{
+			"tag": "keman",
+			"playlists": 2
+		},
+		{
+			"tag": "korn",
+			"playlists": 2
+		},
+		{
+			"tag": "lebanon",
+			"playlists": 2
+		},
+		{
+			"tag": "liszaj radio",
+			"playlists": 2
+		},
+		{
+			"tag": "ludacris",
+			"playlists": 2
+		},
+		{
+			"tag": "malaysia",
+			"playlists": 2
+		},
+		{
+			"tag": "my top songs",
+			"playlists": 2
+		},
+		{
+			"tag": "paradise lost",
+			"playlists": 2
+		},
+		{
+			"tag": "peja",
+			"playlists": 2
+		},
+		{
+			"tag": "plus8",
+			"playlists": 2
+		},
+		{
+			"tag": "radio karlsruhe",
+			"playlists": 2
+		},
+		{
+			"tag": "rammstein",
+			"playlists": 2
+		},
+		{
+			"tag": "romania",
+			"playlists": 2
+		},
+		{
+			"tag": "royal bunker",
+			"playlists": 2
+		},
+		{
+			"tag": "sarah mclachlan",
+			"playlists": 2
+		},
+		{
+			"tag": "sax",
+			"playlists": 2
+		},
+		{
+			"tag": "seattle",
+			"playlists": 2
+		},
+		{
+			"tag": "seen live 2 times",
+			"playlists": 2
+		},
+		{
+			"tag": "sounds even better when drunk",
+			"playlists": 2
+		},
+		{
+			"tag": "spain",
+			"playlists": 2
+		},
+		{
+			"tag": "tarkan",
+			"playlists": 2
+		},
+		{
+			"tag": "tnk",
+			"playlists": 2
+		},
+		{
+			"tag": "worlds best voices",
+			"playlists": 2
+		},
+		{
+			"tag": "yerlilililerle",
+			"playlists": 2
+		},
+		{
+			"tag": "00s",
+			"playlists": 1
+		},
+		{
+			"tag": "allboutguitar",
+			"playlists": 1
+		},
+		{
+			"tag": "allboutguitarcom",
+			"playlists": 1
+		},
+		{
+			"tag": "amazing",
+			"playlists": 1
+		},
+		{
+			"tag": "amman",
+			"playlists": 1
+		},
+		{
+			"tag": "antal dorati",
+			"playlists": 1
+		},
+		{
+			"tag": "anti-islam",
+			"playlists": 1
+		},
+		{
+			"tag": "anti-islamic",
+			"playlists": 1
+		},
+		{
+			"tag": "arabic",
+			"playlists": 1
+		},
+		{
+			"tag": "artists i have seen live",
+			"playlists": 1
+		},
+		{
+			"tag": "athens",
+			"playlists": 1
+		},
+		{
+			"tag": "atlanta",
+			"playlists": 1
+		},
+		{
+			"tag": "attack attack",
+			"playlists": 1
+		},
+		{
+			"tag": "baritone",
+			"playlists": 1
+		},
+		{
+			"tag": "bati berlin",
+			"playlists": 1
+		},
+		{
+			"tag": "beer",
+			"playlists": 1
+		},
+		{
+			"tag": "bern",
+			"playlists": 1
+		},
+		{
+			"tag": "black sabbath",
+			"playlists": 1
+		},
+		{
+			"tag": "bojack horseman",
+			"playlists": 1
+		},
+		{
+			"tag": "bon jovi",
+			"playlists": 1
+		},
+		{
+			"tag": "bone thugs",
+			"playlists": 1
+		},
+		{
+			"tag": "born in dallas",
+			"playlists": 1
+		},
+		{
+			"tag": "brick squad",
+			"playlists": 1
+		},
+		{
+			"tag": "british girls",
+			"playlists": 1
+		},
+		{
+			"tag": "britney spears",
+			"playlists": 1
+		},
+		{
+			"tag": "brooklands radio",
+			"playlists": 1
+		},
+		{
+			"tag": "bulgarian",
+			"playlists": 1
+		},
+		{
+			"tag": "canli gordum",
+			"playlists": 1
+		},
+		{
+			"tag": "catchy",
+			"playlists": 1
+		},
+		{
+			"tag": "cem adrian",
+			"playlists": 1
+		},
+		{
+			"tag": "chamillionaire",
+			"playlists": 1
+		},
+		{
+			"tag": "chingy",
+			"playlists": 1
+		},
+		{
+			"tag": "classical pianist",
+			"playlists": 1
+		},
+		{
+			"tag": "colorado",
+			"playlists": 1
+		},
+		{
+			"tag": "cuban",
+			"playlists": 1
+		},
+		{
+			"tag": "david oistrakh",
+			"playlists": 1
+		},
+		{
+			"tag": "deutsche",
+			"playlists": 1
+		},
+		{
+			"tag": "deutschland",
+			"playlists": 1
+		},
+		{
+			"tag": "die anderen bands",
+			"playlists": 1
+		},
+		{
+			"tag": "dietrich fischer-dieskau",
+			"playlists": 1
+		},
+		{
+			"tag": "dj's",
+			"playlists": 1
+		},
+		{
+			"tag": "dmx",
+			"playlists": 1
+		},
+		{
+			"tag": "dusted wax kingdom",
+			"playlists": 1
+		},
+		{
+			"tag": "emre aydin",
+			"playlists": 1
+		},
+		{
+			"tag": "fergie",
+			"playlists": 1
+		},
+		{
+			"tag": "fuat",
+			"playlists": 1
+		},
+		{
+			"tag": "fuat ergin",
+			"playlists": 1
+		},
+		{
+			"tag": "funny",
+			"playlists": 1
+		},
+		{
+			"tag": "georges bizet",
+			"playlists": 1
+		},
+		{
+			"tag": "geplantesnichtstun",
+			"playlists": 1
+		},
+		{
+			"tag": "hang drum",
+			"playlists": 1
+		},
+		{
+			"tag": "harpsichord",
+			"playlists": 1
+		},
+		{
+			"tag": "humor",
+			"playlists": 1
+		},
+		{
+			"tag": "humour",
+			"playlists": 1
+		},
+		{
+			"tag": "hungary",
+			"playlists": 1
+		},
+		{
+			"tag": "india",
+			"playlists": 1
+		},
+		{
+			"tag": "international",
+			"playlists": 1
+		},
+		{
+			"tag": "israel",
+			"playlists": 1
+		},
+		{
+			"tag": "jamaica",
+			"playlists": 1
+		},
+		{
+			"tag": "jamie irrepressible",
+			"playlists": 1
+		},
+		{
+			"tag": "judas priest",
+			"playlists": 1
+		},
+		{
+			"tag": "kenny sly",
+			"playlists": 1
+		},
+		{
+			"tag": "kill rock stars",
+			"playlists": 1
+		},
+		{
+			"tag": "lady gaga",
+			"playlists": 1
+		},
+		{
+			"tag": "latvian",
+			"playlists": 1
+		},
+		{
+			"tag": "like steve morse",
+			"playlists": 1
+		},
+		{
+			"tag": "lithuania",
+			"playlists": 1
+		},
+		{
+			"tag": "los angeles",
+			"playlists": 1
+		},
+		{
+			"tag": "lute",
+			"playlists": 1
+		},
+		{
+			"tag": "madonna",
+			"playlists": 1
+		},
+		{
+			"tag": "mariah carey",
+			"playlists": 1
+		},
+		{
+			"tag": "memphis",
+			"playlists": 1
+		},
+		{
+			"tag": "micheal burks",
+			"playlists": 1
+		},
+		{
+			"tag": "minnesota",
+			"playlists": 1
+		},
+		{
+			"tag": "mistique music",
+			"playlists": 1
+		},
+		{
+			"tag": "mistiquemusic",
+			"playlists": 1
+		},
+		{
+			"tag": "mizah",
+			"playlists": 1
+		},
+		{
+			"tag": "mongolia",
+			"playlists": 1
+		},
+		{
+			"tag": "mongolian",
+			"playlists": 1
+		},
+		{
+			"tag": "montreal",
+			"playlists": 1
+		},
+		{
+			"tag": "movie score composers",
+			"playlists": 1
+		},
+		{
+			"tag": "new orleans",
+			"playlists": 1
+		},
+		{
+			"tag": "norsk",
+			"playlists": 1
+		},
+		{
+			"tag": "north korea",
+			"playlists": 1
+		},
+		{
+			"tag": "oregon",
+			"playlists": 1
+		},
+		{
+			"tag": "organ",
+			"playlists": 1
+		},
+		{
+			"tag": "paris",
+			"playlists": 1
+		},
+		{
+			"tag": "phantom of the opera",
+			"playlists": 1
+		},
+		{
+			"tag": "pipe organ",
+			"playlists": 1
+		},
+		{
+			"tag": "producer",
+			"playlists": 1
+		},
+		{
+			"tag": "ray davies",
+			"playlists": 1
+		},
+		{
+			"tag": "ronnie radke",
+			"playlists": 1
+		},
+		{
+			"tag": "sansar salvo",
+			"playlists": 1
+		},
+		{
+			"tag": "saudi arabian",
+			"playlists": 1
+		},
+		{
+			"tag": "scotland",
+			"playlists": 1
+		},
+		{
+			"tag": "silent hill",
+			"playlists": 1
+		},
+		{
+			"tag": "singer",
+			"playlists": 1
+		},
+		{
+			"tag": "skrillex",
+			"playlists": 1
+		},
+		{
+			"tag": "slovenian",
+			"playlists": 1
+		},
+		{
+			"tag": "synthesizer",
+			"playlists": 1
+		},
+		{
+			"tag": "talkingheads",
+			"playlists": 1
+		},
+		{
+			"tag": "tenor",
+			"playlists": 1
+		},
+		{
+			"tag": "tinsley ellis",
+			"playlists": 1
+		},
+		{
+			"tag": "trina",
+			"playlists": 1
+		},
+		{
+			"tag": "tunisia",
+			"playlists": 1
+		},
+		{
+			"tag": "tunisian",
+			"playlists": 1
+		},
+		{
+			"tag": "underrated gems",
+			"playlists": 1
+		},
+		{
+			"tag": "violin virtuoso",
+			"playlists": 1
+		},
+		{
+			"tag": "violinist",
+			"playlists": 1
+		},
+		{
+			"tag": "virally female",
+			"playlists": 1
+		},
+		{
+			"tag": "virtuoso",
+			"playlists": 1
+		},
+		{
+			"tag": "welsh",
+			"playlists": 1
+		},
+		{
+			"tag": "wrestling",
+			"playlists": 1
+		},
+		{
+			"tag": "wwe",
+			"playlists": 1
+		}
+	],
+	"threshold": [
+		{
+			"tag": "singer-songwriter",
+			"playlists": 26
+		},
+		{
+			"tag": "folk metal",
+			"playlists": 24
+		},
+		{
+			"tag": "electronica",
+			"playlists": 22
+		},
+		{
+			"tag": "folk",
+			"playlists": 21
+		},
+		{
+			"tag": "hard rock",
+			"playlists": 21
+		},
+		{
+			"tag": "alternative rock",
+			"playlists": 20
+		},
+		{
+			"tag": "experimental",
+			"playlists": 20
+		},
+		{
+			"tag": "post-hardcore",
+			"playlists": 20
+		},
+		{
+			"tag": "sludge metal",
+			"playlists": 20
+		},
+		{
+			"tag": "downtempo",
+			"playlists": 19
+		},
+		{
+			"tag": "hardcore",
+			"playlists": 19
+		},
+		{
+			"tag": "heavy metal",
+			"playlists": 19
+		},
+		{
+			"tag": "rock",
+			"playlists": 19
+		},
+		{
+			"tag": "thrash metal",
+			"playlists": 19
+		},
+		{
+			"tag": "post-metal",
+			"playlists": 18
+		},
+		{
+			"tag": "post-rock",
+			"playlists": 18
+		},
+		{
+			"tag": "screamo",
+			"playlists": 18
+		},
+		{
+			"tag": "sludge",
+			"playlists": 18
+		},
+		{
+			"tag": "alternative",
+			"playlists": 17
+		},
+		{
+			"tag": "chillout",
+			"playlists": 17
+		},
+		{
+			"tag": "female fronted metal",
+			"playlists": 16
+		},
+		{
+			"tag": "progressive metal",
+			"playlists": 16
+		},
+		{
+			"tag": "progressive rock",
+			"playlists": 16
+		},
+		{
+			"tag": "psychedelic rock",
+			"playlists": 16
+		},
+		{
+			"tag": "dark ambient",
+			"playlists": 15
+		},
+		{
+			"tag": "house",
+			"playlists": 15
+		},
+		{
+			"tag": "indie",
+			"playlists": 15
+		},
+		{
+			"tag": "instrumental",
+			"playlists": 15
+		},
+		{
+			"tag": "jazz",
+			"playlists": 15
+		},
+		{
+			"tag": "post rock",
+			"playlists": 15
+		},
+		{
+			"tag": "alternative metal",
+			"playlists": 14
+		},
+		{
+			"tag": "ambient",
+			"playlists": 14
+		},
+		{
+			"tag": "black metal",
+			"playlists": 14
+		},
+		{
+			"tag": "doom metal",
+			"playlists": 14
+		},
+		{
+			"tag": "dubstep",
+			"playlists": 14
+		},
+		{
+			"tag": "gothic rock",
+			"playlists": 14
+		},
+		{
+			"tag": "groove metal",
+			"playlists": 14
+		},
+		{
+			"tag": "indie rock",
+			"playlists": 14
+		},
+		{
+			"tag": "melodic death metal",
+			"playlists": 14
+		},
+		{
+			"tag": "metalcore",
+			"playlists": 14
+		},
+		{
+			"tag": "nu metal",
+			"playlists": 14
+		},
+		{
+			"tag": "pop",
+			"playlists": 14
+		},
+		{
+			"tag": "punk",
+			"playlists": 14
+		},
+		{
+			"tag": "soundtrack",
+			"playlists": 14
+		},
+		{
+			"tag": "trip-hop",
+			"playlists": 14
+		},
+		{
+			"tag": "breakbeat",
+			"playlists": 13
+		},
+		{
+			"tag": "death metal",
+			"playlists": 13
+		},
+		{
+			"tag": "drone",
+			"playlists": 13
+		},
+		{
+			"tag": "electronic",
+			"playlists": 13
+		},
+		{
+			"tag": "gothic metal",
+			"playlists": 13
+		},
+		{
+			"tag": "grunge",
+			"playlists": 13
+		},
+		{
+			"tag": "hip-hop",
+			"playlists": 13
+		},
+		{
+			"tag": "pop punk",
+			"playlists": 13
+		},
+		{
+			"tag": "atmospheric black metal",
+			"playlists": 12
+		},
+		{
+			"tag": "experimental rock",
+			"playlists": 12
+		},
+		{
+			"tag": "new wave",
+			"playlists": 12
+		},
+		{
+			"tag": "post-punk",
+			"playlists": 12
+		},
+		{
+			"tag": "psychedelic",
+			"playlists": 12
+		},
+		{
+			"tag": "rap",
+			"playlists": 12
+		},
+		{
+			"tag": "reggae",
+			"playlists": 12
+		},
+		{
+			"tag": "soul",
+			"playlists": 12
+		},
+		{
+			"tag": "speed metal",
+			"playlists": 12
+		},
+		{
+			"tag": "symphonic metal",
+			"playlists": 12
+		},
+		{
+			"tag": "atmospheric",
+			"playlists": 11
+		},
+		{
+			"tag": "avant-garde",
+			"playlists": 11
+		},
+		{
+			"tag": "minimal synth",
+			"playlists": 11
+		},
+		{
+			"tag": "noise",
+			"playlists": 11
+		},
+		{
+			"tag": "power metal",
+			"playlists": 11
+		},
+		{
+			"tag": "stoner doom metal",
+			"playlists": 11
+		},
+		{
+			"tag": "stoner rock",
+			"playlists": 11
+		},
+		{
+			"tag": "blues rock",
+			"playlists": 10
+		},
+		{
+			"tag": "dance",
+			"playlists": 10
+		},
+		{
+			"tag": "darkwave",
+			"playlists": 10
+		},
+		{
+			"tag": "ebm",
+			"playlists": 10
+		},
+		{
+			"tag": "electro",
+			"playlists": 10
+		},
+		{
+			"tag": "emo",
+			"playlists": 10
+		},
+		{
+			"tag": "hip hop",
+			"playlists": 10
+		},
+		{
+			"tag": "industrial",
+			"playlists": 10
+		},
+		{
+			"tag": "krautrock",
+			"playlists": 10
+		},
+		{
+			"tag": "metal",
+			"playlists": 10
+		},
+		{
+			"tag": "old school death metal",
+			"playlists": 10
+		},
+		{
+			"tag": "shoegaze",
+			"playlists": 10
+		},
+		{
+			"tag": "atmospheric metal",
+			"playlists": 9
+		},
+		{
+			"tag": "blues",
+			"playlists": 9
+		},
+		{
+			"tag": "christian",
+			"playlists": 9
+		},
+		{
+			"tag": "depressive rock",
+			"playlists": 9
+		},
+		{
+			"tag": "dub",
+			"playlists": 9
+		},
+		{
+			"tag": "funk",
+			"playlists": 9
+		},
+		{
+			"tag": "hardcore punk",
+			"playlists": 9
+		},
+		{
+			"tag": "idm",
+			"playlists": 9
+		},
+		{
+			"tag": "instrumental hip-hop",
+			"playlists": 9
+		},
+		{
+			"tag": "lo-fi",
+			"playlists": 9
+		},
+		{
+			"tag": "melodic black metal",
+			"playlists": 9
+		},
+		{
+			"tag": "minimal",
+			"playlists": 9
+		},
+		{
+			"tag": "southern rock",
+			"playlists": 9
+		},
+		{
+			"tag": "stoner metal",
+			"playlists": 9
+		},
+		{
+			"tag": "synthpop",
+			"playlists": 9
+		},
+		{
+			"tag": "techno",
+			"playlists": 9
+		},
+		{
+			"tag": "avant-garde black metal",
+			"playlists": 8
+		},
+		{
+			"tag": "avant-garde metal",
+			"playlists": 8
+		},
+		{
+			"tag": "classic rock",
+			"playlists": 8
+		},
+		{
+			"tag": "crossover",
+			"playlists": 8
+		},
+		{
+			"tag": "depressive black metal",
+			"playlists": 8
+		},
+		{
+			"tag": "doomgaze",
+			"playlists": 8
+		},
+		{
+			"tag": "dungeon synth",
+			"playlists": 8
+		},
+		{
+			"tag": "finnish metal",
+			"playlists": 8
+		},
+		{
+			"tag": "folk black metal",
+			"playlists": 8
+		},
+		{
+			"tag": "folk rock",
+			"playlists": 8
+		},
+		{
+			"tag": "funeral doom metal",
+			"playlists": 8
+		},
+		{
+			"tag": "gospel",
+			"playlists": 8
+		},
+		{
+			"tag": "grindcore",
+			"playlists": 8
+		},
+		{
+			"tag": "industrial metal",
+			"playlists": 8
+		},
+		{
+			"tag": "industrial rock",
+			"playlists": 8
+		},
+		{
+			"tag": "melodic metalcore",
+			"playlists": 8
+		},
+		{
+			"tag": "noise rock",
+			"playlists": 8
+		},
+		{
+			"tag": "pop rock",
+			"playlists": 8
+		},
+		{
+			"tag": "post-black metal",
+			"playlists": 8
+		},
+		{
+			"tag": "progressive black metal",
+			"playlists": 8
+		},
+		{
+			"tag": "punk rock",
+			"playlists": 8
+		},
+		{
+			"tag": "rnb",
+			"playlists": 8
+		},
+		{
+			"tag": "americana",
+			"playlists": 7
+		},
+		{
+			"tag": "art pop",
+			"playlists": 7
+		},
+		{
+			"tag": "blackened death metal",
+			"playlists": 7
+		},
+		{
+			"tag": "brutal death metal",
+			"playlists": 7
+		},
+		{
+			"tag": "coldwave",
+			"playlists": 7
+		},
+		{
+			"tag": "dark electro",
+			"playlists": 7
+		},
+		{
+			"tag": "dark metal",
+			"playlists": 7
+		},
+		{
+			"tag": "dark wave",
+			"playlists": 7
+		},
+		{
+			"tag": "dream pop",
+			"playlists": 7
+		},
+		{
+			"tag": "drum and bass",
+			"playlists": 7
+		},
+		{
+			"tag": "electronic pop",
+			"playlists": 7
+		},
+		{
+			"tag": "fantasy folk",
+			"playlists": 7
+		},
+		{
+			"tag": "german black metal",
+			"playlists": 7
+		},
+		{
+			"tag": "goth",
+			"playlists": 7
+		},
+		{
+			"tag": "gothic",
+			"playlists": 7
+		},
+		{
+			"tag": "melancholic",
+			"playlists": 7
+		},
+		{
+			"tag": "melodic hardcore",
+			"playlists": 7
+		},
+		{
+			"tag": "norwegian black metal",
+			"playlists": 7
+		},
+		{
+			"tag": "nu-metal",
+			"playlists": 7
+		},
+		{
+			"tag": "occult rock",
+			"playlists": 7
+		},
+		{
+			"tag": "pagan folk",
+			"playlists": 7
+		},
+		{
+			"tag": "psychedelic folk",
+			"playlists": 7
+		},
+		{
+			"tag": "rapcore",
+			"playlists": 7
+		},
+		{
+			"tag": "ritual ambient",
+			"playlists": 7
+		},
+		{
+			"tag": "soft rock",
+			"playlists": 7
+		},
+		{
+			"tag": "swedish metal",
+			"playlists": 7
+		},
+		{
+			"tag": "symphonic black metal",
+			"playlists": 7
+		},
+		{
+			"tag": "trance",
+			"playlists": 7
+		},
+		{
+			"tag": "trap",
+			"playlists": 7
+		},
+		{
+			"tag": "turkish metal",
+			"playlists": 7
+		},
+		{
+			"tag": "ukrainian black metal",
+			"playlists": 7
+		},
+		{
+			"tag": "usbm",
+			"playlists": 7
+		},
+		{
+			"tag": "witch house",
+			"playlists": 7
+		},
+		{
+			"tag": "acid techno",
+			"playlists": 6
+		},
+		{
+			"tag": "acoustic",
+			"playlists": 6
+		},
+		{
+			"tag": "bedroom pop",
+			"playlists": 6
+		},
+		{
+			"tag": "black n roll",
+			"playlists": 6
+		},
+		{
+			"tag": "classical",
+			"playlists": 6
+		},
+		{
+			"tag": "cloud rap",
+			"playlists": 6
+		},
+		{
+			"tag": "deep house",
+			"playlists": 6
+		},
+		{
+			"tag": "disco",
+			"playlists": 6
+		},
+		{
+			"tag": "doom",
+			"playlists": 6
+		},
+		{
+			"tag": "doom trap",
+			"playlists": 6
+		},
+		{
+			"tag": "dsbm",
+			"playlists": 6
+		},
+		{
+			"tag": "epic metal",
+			"playlists": 6
+		},
+		{
+			"tag": "ethereal",
+			"playlists": 6
+		},
+		{
+			"tag": "ethnic black metal",
+			"playlists": 6
+		},
+		{
+			"tag": "gothic doom metal",
+			"playlists": 6
+		},
+		{
+			"tag": "minimal wave",
+			"playlists": 6
+		},
+		{
+			"tag": "neofolk",
+			"playlists": 6
+		},
+		{
+			"tag": "oriental black metal",
+			"playlists": 6
+		},
+		{
+			"tag": "pagan metal",
+			"playlists": 6
+		},
+		{
+			"tag": "post black metal",
+			"playlists": 6
+		},
+		{
+			"tag": "powerviolence",
+			"playlists": 6
+		},
+		{
+			"tag": "progressive",
+			"playlists": 6
+		},
+		{
+			"tag": "spoken word",
+			"playlists": 6
+		},
+		{
+			"tag": "stoner doom",
+			"playlists": 6
+		},
+		{
+			"tag": "suicidal black metal",
+			"playlists": 6
+		},
+		{
+			"tag": "swedish death metal",
+			"playlists": 6
+		},
+		{
+			"tag": "synth",
+			"playlists": 6
+		},
+		{
+			"tag": "synth pop",
+			"playlists": 6
+		},
+		{
+			"tag": "turkish pop",
+			"playlists": 6
+		},
+		{
+			"tag": "turkish rock",
+			"playlists": 6
+		},
+		{
+			"tag": "western classical music",
+			"playlists": 6
+		},
+		{
+			"tag": "art",
+			"playlists": 5
+		},
+		{
+			"tag": "black doom metal",
+			"playlists": 5
+		},
+		{
+			"tag": "black industrial metal",
+			"playlists": 5
+		},
+		{
+			"tag": "breakcore",
+			"playlists": 5
+		},
+		{
+			"tag": "celtic",
+			"playlists": 5
+		},
+		{
+			"tag": "christian rock",
+			"playlists": 5
+		},
+		{
+			"tag": "dark folk",
+			"playlists": 5
+		},
+		{
+			"tag": "dark hardcore",
+			"playlists": 5
+		},
+		{
+			"tag": "dope",
+			"playlists": 5
+		},
+		{
+			"tag": "drum n bass",
+			"playlists": 5
+		},
+		{
+			"tag": "electro house",
+			"playlists": 5
+		},
+		{
+			"tag": "electropop",
+			"playlists": 5
+		},
+		{
+			"tag": "experimental pop",
+			"playlists": 5
+		},
+		{
+			"tag": "french black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "funeral doom",
+			"playlists": 5
+		},
+		{
+			"tag": "garage rock",
+			"playlists": 5
+		},
+		{
+			"tag": "german metal",
+			"playlists": 5
+		},
+		{
+			"tag": "glam rock",
+			"playlists": 5
+		},
+		{
+			"tag": "industrial black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "industrial techno",
+			"playlists": 5
+		},
+		{
+			"tag": "international metal",
+			"playlists": 5
+		},
+		{
+			"tag": "italian black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "kein nsbm",
+			"playlists": 5
+		},
+		{
+			"tag": "math rock",
+			"playlists": 5
+		},
+		{
+			"tag": "melancholic black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "neoclassical",
+			"playlists": 5
+		},
+		{
+			"tag": "neocrust",
+			"playlists": 5
+		},
+		{
+			"tag": "newbreed",
+			"playlists": 5
+		},
+		{
+			"tag": "occult",
+			"playlists": 5
+		},
+		{
+			"tag": "orchestral",
+			"playlists": 5
+		},
+		{
+			"tag": "pagan black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "polish black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "progressive death metal",
+			"playlists": 5
+		},
+		{
+			"tag": "rap rock",
+			"playlists": 5
+		},
+		{
+			"tag": "rock n roll",
+			"playlists": 5
+		},
+		{
+			"tag": "russian black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "satanic black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "slovakian black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "swiss black metal",
+			"playlists": 5
+		},
+		{
+			"tag": "symphonic death metal",
+			"playlists": 5
+		},
+		{
+			"tag": "tech house",
+			"playlists": 5
+		},
+		{
+			"tag": "technical death metal",
+			"playlists": 5
+		},
+		{
+			"tag": "teo",
+			"playlists": 5
+		},
+		{
+			"tag": "thrash",
+			"playlists": 5
+		},
+		{
+			"tag": "trap metal",
+			"playlists": 5
+		},
+		{
+			"tag": "turk rock",
+			"playlists": 5
+		},
+		{
+			"tag": "turkish hardcore",
+			"playlists": 5
+		},
+		{
+			"tag": "underground",
+			"playlists": 5
+		},
+		{
+			"tag": "underground hip-hop",
+			"playlists": 5
+		},
+		{
+			"tag": "world",
+			"playlists": 5
+		},
+		{
+			"tag": "aggrotech",
+			"playlists": 4
+		},
+		{
+			"tag": "alt-country",
+			"playlists": 4
+		},
+		{
+			"tag": "aor",
+			"playlists": 4
+		},
+		{
+			"tag": "artcore",
+			"playlists": 4
+		},
+		{
+			"tag": "avantgarde black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "blackened screamo",
+			"playlists": 4
+		},
+		{
+			"tag": "canadian black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "cold black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "colombian black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "contemporary classical",
+			"playlists": 4
+		},
+		{
+			"tag": "crunk",
+			"playlists": 4
+		},
+		{
+			"tag": "crust",
+			"playlists": 4
+		},
+		{
+			"tag": "crust punk",
+			"playlists": 4
+		},
+		{
+			"tag": "danish black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "dark jazz",
+			"playlists": 4
+		},
+		{
+			"tag": "darksynth",
+			"playlists": 4
+		},
+		{
+			"tag": "death doom metal",
+			"playlists": 4
+		},
+		{
+			"tag": "death rock",
+			"playlists": 4
+		},
+		{
+			"tag": "deathrock revival",
+			"playlists": 4
+		},
+		{
+			"tag": "depressive",
+			"playlists": 4
+		},
+		{
+			"tag": "depressive suicidal black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "dirty south",
+			"playlists": 4
+		},
+		{
+			"tag": "djent",
+			"playlists": 4
+		},
+		{
+			"tag": "doujin ongaku",
+			"playlists": 4
+		},
+		{
+			"tag": "dreamscape",
+			"playlists": 4
+		},
+		{
+			"tag": "electro-industrial",
+			"playlists": 4
+		},
+		{
+			"tag": "emoviolence",
+			"playlists": 4
+		},
+		{
+			"tag": "ensemble",
+			"playlists": 4
+		},
+		{
+			"tag": "epic black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "epic doom metal",
+			"playlists": 4
+		},
+		{
+			"tag": "female composer",
+			"playlists": 4
+		},
+		{
+			"tag": "female conductor",
+			"playlists": 4
+		},
+		{
+			"tag": "finnish black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "folk doom metal",
+			"playlists": 4
+		},
+		{
+			"tag": "gangsta rap",
+			"playlists": 4
+		},
+		{
+			"tag": "hard techno",
+			"playlists": 4
+		},
+		{
+			"tag": "hiphop",
+			"playlists": 4
+		},
+		{
+			"tag": "horrorcore",
+			"playlists": 4
+		},
+		{
+			"tag": "indie pop",
+			"playlists": 4
+		},
+		{
+			"tag": "indietronica",
+			"playlists": 4
+		},
+		{
+			"tag": "jazz metal",
+			"playlists": 4
+		},
+		{
+			"tag": "l c dastree",
+			"playlists": 4
+		},
+		{
+			"tag": "lounge",
+			"playlists": 4
+		},
+		{
+			"tag": "love metal",
+			"playlists": 4
+		},
+		{
+			"tag": "melodic",
+			"playlists": 4
+		},
+		{
+			"tag": "melodic metal",
+			"playlists": 4
+		},
+		{
+			"tag": "minimal techno",
+			"playlists": 4
+		},
+		{
+			"tag": "moombahton",
+			"playlists": 4
+		},
+		{
+			"tag": "native american black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "neo-psychedelia",
+			"playlists": 4
+		},
+		{
+			"tag": "old school",
+			"playlists": 4
+		},
+		{
+			"tag": "post",
+			"playlists": 4
+		},
+		{
+			"tag": "powernoise",
+			"playlists": 4
+		},
+		{
+			"tag": "psybient",
+			"playlists": 4
+		},
+		{
+			"tag": "psychill",
+			"playlists": 4
+		},
+		{
+			"tag": "psytrance",
+			"playlists": 4
+		},
+		{
+			"tag": "satanic pop metal",
+			"playlists": 4
+		},
+		{
+			"tag": "saved",
+			"playlists": 4
+		},
+		{
+			"tag": "score",
+			"playlists": 4
+		},
+		{
+			"tag": "ska",
+			"playlists": 4
+		},
+		{
+			"tag": "slowcore",
+			"playlists": 4
+		},
+		{
+			"tag": "soundtracks",
+			"playlists": 4
+		},
+		{
+			"tag": "southern hardcore",
+			"playlists": 4
+		},
+		{
+			"tag": "southern metal",
+			"playlists": 4
+		},
+		{
+			"tag": "southern rap",
+			"playlists": 4
+		},
+		{
+			"tag": "space black metal",
+			"playlists": 4
+		},
+		{
+			"tag": "space rock revival",
+			"playlists": 4
+		},
+		{
+			"tag": "synthpunk",
+			"playlists": 4
+		},
+		{
+			"tag": "technical metalcore",
+			"playlists": 4
+		},
+		{
+			"tag": "traditional doom metal",
+			"playlists": 4
+		},
+		{
+			"tag": "turkish blues",
+			"playlists": 4
+		},
+		{
+			"tag": "turkish classical modern",
+			"playlists": 4
+		},
+		{
+			"tag": "turkish jazz",
+			"playlists": 4
+		},
+		{
+			"tag": "3-5",
+			"playlists": 3
+		},
+		{
+			"tag": "4x4",
+			"playlists": 3
+		},
+		{
+			"tag": "alternative rap",
+			"playlists": 3
+		},
+		{
+			"tag": "ambience",
+			"playlists": 3
+		},
+		{
+			"tag": "ambient black metal",
+			"playlists": 3
+		},
+		{
+			"tag": "ambient jazz",
+			"playlists": 3
+		},
+		{
+			"tag": "ambient post metal",
+			"playlists": 3
+		},
+		{
+			"tag": "ancient turkish folk",
+			"playlists": 3
+		},
+		{
+			"tag": "angelcore",
+			"playlists": 3
+		},
+		{
+			"tag": "anime",
+			"playlists": 3
+		},
+		{
+			"tag": "atmospheric death metal",
+			"playlists": 3
+		},
+		{
+			"tag": "atmospheric doom metal",
+			"playlists": 3
+		},
+		{
+			"tag": "austrian black metal",
+			"playlists": 3
+		},
+		{
+			"tag": "azeri rock",
+			"playlists": 3
+		},
+		{
+			"tag": "bass",
+			"playlists": 3
+		},
+		{
+			"tag": "bedroom",
+			"playlists": 3
+		},
+		{
+			"tag": "belgian black metal",
+			"playlists": 3
+		},
+		{
+			"tag": "bemani",
+			"playlists": 3
+		},
+		{
+			"tag": "black metal from germany",
+			"playlists": 3
+		},
+		{
+			"tag": "blackened crust",
+			"playlists": 3
+		},
+		{
+			"tag": "blackened thrash metal",
+			"playlists": 3
+		},
+		{
+			"tag": "blackgaze",
+			"playlists": 3
+		},
+		{
+			"tag": "blues-rock",
+			"playlists": 3
+		},
+		{
+			"tag": "britpop",
+			"playlists": 3
+		},
+		{
+			"tag": "brostep",
+			"playlists": 3
+		},
+		{
+			"tag": "chaotic hardcore",
+			"playlists": 3
+		},
+		{
+			"tag": "chill",
+			"playlists": 3
+		},
+		{
+			"tag": "chinese indie",
+			"playlists": 3
+		},
+		{
+			"tag": "christian metalcore",
+			"playlists": 3
+		},
+		{
+			"tag": "classic",
+			"playlists": 3
+		},
+		{
+			"tag": "cold wave",
+			"playlists": 3
+		},
+		{
+			"tag": "comedy metal",
+			"playlists": 3
+		},
+		{
+			"tag": "contemporary christian",
+			"playlists": 3
+		},
+		{
+			"tag": "cosmic black metal",
+			"playlists": 3
+		},
+		{
+			"tag": "dancehall",
+			"playlists": 3
+		},
+		{
+			"tag": "dark synth",
+			"playlists": 3
+		},
+		{
+			"tag": "deathcore",
+			"playlists": 3
+		},
+		{
+			"tag": "deathstep",
+			"playlists": 3
+		},
+		{
+			"tag": "dort x dort",
+			"playlists": 3
+		},
+		{
+			"tag": "dream-pop",
+			"playlists": 3
+		},
+		{
+			"tag": "drift phonk",
+			"playlists": 3
+		},
+		{
+			"tag": "drone rock",
+			"playlists": 3
+		},
+		{
+			"tag": "edm",
+			"playlists": 3
+		},
+		{
+			"tag": "electrogivno",
+			"playlists": 3
+		},
+		{
+			"tag": "electronic rock",
+			"playlists": 3
+		},
+		{
+			"tag": "ethereal wave",
+			"playlists": 3
+		},
+		{
+			"tag": "fusion",
+			"playlists": 3
+		},
+		{
+			"tag": "future bass",
+			"playlists": 3
+		},
+		{
+			"tag": "garage punk",
+			"playlists": 3
+		},
+		{
+			"tag": "gatmospheric black metal",
+			"playlists": 3
+		},
+		{
+			"tag": "gaycore",
+			"playlists": 3
+		},
+		{
+			"tag": "german music",
+			"playlists": 3
+		},
+		{
+			"tag": "glam metal",
+			"playlists": 3
+		},
+		{
+			"tag": "goa",
+			"playlists": 3
+		},
+		{
+			"tag": "goa trance",
+			"playlists": 3
+		},
+		{
+			"tag": "happy hardcore",
+			"playlists": 3
+		},
+		{
+			"tag": "horror punk",
+			"playlists": 3
+		},
+		{
+			"tag": "icelandic black metal",
+			"playlists": 3
+		},
+		{
+			"tag": "jazz noir",
+			"playlists": 3
+		},
+		{
+			"tag": "lo-fi indie",
+			"playlists": 3
+		},
+		{
+			"tag": "lofi",
+			"playlists": 3
+		},
+		{
+			"tag": "mathcore",
+			"playlists": 3
+		},
+		{
+			"tag": "medieval",
+			"playlists": 3
+		},
+		{
+			"tag": "mellow",
+			"playlists": 3
+		},
+		{
+			"tag": "memphis rap",
+			"playlists": 3
+		},
+		{
+			"tag": "modern classical",
+			"playlists": 3
+		},
+		{
+			"tag": "modern metal",
+			"playlists": 3
+		},
+		{
+			"tag": "moshcore",
+			"playlists": 3
+		},
+		{
+			"tag": "national rock",
+			"playlists": 3
+		},
+		{
+			"tag": "neo progressive rock",
+			"playlists": 3
+		},
+		{
+			"tag": "newgaze",
+			"playlists": 3
+		},
+		{
+			"tag": "nidrosian black metal",
+			"playlists": 3
+		},
+		{
+			"tag": "no1",
+			"playlists": 3
+		},
+		{
+			"tag": "norwegian metal",
+			"playlists": 3
+		},
+		{
+			"tag": "nostalgia",
+			"playlists": 3
+		},
+		{
+			"tag": "nu-jazz",
+			"playlists": 3
+		},
+		{
+			"tag": "nwobhm",
+			"playlists": 3
+		},
+		{
+			"tag": "oldies",
+			"playlists": 3
+		},
+		{
+			"tag": "oldschool hardcore",
+			"playlists": 3
+		},
+		{
+			"tag": "oriental",
+			"playlists": 3
+		},
+		{
+			"tag": "oriental metal",
+			"playlists": 3
+		},
+		{
+			"tag": "pirate metal",
+			"playlists": 3
+		},
+		{
+			"tag": "post punk",
+			"playlists": 3
+		},
+		{
+			"tag": "post-grunge",
+			"playlists": 3
+		},
+		{
+			"tag": "power electronics",
+			"playlists": 3
+		},
+		{
+			"tag": "psychedelic black metal",
+			"playlists": 3
+		},
+		{
+			"tag": "r&b",
+			"playlists": 3
+		},
+		{
+			"tag": "rap metal",
+			"playlists": 3
+		},
+		{
+			"tag": "rashit",
+			"playlists": 3
+		},
+		{
+			"tag": "rave",
+			"playlists": 3
+		},
+		{
+			"tag": "raw",
+			"playlists": 3
+		},
+		{
+			"tag": "retro electro",
+			"playlists": 3
+		},
+		{
+			"tag": "retrowave",
+			"playlists": 3
+		},
+		{
+			"tag": "rhythm and blues",
+			"playlists": 3
+		},
+		{
+			"tag": "rhythmic noise",
+			"playlists": 3
+		},
+		{
+			"tag": "riot grrrl",
+			"playlists": 3
+		},
+		{
+			"tag": "ritual",
+			"playlists": 3
+		},
+		{
+			"tag": "shaman folk",
+			"playlists": 3
+		},
+		{
+			"tag": "shamanism",
+			"playlists": 3
+		},
+		{
+			"tag": "shed rock",
+			"playlists": 3
+		},
+		{
+			"tag": "sinogaze",
+			"playlists": 3
+		},
+		{
+			"tag": "slamming brutal death metal",
+			"playlists": 3
+		},
+		{
+			"tag": "sovietwave",
+			"playlists": 3
+		},
+		{
+			"tag": "spiritual",
+			"playlists": 3
+		},
+		{
+			"tag": "stoner",
+			"playlists": 3
+		},
+		{
+			"tag": "sympho black metal",
+			"playlists": 3
+		},
+		{
+			"tag": "symphonic back metal",
+			"playlists": 3
+		},
+		{
+			"tag": "synth gothic",
+			"playlists": 3
+		},
+		{
+			"tag": "synth-pop",
+			"playlists": 3
+		},
+		{
+			"tag": "synthwave",
+			"playlists": 3
+		},
+		{
+			"tag": "tech metal",
+			"playlists": 3
+		},
+		{
+			"tag": "technical metal",
+			"playlists": 3
+		},
+		{
+			"tag": "techno-industrial",
+			"playlists": 3
+		},
+		{
+			"tag": "thall",
+			"playlists": 3
+		},
+		{
+			"tag": "turkce pop",
+			"playlists": 3
+		},
+		{
+			"tag": "turkce rock",
+			"playlists": 3
+		},
+		{
+			"tag": "turkic folk",
+			"playlists": 3
+		},
+		{
+			"tag": "turkish punk",
+			"playlists": 3
+		},
+		{
+			"tag": "turkish rap",
+			"playlists": 3
+		},
+		{
+			"tag": "turkish: alternative",
+			"playlists": 3
+		},
+		{
+			"tag": "twee pop",
+			"playlists": 3
+		},
+		{
+			"tag": "video game music",
+			"playlists": 3
+		},
+		{
+			"tag": "violon",
+			"playlists": 3
+		},
+		{
+			"tag": "2-step",
+			"playlists": 2
+		},
+		{
+			"tag": "20th century classical",
+			"playlists": 2
+		},
+		{
+			"tag": "acid",
+			"playlists": 2
+		},
+		{
+			"tag": "acid jazz",
+			"playlists": 2
+		},
+		{
+			"tag": "alaturka rock",
+			"playlists": 2
+		},
+		{
+			"tag": "alt rock",
+			"playlists": 2
+		},
+		{
+			"tag": "alternatif alaturka rock",
+			"playlists": 2
+		},
+		{
+			"tag": "alternative pop",
+			"playlists": 2
+		},
+		{
+			"tag": "alternative reggae",
+			"playlists": 2
+		},
+		{
+			"tag": "ambient pop",
+			"playlists": 2
+		},
+		{
+			"tag": "ambiental sludge",
+			"playlists": 2
+		},
+		{
+			"tag": "american metal",
+			"playlists": 2
+		},
+		{
+			"tag": "anatolian soft rock",
+			"playlists": 2
+		},
+		{
+			"tag": "anhalt ebm",
+			"playlists": 2
+		},
+		{
+			"tag": "anime riffs",
+			"playlists": 2
+		},
+		{
+			"tag": "apocalyptic folk",
+			"playlists": 2
+		},
+		{
+			"tag": "arabesk rock",
+			"playlists": 2
+		},
+		{
+			"tag": "arrangement",
+			"playlists": 2
+		},
+		{
+			"tag": "atmospheric rock",
+			"playlists": 2
+		},
+		{
+			"tag": "baroque italienne xviie-xviiie siecle",
+			"playlists": 2
+		},
+		{
+			"tag": "baroque music",
+			"playlists": 2
+		},
+		{
+			"tag": "bavarian black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "bay area",
+			"playlists": 2
+		},
+		{
+			"tag": "beduk",
+			"playlists": 2
+		},
+		{
+			"tag": "bestial black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "black",
+			"playlists": 2
+		},
+		{
+			"tag": "black-thrash metal",
+			"playlists": 2
+		},
+		{
+			"tag": "black/thrash metal",
+			"playlists": 2
+		},
+		{
+			"tag": "blackened deathcore",
+			"playlists": 2
+		},
+		{
+			"tag": "blackened doom metal",
+			"playlists": 2
+		},
+		{
+			"tag": "brazilian black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "burhan",
+			"playlists": 2
+		},
+		{
+			"tag": "chamber music",
+			"playlists": 2
+		},
+		{
+			"tag": "chamber pop",
+			"playlists": 2
+		},
+		{
+			"tag": "chicano rap",
+			"playlists": 2
+		},
+		{
+			"tag": "chill pop",
+			"playlists": 2
+		},
+		{
+			"tag": "choir",
+			"playlists": 2
+		},
+		{
+			"tag": "choral",
+			"playlists": 2
+		},
+		{
+			"tag": "colombian metal",
+			"playlists": 2
+		},
+		{
+			"tag": "contemporary jazz",
+			"playlists": 2
+		},
+		{
+			"tag": "country",
+			"playlists": 2
+		},
+		{
+			"tag": "croatian black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "dark",
+			"playlists": 2
+		},
+		{
+			"tag": "dark country",
+			"playlists": 2
+		},
+		{
+			"tag": "death country",
+			"playlists": 2
+		},
+		{
+			"tag": "deathrock",
+			"playlists": 2
+		},
+		{
+			"tag": "deep",
+			"playlists": 2
+		},
+		{
+			"tag": "desert rock",
+			"playlists": 2
+		},
+		{
+			"tag": "detroit blues",
+			"playlists": 2
+		},
+		{
+			"tag": "direc-t",
+			"playlists": 2
+		},
+		{
+			"tag": "dmv area",
+			"playlists": 2
+		},
+		{
+			"tag": "doo wop",
+			"playlists": 2
+		},
+		{
+			"tag": "doom jazz",
+			"playlists": 2
+		},
+		{
+			"tag": "doomer",
+			"playlists": 2
+		},
+		{
+			"tag": "drone shoegaze",
+			"playlists": 2
+		},
+		{
+			"tag": "dronegaze",
+			"playlists": 2
+		},
+		{
+			"tag": "dub techno",
+			"playlists": 2
+		},
+		{
+			"tag": "dutch black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "early hardstyle",
+			"playlists": 2
+		},
+		{
+			"tag": "early music",
+			"playlists": 2
+		},
+		{
+			"tag": "easy listening",
+			"playlists": 2
+		},
+		{
+			"tag": "edge",
+			"playlists": 2
+		},
+		{
+			"tag": "elektro gitarla arabesk",
+			"playlists": 2
+		},
+		{
+			"tag": "epic death metal",
+			"playlists": 2
+		},
+		{
+			"tag": "erudite music",
+			"playlists": 2
+		},
+		{
+			"tag": "ethnic",
+			"playlists": 2
+		},
+		{
+			"tag": "experimental deathcore",
+			"playlists": 2
+		},
+		{
+			"tag": "fantasycore",
+			"playlists": 2
+		},
+		{
+			"tag": "female fronted black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "feminist black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "free jazz",
+			"playlists": 2
+		},
+		{
+			"tag": "french metal",
+			"playlists": 2
+		},
+		{
+			"tag": "frenchcore",
+			"playlists": 2
+		},
+		{
+			"tag": "funeral jazz",
+			"playlists": 2
+		},
+		{
+			"tag": "funk metal",
+			"playlists": 2
+		},
+		{
+			"tag": "gabber",
+			"playlists": 2
+		},
+		{
+			"tag": "gangsta",
+			"playlists": 2
+		},
+		{
+			"tag": "gay one",
+			"playlists": 2
+		},
+		{
+			"tag": "german rap",
+			"playlists": 2
+		},
+		{
+			"tag": "glitch",
+			"playlists": 2
+		},
+		{
+			"tag": "goat metal",
+			"playlists": 2
+		},
+		{
+			"tag": "goth rock",
+			"playlists": 2
+		},
+		{
+			"tag": "grime",
+			"playlists": 2
+		},
+		{
+			"tag": "hardcore techno",
+			"playlists": 2
+		},
+		{
+			"tag": "heart",
+			"playlists": 2
+		},
+		{
+			"tag": "heavy psychedelic",
+			"playlists": 2
+		},
+		{
+			"tag": "horror metal",
+			"playlists": 2
+		},
+		{
+			"tag": "humorcore",
+			"playlists": 2
+		},
+		{
+			"tag": "hyperpop",
+			"playlists": 2
+		},
+		{
+			"tag": "hypnagogic pop",
+			"playlists": 2
+		},
+		{
+			"tag": "indeath",
+			"playlists": 2
+		},
+		{
+			"tag": "instrumental rock",
+			"playlists": 2
+		},
+		{
+			"tag": "italo disco",
+			"playlists": 2
+		},
+		{
+			"tag": "j-pop",
+			"playlists": 2
+		},
+		{
+			"tag": "japanese shoegaze",
+			"playlists": 2
+		},
+		{
+			"tag": "jazz fusion",
+			"playlists": 2
+		},
+		{
+			"tag": "jazz hop",
+			"playlists": 2
+		},
+		{
+			"tag": "jazz rock",
+			"playlists": 2
+		},
+		{
+			"tag": "jazz vocal",
+			"playlists": 2
+		},
+		{
+			"tag": "jazz-funk",
+			"playlists": 2
+		},
+		{
+			"tag": "kara metal",
+			"playlists": 2
+		},
+		{
+			"tag": "m d louvre",
+			"playlists": 2
+		},
+		{
+			"tag": "malay",
+			"playlists": 2
+		},
+		{
+			"tag": "math",
+			"playlists": 2
+		},
+		{
+			"tag": "math metal",
+			"playlists": 2
+		},
+		{
+			"tag": "melodic doom metal",
+			"playlists": 2
+		},
+		{
+			"tag": "melodic dubstep",
+			"playlists": 2
+		},
+		{
+			"tag": "metal opera",
+			"playlists": 2
+		},
+		{
+			"tag": "modern hardcore",
+			"playlists": 2
+		},
+		{
+			"tag": "modern melodic death metal",
+			"playlists": 2
+		},
+		{
+			"tag": "ndh",
+			"playlists": 2
+		},
+		{
+			"tag": "neue deutsche härte",
+			"playlists": 2
+		},
+		{
+			"tag": "new age",
+			"playlists": 2
+		},
+		{
+			"tag": "new school hardcore",
+			"playlists": 2
+		},
+		{
+			"tag": "no wave",
+			"playlists": 2
+		},
+		{
+			"tag": "noise pop",
+			"playlists": 2
+		},
+		{
+			"tag": "nordic",
+			"playlists": 2
+		},
+		{
+			"tag": "nordic folk",
+			"playlists": 2
+		},
+		{
+			"tag": "nsbm",
+			"playlists": 2
+		},
+		{
+			"tag": "nu deathcore",
+			"playlists": 2
+		},
+		{
+			"tag": "nu jazz",
+			"playlists": 2
+		},
+		{
+			"tag": "nyhc",
+			"playlists": 2
+		},
+		{
+			"tag": "old school black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "old school ebm",
+			"playlists": 2
+		},
+		{
+			"tag": "old school hardcore",
+			"playlists": 2
+		},
+		{
+			"tag": "orchestra",
+			"playlists": 2
+		},
+		{
+			"tag": "organic downtempo",
+			"playlists": 2
+		},
+		{
+			"tag": "orthodox black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "paraguay",
+			"playlists": 2
+		},
+		{
+			"tag": "partycore",
+			"playlists": 2
+		},
+		{
+			"tag": "plugg",
+			"playlists": 2
+		},
+		{
+			"tag": "pop folk",
+			"playlists": 2
+		},
+		{
+			"tag": "pop rap",
+			"playlists": 2
+		},
+		{
+			"tag": "post black",
+			"playlists": 2
+		},
+		{
+			"tag": "post metal",
+			"playlists": 2
+		},
+		{
+			"tag": "post-ambient emotional hardcore",
+			"playlists": 2
+		},
+		{
+			"tag": "post-black",
+			"playlists": 2
+		},
+		{
+			"tag": "power thrash metal",
+			"playlists": 2
+		},
+		{
+			"tag": "progressive blackened death metal",
+			"playlists": 2
+		},
+		{
+			"tag": "progressive psytrance",
+			"playlists": 2
+		},
+		{
+			"tag": "psychadelic",
+			"playlists": 2
+		},
+		{
+			"tag": "punk metal",
+			"playlists": 2
+		},
+		{
+			"tag": "queer techno",
+			"playlists": 2
+		},
+		{
+			"tag": "rapture",
+			"playlists": 2
+		},
+		{
+			"tag": "raw black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "ritualistic metal",
+			"playlists": 2
+		},
+		{
+			"tag": "rock-hard",
+			"playlists": 2
+		},
+		{
+			"tag": "romantic",
+			"playlists": 2
+		},
+		{
+			"tag": "russian shoegaze",
+			"playlists": 2
+		},
+		{
+			"tag": "russian witch house",
+			"playlists": 2
+		},
+		{
+			"tag": "sacred music",
+			"playlists": 2
+		},
+		{
+			"tag": "sadcore",
+			"playlists": 2
+		},
+		{
+			"tag": "satanic",
+			"playlists": 2
+		},
+		{
+			"tag": "scandinavian",
+			"playlists": 2
+		},
+		{
+			"tag": "shock rock",
+			"playlists": 2
+		},
+		{
+			"tag": "shoegazing",
+			"playlists": 2
+		},
+		{
+			"tag": "singer-songwriters",
+			"playlists": 2
+		},
+		{
+			"tag": "sinister industrial wave",
+			"playlists": 2
+		},
+		{
+			"tag": "slam death metal",
+			"playlists": 2
+		},
+		{
+			"tag": "slavic pagan metal",
+			"playlists": 2
+		},
+		{
+			"tag": "slovak black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "southern",
+			"playlists": 2
+		},
+		{
+			"tag": "stonegaze",
+			"playlists": 2
+		},
+		{
+			"tag": "suicidal anatolian doom metal",
+			"playlists": 2
+		},
+		{
+			"tag": "swing",
+			"playlists": 2
+		},
+		{
+			"tag": "symhonic",
+			"playlists": 2
+		},
+		{
+			"tag": "symhonic classical music",
+			"playlists": 2
+		},
+		{
+			"tag": "symphonic deathcore",
+			"playlists": 2
+		},
+		{
+			"tag": "symphonic rock",
+			"playlists": 2
+		},
+		{
+			"tag": "tenor sax",
+			"playlists": 2
+		},
+		{
+			"tag": "trance metal",
+			"playlists": 2
+		},
+		{
+			"tag": "trapmetal",
+			"playlists": 2
+		},
+		{
+			"tag": "trio jazz",
+			"playlists": 2
+		},
+		{
+			"tag": "trip hop",
+			"playlists": 2
+		},
+		{
+			"tag": "true black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "true norwegian black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "true scottish pirate metal",
+			"playlists": 2
+		},
+		{
+			"tag": "turkish alternative",
+			"playlists": 2
+		},
+		{
+			"tag": "turkish alternative rock",
+			"playlists": 2
+		},
+		{
+			"tag": "turkish black metal",
+			"playlists": 2
+		},
+		{
+			"tag": "turkish gangsta rap",
+			"playlists": 2
+		},
+		{
+			"tag": "turkish hip hop",
+			"playlists": 2
+		},
+		{
+			"tag": "us metal",
+			"playlists": 2
+		},
+		{
+			"tag": "vampire metal",
+			"playlists": 2
+		},
+		{
+			"tag": "viking metal",
+			"playlists": 2
+		},
+		{
+			"tag": "vocal jazz",
+			"playlists": 2
+		},
+		{
+			"tag": "war metal",
+			"playlists": 2
+		},
+		{
+			"tag": "westcoast rap",
+			"playlists": 2
+		},
+		{
+			"tag": "wood and string",
+			"playlists": 2
+		},
+		{
+			"tag": "youth crew",
+			"playlists": 2
+		},
+		{
+			"tag": "abstract hip-hop",
+			"playlists": 1
+		},
+		{
+			"tag": "acid house",
+			"playlists": 1
+		},
+		{
+			"tag": "acid rock",
+			"playlists": 1
+		},
+		{
+			"tag": "altai",
+			"playlists": 1
+		},
+		{
+			"tag": "ambient dub",
+			"playlists": 1
+		},
+		{
+			"tag": "ambient house",
+			"playlists": 1
+		},
+		{
+			"tag": "ambient rock",
+			"playlists": 1
+		},
+		{
+			"tag": "anadolu rock",
+			"playlists": 1
+		},
+		{
+			"tag": "analog",
+			"playlists": 1
+		},
+		{
+			"tag": "anatolian funk",
+			"playlists": 1
+		},
+		{
+			"tag": "anjunadeep",
+			"playlists": 1
+		},
+		{
+			"tag": "art rock",
+			"playlists": 1
+		},
+		{
+			"tag": "atmospheric deathcore",
+			"playlists": 1
+		},
+		{
+			"tag": "atmospheric norwegian black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "atmospheric sludge metal",
+			"playlists": 1
+		},
+		{
+			"tag": "australian hardcore",
+			"playlists": 1
+		},
+		{
+			"tag": "autotune",
+			"playlists": 1
+		},
+		{
+			"tag": "avant-garde death metal",
+			"playlists": 1
+		},
+		{
+			"tag": "avantgarde",
+			"playlists": 1
+		},
+		{
+			"tag": "avantgarde pop",
+			"playlists": 1
+		},
+		{
+			"tag": "ballet",
+			"playlists": 1
+		},
+		{
+			"tag": "barocco italiano",
+			"playlists": 1
+		},
+		{
+			"tag": "barock",
+			"playlists": 1
+		},
+		{
+			"tag": "baroque",
+			"playlists": 1
+		},
+		{
+			"tag": "bbc new generation",
+			"playlists": 1
+		},
+		{
+			"tag": "beatdown",
+			"playlists": 1
+		},
+		{
+			"tag": "beatdown deathcore",
+			"playlists": 1
+		},
+		{
+			"tag": "beatdown hardcore",
+			"playlists": 1
+		},
+		{
+			"tag": "beats",
+			"playlists": 1
+		},
+		{
+			"tag": "bimbocore",
+			"playlists": 1
+		},
+		{
+			"tag": "blue-eyed soul",
+			"playlists": 1
+		},
+		{
+			"tag": "bluegrass",
+			"playlists": 1
+		},
+		{
+			"tag": "blues guitar",
+			"playlists": 1
+		},
+		{
+			"tag": "bluesrock",
+			"playlists": 1
+		},
+		{
+			"tag": "bm colombia",
+			"playlists": 1
+		},
+		{
+			"tag": "bnr",
+			"playlists": 1
+		},
+		{
+			"tag": "break beat",
+			"playlists": 1
+		},
+		{
+			"tag": "breaks",
+			"playlists": 1
+		},
+		{
+			"tag": "british black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "brutal deathcore",
+			"playlists": 1
+		},
+		{
+			"tag": "bubblegum pop",
+			"playlists": 1
+		},
+		{
+			"tag": "cascadian black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "ccm",
+			"playlists": 1
+		},
+		{
+			"tag": "central asian",
+			"playlists": 1
+		},
+		{
+			"tag": "chicago blues",
+			"playlists": 1
+		},
+		{
+			"tag": "chill out",
+			"playlists": 1
+		},
+		{
+			"tag": "chinese black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "chipmunk soul",
+			"playlists": 1
+		},
+		{
+			"tag": "classic metal",
+			"playlists": 1
+		},
+		{
+			"tag": "classical crossover",
+			"playlists": 1
+		},
+		{
+			"tag": "classical music",
+			"playlists": 1
+		},
+		{
+			"tag": "classical piano",
+			"playlists": 1
+		},
+		{
+			"tag": "clinically romantic",
+			"playlists": 1
+		},
+		{
+			"tag": "cloud trap",
+			"playlists": 1
+		},
+		{
+			"tag": "clowncore",
+			"playlists": 1
+		},
+		{
+			"tag": "complextro",
+			"playlists": 1
+		},
+		{
+			"tag": "contemporary",
+			"playlists": 1
+		},
+		{
+			"tag": "cthulhu",
+			"playlists": 1
+		},
+		{
+			"tag": "cyber metal",
+			"playlists": 1
+		},
+		{
+			"tag": "cybergrind",
+			"playlists": 1
+		},
+		{
+			"tag": "dark pop",
+			"playlists": 1
+		},
+		{
+			"tag": "dark rock",
+			"playlists": 1
+		},
+		{
+			"tag": "dark roots",
+			"playlists": 1
+		},
+		{
+			"tag": "dark trip hop",
+			"playlists": 1
+		},
+		{
+			"tag": "death electro",
+			"playlists": 1
+		},
+		{
+			"tag": "death-doom metal",
+			"playlists": 1
+		},
+		{
+			"tag": "deathgaze",
+			"playlists": 1
+		},
+		{
+			"tag": "deathrash",
+			"playlists": 1
+		},
+		{
+			"tag": "deep progressive house",
+			"playlists": 1
+		},
+		{
+			"tag": "deep techno",
+			"playlists": 1
+		},
+		{
+			"tag": "delta blues",
+			"playlists": 1
+		},
+		{
+			"tag": "digital hardcore",
+			"playlists": 1
+		},
+		{
+			"tag": "disco punk",
+			"playlists": 1
+		},
+		{
+			"tag": "dissonant black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "distorted",
+			"playlists": 1
+		},
+		{
+			"tag": "dnb",
+			"playlists": 1
+		},
+		{
+			"tag": "drag",
+			"playlists": 1
+		},
+		{
+			"tag": "dreampop",
+			"playlists": 1
+		},
+		{
+			"tag": "dreamwave",
+			"playlists": 1
+		},
+		{
+			"tag": "dreamy",
+			"playlists": 1
+		},
+		{
+			"tag": "drone ambient",
+			"playlists": 1
+		},
+		{
+			"tag": "drone metal",
+			"playlists": 1
+		},
+		{
+			"tag": "drumstep",
+			"playlists": 1
+		},
+		{
+			"tag": "e matheus",
+			"playlists": 1
+		},
+		{
+			"tag": "east coast",
+			"playlists": 1
+		},
+		{
+			"tag": "east coast hip-hop",
+			"playlists": 1
+		},
+		{
+			"tag": "east coast rap",
+			"playlists": 1
+		},
+		{
+			"tag": "eglenceli rock",
+			"playlists": 1
+		},
+		{
+			"tag": "electro-house",
+			"playlists": 1
+		},
+		{
+			"tag": "electroclash",
+			"playlists": 1
+		},
+		{
+			"tag": "electronic music",
+			"playlists": 1
+		},
+		{
+			"tag": "electrowave",
+			"playlists": 1
+		},
+		{
+			"tag": "emocore",
+			"playlists": 1
+		},
+		{
+			"tag": "epic",
+			"playlists": 1
+		},
+		{
+			"tag": "eren sevmez",
+			"playlists": 1
+		},
+		{
+			"tag": "erkka",
+			"playlists": 1
+		},
+		{
+			"tag": "existentialist",
+			"playlists": 1
+		},
+		{
+			"tag": "experimental hip hop",
+			"playlists": 1
+		},
+		{
+			"tag": "experimental hip-hop",
+			"playlists": 1
+		},
+		{
+			"tag": "fairy doom",
+			"playlists": 1
+		},
+		{
+			"tag": "feminist",
+			"playlists": 1
+		},
+		{
+			"tag": "fonk",
+			"playlists": 1
+		},
+		{
+			"tag": "frauen und technik",
+			"playlists": 1
+		},
+		{
+			"tag": "free rock",
+			"playlists": 1
+		},
+		{
+			"tag": "fuck off evil nerfal",
+			"playlists": 1
+		},
+		{
+			"tag": "funk rock",
+			"playlists": 1
+		},
+		{
+			"tag": "funky",
+			"playlists": 1
+		},
+		{
+			"tag": "funky style",
+			"playlists": 1
+		},
+		{
+			"tag": "future garage",
+			"playlists": 1
+		},
+		{
+			"tag": "futurepop",
+			"playlists": 1
+		},
+		{
+			"tag": "futuristic",
+			"playlists": 1
+		},
+		{
+			"tag": "fuzz rock",
+			"playlists": 1
+		},
+		{
+			"tag": "g-funk",
+			"playlists": 1
+		},
+		{
+			"tag": "german hip hop",
+			"playlists": 1
+		},
+		{
+			"tag": "german hiphop",
+			"playlists": 1
+		},
+		{
+			"tag": "german nsbm",
+			"playlists": 1
+		},
+		{
+			"tag": "german thrash metal",
+			"playlists": 1
+		},
+		{
+			"tag": "girl monsters",
+			"playlists": 1
+		},
+		{
+			"tag": "glitch-hop",
+			"playlists": 1
+		},
+		{
+			"tag": "glitchcore",
+			"playlists": 1
+		},
+		{
+			"tag": "gothenburg metal",
+			"playlists": 1
+		},
+		{
+			"tag": "grind",
+			"playlists": 1
+		},
+		{
+			"tag": "guitar jazz",
+			"playlists": 1
+		},
+		{
+			"tag": "hardcore hip hop",
+			"playlists": 1
+		},
+		{
+			"tag": "hardcore rap",
+			"playlists": 1
+		},
+		{
+			"tag": "hardstyle",
+			"playlists": 1
+		},
+		{
+			"tag": "harmonica blues",
+			"playlists": 1
+		},
+		{
+			"tag": "harsh ebm",
+			"playlists": 1
+		},
+		{
+			"tag": "hater",
+			"playlists": 1
+		},
+		{
+			"tag": "heavy psych",
+			"playlists": 1
+		},
+		{
+			"tag": "heavy rock",
+			"playlists": 1
+		},
+		{
+			"tag": "hi-nrg",
+			"playlists": 1
+		},
+		{
+			"tag": "hip hop/rap",
+			"playlists": 1
+		},
+		{
+			"tag": "horror",
+			"playlists": 1
+		},
+		{
+			"tag": "hundycore",
+			"playlists": 1
+		},
+		{
+			"tag": "hybrid trap",
+			"playlists": 1
+		},
+		{
+			"tag": "hyperdub",
+			"playlists": 1
+		},
+		{
+			"tag": "impressionist",
+			"playlists": 1
+		},
+		{
+			"tag": "indie folk",
+			"playlists": 1
+		},
+		{
+			"tag": "industrial death metal",
+			"playlists": 1
+		},
+		{
+			"tag": "industrial rave",
+			"playlists": 1
+		},
+		{
+			"tag": "instrumental fusion",
+			"playlists": 1
+		},
+		{
+			"tag": "instrumental post-rock",
+			"playlists": 1
+		},
+		{
+			"tag": "j-rock",
+			"playlists": 1
+		},
+		{
+			"tag": "jam band",
+			"playlists": 1
+		},
+		{
+			"tag": "jazz-hop",
+			"playlists": 1
+		},
+		{
+			"tag": "jazz-rock",
+			"playlists": 1
+		},
+		{
+			"tag": "juma",
+			"playlists": 1
+		},
+		{
+			"tag": "jungle",
+			"playlists": 1
+		},
+		{
+			"tag": "karaosmanoglu metal",
+			"playlists": 1
+		},
+		{
+			"tag": "klassik",
+			"playlists": 1
+		},
+		{
+			"tag": "korean black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "latin",
+			"playlists": 1
+		},
+		{
+			"tag": "latin pop",
+			"playlists": 1
+		},
+		{
+			"tag": "legend",
+			"playlists": 1
+		},
+		{
+			"tag": "lesbian",
+			"playlists": 1
+		},
+		{
+			"tag": "lieder",
+			"playlists": 1
+		},
+		{
+			"tag": "lovecraftian",
+			"playlists": 1
+		},
+		{
+			"tag": "low rock",
+			"playlists": 1
+		},
+		{
+			"tag": "melodic thrash metal",
+			"playlists": 1
+		},
+		{
+			"tag": "mesopotamian metal",
+			"playlists": 1
+		},
+		{
+			"tag": "metallic hardcore",
+			"playlists": 1
+		},
+		{
+			"tag": "midwest",
+			"playlists": 1
+		},
+		{
+			"tag": "midwest rap",
+			"playlists": 1
+		},
+		{
+			"tag": "minimalism",
+			"playlists": 1
+		},
+		{
+			"tag": "modern jazz",
+			"playlists": 1
+		},
+		{
+			"tag": "mongolian folk",
+			"playlists": 1
+		},
+		{
+			"tag": "mood",
+			"playlists": 1
+		},
+		{
+			"tag": "moombahcore",
+			"playlists": 1
+		},
+		{
+			"tag": "morute",
+			"playlists": 1
+		},
+		{
+			"tag": "moshable metalcore",
+			"playlists": 1
+		},
+		{
+			"tag": "motown",
+			"playlists": 1
+		},
+		{
+			"tag": "musical",
+			"playlists": 1
+		},
+		{
+			"tag": "musicals",
+			"playlists": 1
+		},
+		{
+			"tag": "narcotic metal",
+			"playlists": 1
+		},
+		{
+			"tag": "neo-classical metal",
+			"playlists": 1
+		},
+		{
+			"tag": "neo-soul",
+			"playlists": 1
+		},
+		{
+			"tag": "neue deutsche haerte",
+			"playlists": 1
+		},
+		{
+			"tag": "nev",
+			"playlists": 1
+		},
+		{
+			"tag": "new jack swing",
+			"playlists": 1
+		},
+		{
+			"tag": "new rave",
+			"playlists": 1
+		},
+		{
+			"tag": "new wave of old school heavy metal",
+			"playlists": 1
+		},
+		{
+			"tag": "north korean black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "nu electro",
+			"playlists": 1
+		},
+		{
+			"tag": "nu metalcore",
+			"playlists": 1
+		},
+		{
+			"tag": "old school heavy metal",
+			"playlists": 1
+		},
+		{
+			"tag": "old school thrash metal",
+			"playlists": 1
+		},
+		{
+			"tag": "oldschool ebm",
+			"playlists": 1
+		},
+		{
+			"tag": "opera",
+			"playlists": 1
+		},
+		{
+			"tag": "organic house",
+			"playlists": 1
+		},
+		{
+			"tag": "pagan",
+			"playlists": 1
+		},
+		{
+			"tag": "parody metal",
+			"playlists": 1
+		},
+		{
+			"tag": "petersburg philharmonia",
+			"playlists": 1
+		},
+		{
+			"tag": "philosopher",
+			"playlists": 1
+		},
+		{
+			"tag": "phonk",
+			"playlists": 1
+		},
+		{
+			"tag": "polish death metal",
+			"playlists": 1
+		},
+		{
+			"tag": "political",
+			"playlists": 1
+		},
+		{
+			"tag": "polski hip hop",
+			"playlists": 1
+		},
+		{
+			"tag": "post industrial",
+			"playlists": 1
+		},
+		{
+			"tag": "post-revolutionary pop song",
+			"playlists": 1
+		},
+		{
+			"tag": "post-whatever",
+			"playlists": 1
+		},
+		{
+			"tag": "powerpop",
+			"playlists": 1
+		},
+		{
+			"tag": "preacher",
+			"playlists": 1
+		},
+		{
+			"tag": "progressive breaks",
+			"playlists": 1
+		},
+		{
+			"tag": "progressive deathcore",
+			"playlists": 1
+		},
+		{
+			"tag": "progressive house",
+			"playlists": 1
+		},
+		{
+			"tag": "progressive metalcore",
+			"playlists": 1
+		},
+		{
+			"tag": "progressive trance",
+			"playlists": 1
+		},
+		{
+			"tag": "psy",
+			"playlists": 1
+		},
+		{
+			"tag": "psychedelic doom metal",
+			"playlists": 1
+		},
+		{
+			"tag": "psychedelic trance",
+			"playlists": 1
+		},
+		{
+			"tag": "pychedelic dubstep",
+			"playlists": 1
+		},
+		{
+			"tag": "ragecore",
+			"playlists": 1
+		},
+		{
+			"tag": "ragga",
+			"playlists": 1
+		},
+		{
+			"tag": "raw black metal north korea",
+			"playlists": 1
+		},
+		{
+			"tag": "rdcdeathstep",
+			"playlists": 1
+		},
+		{
+			"tag": "real screamo",
+			"playlists": 1
+		},
+		{
+			"tag": "reggae metal",
+			"playlists": 1
+		},
+		{
+			"tag": "robert thomas",
+			"playlists": 1
+		},
+		{
+			"tag": "rock and roll",
+			"playlists": 1
+		},
+		{
+			"tag": "rock'n roll",
+			"playlists": 1
+		},
+		{
+			"tag": "romantic period",
+			"playlists": 1
+		},
+		{
+			"tag": "romantica",
+			"playlists": 1
+		},
+		{
+			"tag": "romanticism",
+			"playlists": 1
+		},
+		{
+			"tag": "romantics",
+			"playlists": 1
+		},
+		{
+			"tag": "roots reggae",
+			"playlists": 1
+		},
+		{
+			"tag": "russian post-punk",
+			"playlists": 1
+		},
+		{
+			"tag": "russian rap",
+			"playlists": 1
+		},
+		{
+			"tag": "satanicunts",
+			"playlists": 1
+		},
+		{
+			"tag": "satanitard",
+			"playlists": 1
+		},
+		{
+			"tag": "scream rap",
+			"playlists": 1
+		},
+		{
+			"tag": "screamo trap",
+			"playlists": 1
+		},
+		{
+			"tag": "shai",
+			"playlists": 1
+		},
+		{
+			"tag": "skinhead",
+			"playlists": 1
+		},
+		{
+			"tag": "skinhead reggae",
+			"playlists": 1
+		},
+		{
+			"tag": "skinhead rock",
+			"playlists": 1
+		},
+		{
+			"tag": "slamming deathcore",
+			"playlists": 1
+		},
+		{
+			"tag": "sleaze rock",
+			"playlists": 1
+		},
+		{
+			"tag": "slow",
+			"playlists": 1
+		},
+		{
+			"tag": "sludgecore",
+			"playlists": 1
+		},
+		{
+			"tag": "smokehouse",
+			"playlists": 1
+		},
+		{
+			"tag": "smooth jazz",
+			"playlists": 1
+		},
+		{
+			"tag": "soundscapes",
+			"playlists": 1
+		},
+		{
+			"tag": "southern hip hop",
+			"playlists": 1
+		},
+		{
+			"tag": "space rock",
+			"playlists": 1
+		},
+		{
+			"tag": "spanish thrash metal",
+			"playlists": 1
+		},
+		{
+			"tag": "straight edge",
+			"playlists": 1
+		},
+		{
+			"tag": "street punk",
+			"playlists": 1
+		},
+		{
+			"tag": "sub bass",
+			"playlists": 1
+		},
+		{
+			"tag": "surf rock",
+			"playlists": 1
+		},
+		{
+			"tag": "swamp blues",
+			"playlists": 1
+		},
+		{
+			"tag": "swedish black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "symphony",
+			"playlists": 1
+		},
+		{
+			"tag": "technical brutal death metal",
+			"playlists": 1
+		},
+		{
+			"tag": "technical melodic death metal",
+			"playlists": 1
+		},
+		{
+			"tag": "tekno",
+			"playlists": 1
+		},
+		{
+			"tag": "the bedford",
+			"playlists": 1
+		},
+		{
+			"tag": "themes",
+			"playlists": 1
+		},
+		{
+			"tag": "thrashcore",
+			"playlists": 1
+		},
+		{
+			"tag": "traditional",
+			"playlists": 1
+		},
+		{
+			"tag": "traditional blues",
+			"playlists": 1
+		},
+		{
+			"tag": "trailer music",
+			"playlists": 1
+		},
+		{
+			"tag": "trancecore",
+			"playlists": 1
+		},
+		{
+			"tag": "transcendental black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "trapcore",
+			"playlists": 1
+		},
+		{
+			"tag": "tribal techno",
+			"playlists": 1
+		},
+		{
+			"tag": "turkce rap",
+			"playlists": 1
+		},
+		{
+			"tag": "turkish electronic",
+			"playlists": 1
+		},
+		{
+			"tag": "turkish hiphop",
+			"playlists": 1
+		},
+		{
+			"tag": "turkish hyperpop",
+			"playlists": 1
+		},
+		{
+			"tag": "turkish psych",
+			"playlists": 1
+		},
+		{
+			"tag": "turkish reggae",
+			"playlists": 1
+		},
+		{
+			"tag": "turkish underground rap",
+			"playlists": 1
+		},
+		{
+			"tag": "turntablism",
+			"playlists": 1
+		},
+		{
+			"tag": "tuva",
+			"playlists": 1
+		},
+		{
+			"tag": "uk grime",
+			"playlists": 1
+		},
+		{
+			"tag": "underground hip hop",
+			"playlists": 1
+		},
+		{
+			"tag": "underground rap",
+			"playlists": 1
+		},
+		{
+			"tag": "us power metal",
+			"playlists": 1
+		},
+		{
+			"tag": "venezuelan black metal",
+			"playlists": 1
+		},
+		{
+			"tag": "viking death metal",
+			"playlists": 1
+		},
+		{
+			"tag": "vocal",
+			"playlists": 1
+		},
+		{
+			"tag": "west coast rap",
+			"playlists": 1
+		},
+		{
+			"tag": "whalecore",
+			"playlists": 1
+		},
+		{
+			"tag": "wicca",
+			"playlists": 1
+		},
+		{
+			"tag": "winter synth",
+			"playlists": 1
+		},
+		{
+			"tag": "witchhouse",
+			"playlists": 1
+		},
+		{
+			"tag": "world fusion",
+			"playlists": 1
+		}
+	],
+	"variantPairs": [
+		{
+			"slug": "blues-rock",
+			"variants": [
+				{
+					"tag": "blues rock",
+					"playlists": 9
+				},
+				{
+					"tag": "blues-rock",
+					"playlists": 2
+				}
+			]
+		},
+		{
+			"slug": "death-doom-metal",
+			"variants": [
+				{
+					"tag": "death doom metal",
+					"playlists": 5
+				},
+				{
+					"tag": "death-doom metal",
+					"playlists": 1
+				}
+			]
+		},
+		{
+			"slug": "electro-house",
+			"variants": [
+				{
+					"tag": "electro house",
+					"playlists": 2
+				},
+				{
+					"tag": "electro-house",
+					"playlists": 1
+				}
+			]
+		},
+		{
+			"slug": "hip-hop",
+			"variants": [
+				{
+					"tag": "hip-hop",
+					"playlists": 20
+				},
+				{
+					"tag": "hip hop",
+					"playlists": 13
+				}
+			]
+		},
+		{
+			"slug": "nu-jazz",
+			"variants": [
+				{
+					"tag": "nu jazz",
+					"playlists": 1
+				},
+				{
+					"tag": "nu-jazz",
+					"playlists": 1
+				}
+			]
+		},
+		{
+			"slug": "nu-metal",
+			"variants": [
+				{
+					"tag": "nu metal",
+					"playlists": 15
+				},
+				{
+					"tag": "nu-metal",
+					"playlists": 4
+				}
+			]
+		},
+		{
+			"slug": "post-black-metal",
+			"variants": [
+				{
+					"tag": "post-black metal",
+					"playlists": 26
+				},
+				{
+					"tag": "post black metal",
+					"playlists": 4
+				}
+			]
+		},
+		{
+			"slug": "post-metal",
+			"variants": [
+				{
+					"tag": "post-metal",
+					"playlists": 30
+				},
+				{
+					"tag": "post metal",
+					"playlists": 1
+				}
+			]
+		},
+		{
+			"slug": "post-punk",
+			"variants": [
+				{
+					"tag": "post-punk",
+					"playlists": 29
+				},
+				{
+					"tag": "post punk",
+					"playlists": 4
+				}
+			]
+		},
+		{
+			"slug": "post-rock",
+			"variants": [
+				{
+					"tag": "post-rock",
+					"playlists": 27
+				},
+				{
+					"tag": "post rock",
+					"playlists": 6
+				}
+			]
+		},
+		{
+			"slug": "synth-pop",
+			"variants": [
+				{
+					"tag": "synth pop",
+					"playlists": 4
+				},
+				{
+					"tag": "synth-pop",
+					"playlists": 2
+				}
+			]
+		},
+		{
+			"slug": "turkish-rock",
+			"variants": [
+				{
+					"tag": "turkish rock",
+					"playlists": 15
+				},
+				{
+					"tag": "turkish: rock",
+					"playlists": 3
+				}
+			]
+		}
+	],
+	"totals": {
+		"listedPlaylists": 140,
+		"keptTagOccurrences": 3476,
+		"keptTags": 532,
+		"droppedNonGenreTags": 345,
+		"droppedNonGenreOccurrences": 2234,
+		"droppedThresholdTags": 908,
+		"droppedThresholdOccurrences": 3496,
+		"variantPairGroups": 12
+	}
+}

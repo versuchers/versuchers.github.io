@@ -9,6 +9,8 @@ import {
 	playlistFolders,
 	folderDisplayName,
 } from '../../lib/playlists';
+import { artistHref, trackHref } from '../../lib/playlist-xref';
+import { keptGenres, genreHref } from '../../lib/playlist-genres';
 
 export function getStaticPaths() {
 	return listedPlaylists().map((p) => ({ params: { id: p.id } }));
@@ -20,6 +22,8 @@ const pl = getPlaylistById(id);
 if (!pl) {
 	throw new Error(`Playlist bulunamadı: ${id}`);
 }
+
+const kept = keptGenres(pl);
 
 const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim() : '';
 const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
@@ -62,14 +66,18 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 		<div class="two">
 			<section class="panel">
 				<h2>Türler</h2>
-				{pl.genres.length > 0 ? (
+				{pl.genres.length > 0 && kept.length > 0 ? (
 					<ul class="chip-list">
-						{pl.genres.map((g) => (
+						{kept.map((g) => (
 							<li class="chip">
-								{g.name} ({g.count})
+								<a href={genreHref(g.name)}>{g.name} ({g.count})</a>
 							</li>
 						))}
 					</ul>
+				) : pl.genres.length > 0 ? (
+					<p class="muted">
+						Listelenen tür yok (siyah liste/eşik süzgeci uygulandı).
+					</p>
 				) : (
 					<p class="muted">
 						Tür henüz yok. <code>npm run spotify -- --genres-only</code> ile Last.fm'den doldurulur.
@@ -80,12 +88,30 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 			<section class="panel">
 				<h2>Tüm şarkılar</h2>
 				<ol class="tracks">
-					{pl.tracks.map((t) => (
-						<li class="track">
-							<span class="tr-name">{t.name}</span>
-							<span class="tr-art muted">{t.artists.map((x) => x.name).join(', ')}</span>
-						</li>
-					))}
+					{pl.tracks.map((t) => {
+						const songHref = trackHref(t);
+						return (
+							<li class="track">
+								{songHref ? (
+									<a class="tr-name" href={songHref}>{t.name}</a>
+								) : (
+									<span class="tr-name">{t.name}</span>
+								)}
+								<span class="tr-sep muted" aria-hidden="true">·</span>
+								<span class="tr-art muted">
+									{t.artists.map((x, i) => {
+										const href = artistHref(x.name);
+										return (
+											<>
+												{i > 0 && ', '}
+												{href ? <a href={href}>{x.name}</a> : x.name}
+											</>
+										);
+									})}
+								</span>
+							</li>
+						);
+					})}
 				</ol>
 			</section>
 		</div>
@@ -97,6 +123,14 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 		margin-bottom: 1rem;
 		font-family: var(--font-ui);
 		font-size: 0.85rem;
+	}
+	.chip a {
+		color: inherit;
+		text-decoration: none;
+	}
+	.chip a:hover {
+		color: var(--link-hover);
+		text-decoration: underline;
 	}
 	.pl-head {
 		display: grid;
@@ -151,12 +185,22 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 	}
 	.track {
 		display: flex;
-		flex-direction: column;
-		gap: 0.05rem;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.15rem 0.4rem;
 		padding-bottom: 0.3rem;
 		border-bottom: 1px solid var(--border);
 	}
 	.tr-name {
+		font-size: 0.92rem;
+	}
+	.tr-name:where(a) {
+		color: inherit;
+	}
+	.tr-name:where(a):hover {
+		color: var(--link-hover);
+	}
+	.tr-sep {
 		font-size: 0.92rem;
 	}
 	.tr-art {

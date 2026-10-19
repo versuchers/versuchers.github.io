@@ -1,0 +1,379 @@
+---
+/**
+ * /sayilar/ sayfalarının tek ortak şablonu.
+ * Tüm sayılar build zamanında sayilar.ts'te hesaplanır; burada yalnızca
+ * bölüm tiplerine göre statik HTML basılır. Grafiğe kütüphane yok:
+ * çubuklar CSS genişliğidir, sayılar her satırda metin olarak da durur.
+ */
+import Base from '../layouts/Base.astro';
+import type { CountItem, SayilarPage, SayilarSection } from '../lib/sayilar';
+
+interface Props {
+	page: SayilarPage;
+}
+const { page } = Astro.props;
+
+function barPct(count: number, max: number): number {
+	return max ? Math.round((count / max) * 100) : 0;
+}
+function wide(s: SayilarSection): boolean {
+	return s.kind === 'table' || s.kind === 'years' || s.kind === 'ratings' || s.kind === 'text';
+}
+---
+
+<Base title={page.title} description={page.description}>
+	<div class="container section">
+		<header class="page-head">
+			<p class="eyebrow">Sayılar</p>
+			<h1>{page.title}</h1>
+			<p class="lede">{page.description}</p>
+		</header>
+
+		<div class="boxes">
+			{
+				page.boxes.map((b) => (
+					<div class="box">
+						<span class="box-label">{b.label}</span>
+						<strong class="box-value">{b.value}</strong>
+						{b.sub && <span class="box-sub">{b.sub}</span>}
+					</div>
+				))
+			}
+		</div>
+
+		{
+			page.sections.map((s) => (
+				<section class:list={['card', 'sec', wide(s) && 'sec--wide']} id={s.id}>
+					<h2>{s.title}</h2>
+
+					{/* ---- karşılaştırma tablosu ---- */}
+					{s.kind === 'table' && (
+						<>
+							{s.note && <p class="note">{s.note}</p>}
+							<table class="tbl">
+								<thead>
+									<tr>
+										{s.head.map((h) => (
+											<th scope="col">{h}</th>
+										))}
+									</tr>
+								</thead>
+								<tbody>
+									{s.rows.map((r) => (
+										<tr>
+											<th scope="row">
+												{r.href ? <a href={r.href}>{r.label}</a> : r.label}
+											</th>
+											{r.cells.map((c) => (
+												<td>{c}</td>
+											))}
+										</tr>
+									))}
+								</tbody>
+							</table>
+							<p class="note">
+								Yönetmen, oyuncu, yazar gibi türe özel bölümler ilgili sayfa sayfasında.
+							</p>
+						</>
+					)}
+
+					{/* ---- sayı listeleri (tür, tema, ülke, dil, erişim, format) ---- */}
+					{s.kind === 'counts' && (
+						<>
+							{s.note && <p class="note">{s.note}</p>}
+							<div class="rows">
+								{s.items.slice(0, s.top).map((it) => (
+									<div class="row">
+										<span class="rl">{it.href ? <a href={it.href}>{it.label}</a> : it.label}</span>
+										<span class="rn">{it.count}</span>
+									</div>
+								))}
+							</div>
+							<p class="unknown">Bilinmiyor: {s.unknown}</p>
+							{s.items.length > s.top && (
+								<details class="more">
+									<summary>Tümünü gör ({s.items.length})</summary>
+									<div class="rows">
+										{s.items.map((it) => (
+											<div class="row">
+												<span class="rl">
+													{it.href ? <a href={it.href}>{it.label}</a> : it.label}
+												</span>
+												<span class="rn">{it.count}</span>
+											</div>
+										))}
+									</div>
+								</details>
+							)}
+						</>
+					)}
+
+					{/* ---- kişi listeleri ---- */}
+					{s.kind === 'person' && (
+						<>
+							<p class="note">En az 2 kayıtlı kişi sıralanıyor; tek kayıtlılar tam liste­de. Bir kayıt birden fazla yerde sayılabilir.</p>
+							<div class="rows">
+								{s.ranked.map((it: CountItem) => (
+									<div class="row">
+										<span class="rl">{it.href ? <a href={it.href}>{it.label}</a> : it.label}</span>
+										<span class="rn">{it.count}</span>
+									</div>
+								))}
+							</div>
+							<p class="unknown">Bilinmiyor: {s.unknown}</p>
+							<details class="more">
+								<summary>Tümünü gör ({s.items.length})</summary>
+								<div class="rows">
+									{s.items.map((it) => (
+										<div class="row">
+											<span class="rl">
+												{it.href ? <a href={it.href}>{it.label}</a> : it.label}
+											</span>
+											<span class="rn">{it.count}</span>
+										</div>
+									))}
+								</div>
+							</details>
+						</>
+					)}
+
+					{/* ---- on yıl dağılımı ---- */}
+					{s.kind === 'decades' && (
+						<>
+							<div class="rows rows--bar">
+								{s.buckets.map((b) => (
+									<div class="row row--bar">
+										<span class="rl">{b.label}</span>
+										<span class="bar" aria-hidden="true" style={`--w:${barPct(b.count, Math.max(...s.buckets.map((x) => x.count)))}%`} />
+										<span class="rn">{b.count}</span>
+									</div>
+								))}
+							</div>
+							<p class="unknown">Bilinmiyor: {s.unknown}</p>
+							{s.topYear && (
+								<p class="note">
+									En çok yapım yılı: {s.topYear.label} ({s.topYear.count} kayıt).
+								</p>
+							)}
+						</>
+					)}
+
+					{/* ---- izleme/okuma yılı ---- */}
+					{s.kind === 'years' && (
+						<>
+							<p class="note">
+								Yalnızca tarihi olan {s.withDate} kayıt; kalan {s.total - s.withDate} kayıt bu grafiğe dâhil değil.
+							</p>
+							{s.rows.length === 0 ? (
+								<p class="unknown">Tarihli kayıt yok.</p>
+							) : (
+								<div class="rows rows--bar">
+									{s.rows.map((r) => (
+										<div class="row row--bar">
+											<span class="rl">{r.label}</span>
+											<span class="bar" aria-hidden="true" style={`--w:${r.pct}%`} />
+											<span class="rn">{r.count}</span>
+										</div>
+									))}
+								</div>
+							)}
+						</>
+					)}
+
+					{/* ---- puan dağılımı ---- */}
+					{s.kind === 'ratings' && (
+						<>
+							<p class="note">
+								Ortalama {s.avg} — {s.rated} kayıt puanlı; puansızlar ortalamada yok.
+							</p>
+							<div class="rows rows--bar">
+								{s.buckets.map((b) => (
+									<div class="row row--bar">
+										<span class="rl">{b.label}</span>
+										<span class="bar" aria-hidden="true" style={`--w:${b.pct}%`} />
+										<span class="rn">{b.count}</span>
+									</div>
+								))}
+							</div>
+						</>
+					)}
+
+					{/* ---- düz metin satırları (kitap ekleri) ---- */}
+					{s.kind === 'text' && (
+						<ul class="lines">
+							{s.lines.map((l) => (
+								<li>
+									<span class="ll">{l.label}</span>
+									<span class="lv">{l.value}</span>
+								</li>
+							))}
+						</ul>
+					)}
+				</section>
+			))
+		}
+	</div>
+</Base>
+
+<style>
+	.page-head {
+		margin-bottom: 1.5rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+
+	/* ---- üst kutular ---- */
+	.boxes {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1rem;
+		margin-bottom: 1.75rem;
+	}
+	.box {
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		padding: 0.9rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+	.box-label {
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--text-muted);
+	}
+	.box-value {
+		font-family: var(--font-head);
+		font-size: 1.7rem;
+		line-height: 1.1;
+	}
+	.box-sub {
+		font-size: 0.8rem;
+		color: var(--text-muted);
+	}
+
+	/* ---- bölümler ---- */
+	.sec {
+		padding: 1.1rem 1.2rem 1.3rem;
+		margin-bottom: 1.1rem;
+	}
+	.sec h2 {
+		font-family: var(--font-head);
+		font-size: 1.15rem;
+		margin: 0 0 0.6rem;
+	}
+	.sec--wide {
+		grid-column: 1 / -1;
+	}
+	.note,
+	.unknown {
+		font-size: 0.82rem;
+		color: var(--text-muted);
+		margin: 0.4rem 0 0;
+	}
+
+	/* ---- satırlar ---- */
+	.rows {
+		display: flex;
+		flex-direction: column;
+	}
+	.row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 3.5rem;
+		gap: 0.6rem;
+		align-items: center;
+		padding: 0.28rem 0;
+		border-top: 1px solid var(--border);
+		font-size: 0.92rem;
+	}
+	.rows > .row:first-child {
+		border-top: 0;
+	}
+	.row--bar {
+		grid-template-columns: minmax(0, 1fr) minmax(3rem, 34%) 3.5rem;
+	}
+	.rl {
+		overflow-wrap: anywhere;
+	}
+	.rn {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+		color: var(--text-muted);
+	}
+	.bar {
+		display: block;
+		height: 0.45rem;
+		width: var(--w, 0);
+		min-width: 2px;
+		border-radius: 999px;
+		background: var(--accent);
+	}
+
+	/* ---- tam liste ---- */
+	.more {
+		margin-top: 0.7rem;
+	}
+	.more summary {
+		cursor: pointer;
+		font-size: 0.85rem;
+		color: var(--accent);
+	}
+	.more .rows {
+		margin-top: 0.5rem;
+	}
+
+	/* ---- tablo ---- */
+	.tbl {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.92rem;
+	}
+	.tbl th,
+	.tbl td {
+		text-align: left;
+		padding: 0.35rem 0.6rem 0.35rem 0;
+		border-bottom: 1px solid var(--border);
+		font-variant-numeric: tabular-nums;
+	}
+	.tbl thead th {
+		font-size: 0.78rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--text-muted);
+	}
+
+	/* ---- düz satırlar ---- */
+	.lines {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+	}
+	.lines li {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 0.6rem;
+		padding: 0.3rem 0;
+		border-top: 1px solid var(--border);
+		font-size: 0.92rem;
+	}
+	.lines li:first-child {
+		border-top: 0;
+	}
+	.lv {
+		font-variant-numeric: tabular-nums;
+	}
+
+	@media (max-width: 640px) {
+		.row--bar {
+			grid-template-columns: minmax(0, 1fr) minmax(2rem, 26%) 3rem;
+		}
+		.box-value {
+			font-size: 1.4rem;
+		}
+	}
+</style>

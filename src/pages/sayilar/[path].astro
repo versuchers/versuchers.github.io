@@ -1,0 +1,18 @@
+---
+/**
+ * /sayilar/izleme/, /sayilar/film/, /sayilar/dizi/, /sayilar/kitap/
+ * Hepsi tek şablon (Sayilar.astro) + tek hesap modülü (sayilar.ts);
+ * sayfa yalnızca hangi türlerin dâhil olduğunu yapılandırır.
+ */
+import Sayilar from '../../components/Sayilar.astro';
+import { sayilarPage } from '../../lib/sayilar';
+
+export function getStaticPaths() {
+	return [{ params: { path: 'izleme' } }, { params: { path: 'film' } }, { params: { path: 'dizi' } }, { params: { path: 'kitap' } }];
+}
+
+const path = String(Astro.params.path);
+const page = sayilarPage(path);
+---
+
+<Sayilar page={page} />

@@ -1,0 +1,85 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { genrePages, type GenrePage } from '../../../lib/playlist-genres';
+import { integer } from '../../../lib/music';
+
+export function getStaticPaths() {
+	return genrePages().map((page) => ({ params: { slug: page.slug }, props: { page } }));
+}
+
+const { page } = Astro.props as { page: GenrePage };
+---
+
+<Base title={page.name} description={`Playlistlerde geçen tür: ${page.name}`}>
+	<div class="container section">
+		<nav class="crumbs"><a href="/playlist">← Playlistler</a></nav>
+
+		<header class="page-head">
+			<p class="eyebrow">Playlist türü</p>
+			<h1>{page.name}</h1>
+			<p class="lede">{page.rows.length} playlist</p>
+		</header>
+
+		<ol class="pl-list">
+			{page.rows.map((row) => (
+				<li class="pl-item">
+					<div class="pl-line">
+						<a class="pl-name" href={`/playlist/${row.id}`}>{row.name}</a>
+						<span class="pl-count muted">{integer(row.count)} şarkı</span>
+					</div>
+					{row.folders.length > 0 && (
+						<p class="pl-folders muted">{row.folders.join(' · ')}</p>
+					)}
+				</li>
+			))}
+		</ol>
+	</div>
+</Base>
+
+<style>
+	.pl-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+	}
+
+	.pl-item {
+		border-bottom: 1px solid var(--border);
+		padding-bottom: 0.9rem;
+	}
+
+	.pl-line {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.pl-name {
+		font-weight: 600;
+		color: var(--text);
+		text-decoration: none;
+	}
+
+	.pl-name:hover {
+		color: var(--link-hover);
+		text-decoration: underline;
+	}
+
+	.pl-count {
+		font-family: var(--font-ui);
+		font-size: 0.8rem;
+		white-space: nowrap;
+	}
+
+	.pl-folders {
+		margin: 0.25rem 0 0;
+		font-family: var(--font-ui);
+		font-size: 0.7rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+</style>

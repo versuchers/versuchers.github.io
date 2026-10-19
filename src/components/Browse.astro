@@ -19,17 +19,35 @@ function primaryGenre(e: Entry): string {
 	return e.category;
 }
 
+/** Yapım/basım yılı: film ve dizide üretim yılı, kitapta orijinal basım yılı. */
+function productionYear(e: Entry): string {
+	return e.type === 'kitap' ? e.originalYear || '' : e.year || '';
+}
+/** İzleme/okuma yılı: türetilmiş sayısal alan (ayrıştırılamadıysa null). */
+function watchedYear(e: Entry): number | null {
+	return e.type === 'kitap' ? e.okunmaYili : e.izlenmeYili;
+}
+
+// Etiketler (tür bazında)
+const productionYearLabel = kind === 'kitap' ? 'Basım yılı' : 'Yapım yılı';
+const watchedYearLabel = kind === 'kitap' ? 'Okunduğu yıl' : 'İzlendiği yıl';
+
 // Facet değerleri
 const genres = new Set<string>();
 const years = new Set<string>();
+const watchedYears = new Set<number>();
 for (const e of items) {
 	(primaryGenre(e) || '')
 		.split(',')
 		.forEach((g) => g.trim() && genres.add(g.trim()));
-	if (e.year) years.add(e.year);
+	const py = productionYear(e);
+	if (py) years.add(py);
+	const wy = watchedYear(e);
+	if (wy !== null) watchedYears.add(wy); // null yıllar seçenekte görünmez
 }
 const genreList = [...genres].sort((a, b) => a.localeCompare(b, 'tr'));
 const yearList = [...years].sort((a, b) => Number(b) - Number(a));
+const watchedYearList = [...watchedYears].sort((a, b) => b - a);
 
 // Başlangıç sıralaması
 const sortOptions = [
@@ -49,7 +67,7 @@ const collator = new Intl.Collator('tr');
 const sorters: Record<string, (a: Entry, b: Entry) => number> = {
 	title: (a, b) => collator.compare(fold(a.title), fold(b.title)),
 	rating: (a, b) => (b.rating ?? 0) - (a.rating ?? 0),
-	year: (a, b) => Number(b.year || 0) - Number(a.year || 0),
+	year: (a, b) => Number(productionYear(b) || 0) - Number(productionYear(a) || 0),
 	review: (a, b) =>
 		(parseTrDate(b.reviewDate)?.getTime() ?? 0) -
 		(parseTrDate(a.reviewDate)?.getTime() ?? 0),
@@ -84,10 +102,18 @@ const sortedItems = items
 		</label>
 
 		<label class="field">
-			<span>Yıl</span>
+			<span>{productionYearLabel}</span>
 			<select data-f="year">
 				<option value="">Hepsi</option>
 				{yearList.map((y) => <option value={y}>{y}</option>)}
+			</select>
+		</label>
+
+		<label class="field">
+			<span>{watchedYearLabel}</span>
+			<select data-f="wyear">
+				<option value="">Hepsi</option>
+				{watchedYearList.map((y) => <option value={y}>{y}</option>)}
 			</select>
 		</label>
 
@@ -128,7 +154,8 @@ const sortedItems = items
 					class="cell"
 					data-title={fold(e.title)}
 					data-genre={fold(primaryGenre(e) || '')}
-					data-year={e.year || ''}
+					data-year={productionYear(e)}
+					data-wyear={watchedYear(e) ?? ''}
 					data-rating={String(e.rating ?? 0)}
 					data-review={String(parseTrDate(e.reviewDate)?.getTime() ?? 0)}
 					data-index={String(index)}
@@ -155,6 +182,7 @@ const sortedItems = items
 		const search = root.querySelector<HTMLInputElement>('[data-f="search"]')!;
 		const genre = root.querySelector<HTMLSelectElement>('[data-f="genre"]')!;
 		const year = root.querySelector<HTMLSelectElement>('[data-f="year"]')!;
+		const wyear = root.querySelector<HTMLSelectElement>('[data-f="wyear"]')!;
 		const rating = root.querySelector<HTMLSelectElement>('[data-f="rating"]')!;
 		const sort = root.querySelector<HTMLSelectElement>('[data-f="sort"]')!;
 		const reset = root.querySelector<HTMLButtonElement>('[data-f="reset"]')!;
@@ -195,6 +223,7 @@ const sortedItems = items
 			const q = fold(search.value.trim());
 			const g = genre.value;
 			const y = year.value;
+			const wy = wyear.value;
 			const r = rating.value ? Number(rating.value) : 0;
 
 			if (q && !index) {
@@ -209,6 +238,9 @@ const sortedItems = items
 				if (q && !(index?.[num(cell, 'index')] ?? '').includes(q)) ok = false;
 				if (ok && g && !(cell.dataset.genre ?? '').includes(g)) ok = false;
 				if (ok && y && cell.dataset.year !== y) ok = false;
+				// İzleme/okuma yılı: null yıllar ("Hepsi" açıkken görünür) seçili
+				// yılda eşleşmediği için listeden çıkar.
+				if (ok && wy && (cell.dataset.wyear ?? '') !== wy) ok = false;
 				if (ok && r && num(cell, 'rating') < r) ok = false;
 
 				cell.hidden = !ok;
@@ -237,7 +269,7 @@ const sortedItems = items
 			empty.hidden = visible !== 0;
 		}
 
-		[search, genre, year, rating, sort].forEach((el) =>
+		[search, genre, year, wyear, rating, sort].forEach((el) =>
 			el.addEventListener('input', apply),
 		);
 		search.addEventListener('focus', ensureIndex, { once: true });
@@ -245,16 +277,18 @@ const sortedItems = items
 			search.value = '';
 			genre.value = '';
 			year.value = '';
+			wyear.value = '';
 			rating.value = '';
 			sort.value = defaultSort;
 			apply();
 		});
 
-		// URL parametrelerinden başlangıç durumu (?q= &tur= &yil=)
+		// URL parametrelerinden başlangıç durumu (?q= &tur= &yil= &izyil=)
 		const params = new URLSearchParams(location.search);
 		if (params.get('q')) search.value = params.get('q')!;
 		if (params.get('tur')) genre.value = fold(params.get('tur')!);
 		if (params.get('yil')) year.value = params.get('yil')!;
+		if (params.get('izyil')) wyear.value = params.get('izyil')!;
 
 		apply();
 	});

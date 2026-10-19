@@ -187,6 +187,8 @@ const { label, unit, indexUrl, rows, kat, baseUrl, years = [] } = Astro.props;
 			try {
 				const res = await fetch(`/data/muzik/yil/${yil}-${kat}.json`);
 				const data = await res.json() as { items: Array<{name:string,sub?:string,plays:number,href:string|null,img:string|null}> };
+				// tür listesinde sıralama = ekrandaki çalma sayısı; eşitlikte ad A→Z
+				if (kat === 'tur') data.items.sort((a, b) => b.plays - a.plays || a.name.localeCompare(b.name, 'tr'));
 				cache.set(yil, data.items.map(x => ({title: x.name, sub: x.sub, plays: x.plays, href: x.href ?? '', src: x.img ?? undefined, round: kat === 'sanatci'})));
 				return cache.get(yil)!;
 			} catch {

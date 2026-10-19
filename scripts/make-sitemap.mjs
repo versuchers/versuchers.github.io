@@ -96,7 +96,11 @@ const walk = (dir) => {
 	return res;
 };
 
+// Yönlendirme sayfaları (meta refresh) ve 404 indekslenmez.
+const isRedirectPage = (f) => readFileSync(f, 'utf-8').includes('http-equiv="refresh"');
+
 const urls = walk(DIST)
+	.filter((f) => !isRedirectPage(f))
 	.map((f) => path.relative(DIST, f).split(path.sep).join('/'))
 	.filter((p) => p !== '404.html')
 	.map((p) => (p === 'index.html' ? '/' : p.endsWith('/index.html') ? `/${p.slice(0, -'index.html'.length)}` : `/${p}`))

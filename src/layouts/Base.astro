@@ -11,12 +11,15 @@ interface Props {
 	ogImage?: string;
 	/** Ana sayfada tam genişlik hero için */
 	wide?: boolean;
+	/** Birleştirilmiş/bir sayfadan taşınmış içerik için kalıcı yönlendirme */
+	redirect?: string;
 }
 
 const {
 	title = 'Versucher',
 	description = 'İzlediğim filmler, diziler ve okuduğum kitaplardan kişisel bir arşiv.',
 	ogImage,
+	redirect,
 } = Astro.props;
 
 const path = Astro.url.pathname;
@@ -50,6 +53,8 @@ const ogUrl = og ?? new URL('/og.png', site).href;
 		<title>{fullTitle}</title>
 		<meta name="description" content={description} />
 		<link rel="canonical" href={canonical} />
+		{redirect && <meta http-equiv="refresh" content={`0;url=${redirect}`} />}
+		{redirect && <meta name="robots" content="noindex" />}
 		<link rel="alternate" type="application/rss+xml" title="Versucher — yazılar" href="/rss.xml" />
 
 		<meta property="og:type" content="website" />

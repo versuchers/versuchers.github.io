@@ -5,7 +5,7 @@
 import filmsJson from '../data/film.json';
 import seriesJson from '../data/dizi.json';
 import booksJson from '../data/kitap.json';
-import { parseTrDate, parseLooseTrDate, formatLooseTrDate, formatYearRange } from './format';
+import { parseTrDate, parseLooseTrDate, parseYearOnly, formatLooseTrDate, formatYearRange } from './format';
 import { fold, splitMulti, tagSlug } from './text';
 import {
 	buildPeople,
@@ -54,6 +54,8 @@ export interface Film extends BaseEntry {
 	firstCity: string;
 	watchDate: string;
 	watchDateISO: string;
+	/** Türetilmiş: watchDate'den çıkarılan sayısal izleme yılı (yoksa null). */
+	izlenmeYili: number | null;
 	platform: string;
 	seriesOrder: string;
 	country: string;
@@ -67,6 +69,8 @@ export interface Dizi extends BaseEntry {
 	type: 'dizi';
 	yearRange: string;
 	startedYear: string;
+	/** Türetilmiş: startedYear'den çıkarılan sayısal izleme yılı (yoksa null). */
+	izlenmeYili: number | null;
 	cast: { name: string; role: string }[];
 	genre: string;
 	mainLabel: string;
@@ -101,6 +105,8 @@ export interface Kitap extends BaseEntry {
 	mainTheme: string;
 	access: string;
 	readYear: string;
+	/** Türetilmiş: readYear'den çıkarılan sayısal okuma yılı (yoksa null). */
+	okunmaYili: number | null;
 	reason: string;
 	discovery: string;
 	protagonist: string;
@@ -123,9 +129,24 @@ export interface Kitap extends BaseEntry {
 
 export type Entry = Film | Dizi | Kitap;
 
-export const films = filmsJson as unknown as Film[];
-export const series = seriesJson as unknown as Dizi[];
-export const books = booksJson as unknown as Kitap[];
+/* --------------------------------------------------------------------------
+   Türetilmiş alanlar: yıl filtreleri için ham metin tarih/yıl değerlerinden
+   sayısal yıl çıkarılır (bkz. parseYearOnly). Ham JSON dosyalarına yazılmaz;
+   alan yalnızca bu bellek içi zenginleştirmede bulunur. Ayrıştırılamayan
+   değer null kalır ve yıl filtresinde "Hepsi" açıkken görünür.
+   -------------------------------------------------------------------------- */
+export const films = (filmsJson as unknown as Film[]).map((e) => ({
+	...e,
+	izlenmeYili: parseYearOnly(e.watchDate),
+}));
+export const series = (seriesJson as unknown as Dizi[]).map((e) => ({
+	...e,
+	izlenmeYili: parseYearOnly(e.startedYear),
+}));
+export const books = (booksJson as unknown as Kitap[]).map((e) => ({
+	...e,
+	okunmaYili: parseYearOnly(e.readYear),
+}));
 
 export const allEntries: Entry[] = [...films, ...series, ...books];
 

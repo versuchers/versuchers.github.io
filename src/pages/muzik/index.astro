@@ -149,6 +149,7 @@ const dowNames = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cum
 				</div>
 				<a class="more" href="/muzik/turler" data-yil-link data-base="/muzik/turler">Tümü →</a>
 			</div>
+			<p class="panel-note muted">Bir sanatçı birden fazla türde sayıldığı için türler birbirini kapsar (örn. metal; black, doom ve death metal'i içerir); toplamları toplamayın.</p>
 			<ul class="lines" data-yil-list>
 				{genres.slice(0, 10).map((g, i) => (
 					<li class="mline">
@@ -408,7 +409,10 @@ const dowNames = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cum
 				if (!cache.has(key)) {
 					try {
 						const res = await fetch(`/data/muzik/yil/${yil}-${kat}.json`);
-						cache.set(key, (await res.json()) as { items: YearItem[] });
+						const data = (await res.json()) as { items: YearItem[] };
+						// tür panelinde sıralama anahtarı = ekrandaki çalma sayısı (eşitlikte ad A→Z)
+						if (kat === 'tur') data.items.sort((a, b) => b.plays - a.plays || a.name.localeCompare(b.name, 'tr'));
+						cache.set(key, data);
 					} catch {
 						cache.set(key, { items: [] });
 					}
@@ -466,6 +470,12 @@ const dowNames = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cum
 		margin: 0.5rem 0 0;
 		font-family: var(--font-meta);
 		font-size: 0.85rem;
+	}
+	.panel-note {
+		margin: -0.85rem 0 1rem;
+		font-family: var(--font-meta);
+		font-size: 0.82rem;
+		line-height: 1.45;
 	}
 
 	/* satır listesi (türler, şarkılar) */

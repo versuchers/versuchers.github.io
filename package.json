@@ -18,7 +18,7 @@
     "spotify:covers": "node --env-file-if-exists=.env scripts/fetch-playlist-covers.mjs",
     "spotify:prune": "node --env-file-if-exists=.env scripts/prune-playlists.mjs",
     "dev": "astro dev",
-    "build": "astro build && node scripts/make-sitemap.mjs",
+    "build": "node scripts/build-genre-report.mjs && astro build && node scripts/make-sitemap.mjs",
     "check": "astro check",
     "preview": "astro preview",
     "astro": "astro"

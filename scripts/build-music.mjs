@@ -228,40 +228,121 @@ async function main() {
 		trackSlug.set(uri, s);
 	}
 
-	// Aynı (sanatçı + albüm + şarkı) adına sahip kayıtlar tek kayıtta birleştirilir.
-	// Bunlar aynı şarkının farklı Spotify URI'leridir (single/albüm sürümü, bölgesel
-	// yayın vb.) ve listelerde mükerrer satır oluşturmamalı. Çalma ile süre toplanır,
-	// yıllık seriler eklenir; temsilci URI en çok çalınan sürümdür, slug (dolayısıyla
-	// kapak) ondan alınır — böylece mevcut slug/kapak anahtarları korunur.
-	const mergedTracks = new Map(); // sanatçı \u0000 albüm \u0000 şarkı -> kayıt
-	const mergedByArtist = new Map(); // sanatçı -> Map(k -> kayıt)
-	const mergedByAlbum = new Map(); // sanatçı \u0000 albüm -> Map(k -> kayıt)
+	// ---------------------------------------------------- şarkı birleştirme
+	// Aynı şarkının farklı sürümleri (single, albüm, yeniden yayın) tek kayıtta
+	// birleşir. Anahtar: sanatçı + normalize edilmiş şarkı adı — küçük harf (tr),
+	// tırnak ve noktalama silinir ("Yansın!" == "Yansın"), boşluklar tekil;
+	// Türkçe karakterler korunur (ı/i, ş/s EŞİTLENMEZ). Kazanan = en çok çalınan
+	// sürüm; eşitlikte en eski ilk dinlemeli sürüm (arşivde çıkış tarihi alanı
+	// yoktur; en yakın gösterge ilk dinlenme tarihidir). Kazananın albümü,
+	// uri'si ve slug'ı (dolayısıyla sayfası ve görseli) korunur; kaybeden
+	// sürümlerin çalmaları (yıllar dâhil) kazanana eklenir.
+	// DOKUNULMAYANLAR: albüm/sanatçı toplamları, genel çalma/saat, ısı haritası,
+	// tür sayıları — bunlar ham döngüden beslenmeye devam eder. Albüm
+	// sayfalarının şarkı listeleri de ham (albüm-bazlı) toplamlardır; yalnızca
+	// sayfa bağlantıları kazananın adresine yönlendirilir.
+	const normTrackName = (name) =>
+		String(name ?? '')
+			.toLocaleLowerCase('tr')
+			.replace(/[‘’‛ʼ´`']/g, '')
+			.replace(/[\p{P}\p{S}]/gu, ' ')
+			.replace(/\s+/g, ' ')
+			.trim();
+
+	const groups = new Map(); // sanatçıKey \u0000 norm ad -> { ak, members, spellings }
 	for (const [uri, t] of tracks) {
-		const albKey = t.artist + A0 + t.album;
-		const k = albKey + A0 + t.name;
-		let v = mergedTracks.get(k);
-		if (!v) {
-			v = {
-				name: t.name, artist: t.artist, album: t.album, uri,
-				plays: 0, ms: 0, first: null, last: null, byYear: blank(), slug: null, best: -1,
-			};
-			mergedTracks.set(k, v);
-			const tak = artistKey(t.artist);
-			let ma = mergedByArtist.get(tak);
-			if (!ma) { ma = new Map(); mergedByArtist.set(tak, ma); }
-			ma.set(k, v);
-			let mb = mergedByAlbum.get(albKey);
-			if (!mb) { mb = new Map(); mergedByAlbum.set(albKey, mb); }
-			mb.set(k, v);
-		}
-		v.plays += t.plays;
-		v.ms += t.ms;
-		if (t.first && (v.first === null || t.first < v.first)) v.first = t.first;
-		if (t.last && (v.last === null || t.last > v.last)) v.last = t.last;
-		for (let i = 0; i < YN; i++) v.byYear[i] += t.byYear[i];
-		if (t.plays > v.best) { v.best = t.plays; v.uri = uri; }
+		const ak = artistKey(t.artist);
+		const gk = ak + A0 + normTrackName(t.name);
+		let g = groups.get(gk);
+		if (!g) { g = { ak, members: [], spellings: new Set() }; groups.set(gk, g); }
+		g.members.push({ uri, name: t.name, artist: t.artist, album: t.album, plays: t.plays, ms: t.ms, first: t.first, last: t.last, byYear: t.byYear });
+		g.spellings.add(t.artist);
 	}
-	for (const v of mergedTracks.values()) v.slug = trackSlug.get(v.uri) ?? null;
+
+	const mergedTracks = new Map(); // anahtar -> birleşik şarkı kaydı
+	const mergedByArtist = new Map(); // sanatçıKey -> Map(anahtar -> kayıt)
+	// albüm sayfalarının şarkı listeleri: ham albüm-bazlı toplamlar
+	const albumTrackLists = new Map(); // albKey -> Map(normAd -> {name, artist, plays, ms, best})
+	for (const t of tracks.values()) {
+		const albKey = t.artist + A0 + t.album;
+		let mp = albumTrackLists.get(albKey);
+		if (!mp) { mp = new Map(); albumTrackLists.set(albKey, mp); }
+		const ak = normTrackName(t.name);
+		let e = mp.get(ak);
+		if (!e) { e = { name: t.name, artist: t.artist, plays: 0, ms: 0, best: -1 }; mp.set(ak, e); }
+		e.plays += t.plays;
+		e.ms += t.ms;
+		if (t.plays > e.best) { e.best = t.plays; e.name = t.name; }
+	}
+
+	const merges = [];
+	const suspects = [];
+	const yearOf = (m) => (m.first ? new Date(new Date(m.first).getTime() + TZ_MS).getUTCFullYear() : null);
+	for (const g of groups.values()) {
+		const sorted = [...g.members].sort(
+			(x, y) =>
+				y.plays - x.plays ||
+				(yearOf(x) ?? 9999) - (yearOf(y) ?? 9999) ||
+				String(x.first || '').localeCompare(String(y.first || '')),
+		);
+		const w = sorted[0];
+		const v = {
+			name: w.name, artist: w.artist, album: w.album, uri: w.uri,
+			plays: 0, ms: 0, first: null, last: null, byYear: blank(), slug: null, alsoPlayed: [],
+		};
+		for (const m of g.members) {
+			v.plays += m.plays;
+			v.ms += m.ms;
+			if (m.first && (v.first === null || m.first < v.first)) v.first = m.first;
+			if (m.last && (v.last === null || m.last > v.last)) v.last = m.last;
+			for (let i = 0; i < YN; i++) v.byYear[i] += m.byYear[i];
+		}
+		v.slug = trackSlug.get(w.uri) ?? null;
+		mergedTracks.set(g.ak + A0 + normTrackName(w.name), v);
+		let ma = mergedByArtist.get(g.ak);
+		if (!ma) { ma = new Map(); mergedByArtist.set(g.ak, ma); }
+		ma.set(g.ak + A0 + normTrackName(w.name), v);
+
+		const losers = sorted.slice(1);
+		if (!losers.length) continue;
+		// şarkı sayfası notu: kaybeden sürümlerin albümleri (çalmalarıyla)
+		const byAlbum = new Map();
+		for (const l of losers) {
+			if (l.plays > 0) byAlbum.set(l.album, (byAlbum.get(l.album) || 0) + l.plays);
+		}
+		v.alsoPlayed = [...byAlbum.entries()]
+			.map(([album, plays]) => ({ album, plays }))
+			.sort((a, b) => b.plays - a.plays);
+		merges.push({
+			key: `${w.artist} · ${v.name}`,
+			winner: { name: w.name, artist: w.artist, album: w.album, slug: trackSlug.get(w.uri) ?? null, plays: w.plays, firstYear: yearOf(w) },
+			merged: losers.map((l) => ({ name: l.name, album: l.album, uri: l.uri, slug: trackSlug.get(l.uri) ?? null, plays: l.plays, firstYear: yearOf(l) })),
+			playsBefore: g.members.map((m) => m.plays),
+			playsAfter: v.plays,
+		});
+		// şüphe listesi: çok farklı ilk dinleme yılları veya farklı sanatçı yazımları
+		const ys = g.members.map(yearOf).filter((y) => y);
+		const reasons = [];
+		if (ys.length && Math.max(...ys) - Math.min(...ys) >= 5) {
+			reasons.push(`ilk dinleme yılları çok farklı (${Math.min(...ys)}–${Math.max(...ys)})`);
+		}
+		if (g.spellings.size > 1) reasons.push(`farklı sanatçı yazımları: ${[...g.spellings].join(' / ')}`);
+		if (reasons.length) {
+			suspects.push({ key: `${w.artist} · ${v.name}`, reasons, merged: losers.map((l) => `${l.album} (${l.plays} çalma, ${yearOf(l) ?? '?'})`) });
+		}
+	}
+
+	const mergeReport = {
+		generatedAt: new Date().toISOString(),
+		rule: 'sanatçı + normalize(edilmiş) şarkı adı; kazanan = en çok çalma, eşitlikte en eski ilk dinleme',
+		normalize: "küçük harf (tr); tırnak ve noktalama silinir; boşluklar tekil; Türkçe karakterler korunur (ı/i, ş/s eşitlenmez)",
+		yearNote: 'Arşivde çıkış tarihi yoktur; şüpheli kontrolünde ilk dinlenme yılı gösterge olarak kullanılır.',
+		groups: groups.size,
+		rawTrackRecords: tracks.size,
+		mergedAway: merges.reduce((s, m) => s + m.merged.length, 0),
+		merges,
+		suspects,
+	};
 
 	// ------------------------------------------------------------- diziler
 	const num = (m, k) => m.get(k) || 0;
@@ -319,15 +400,22 @@ async function main() {
 		});
 	}
 
-	// albüm detay kayıtları
+	// albüm detay kayıtları (HAM: albüm-bazlı toplamlar; bağlantılar birleşimin
+	// kazanan şarkı sayfasına gider)
 	const albumArr = [];
 	for (const [k, al] of albums) {
 		if (al.plays < DETAIL_MIN) continue;
-		const tt = [...(mergedByAlbum.get(k)?.values() || [])]
-			.filter((x) => x.plays > 0)
-			.sort((x, y) => y.plays - x.plays)
+		const tak = artistKey(al.artist);
+		const tt = [...(albumTrackLists.get(k)?.entries() || [])]
+			.filter(([, x]) => x.plays > 0)
+			.sort((a, b) => b[1].plays - a[1].plays)
 			.slice(0, 30)
-			.map((x) => ({ name: x.name, plays: x.plays, ms: x.ms, slug: x.slug }));
+			.map(([ak, x]) => ({
+				name: x.name,
+				plays: x.plays,
+				ms: x.ms,
+				slug: mergedTracks.get(tak + A0 + ak)?.slug ?? null,
+			}));
 		albumArr.push({
 			slug: albumSlug.get(k),
 			name: al.name,
@@ -337,13 +425,14 @@ async function main() {
 			ms: al.ms,
 			first: al.first,
 			last: al.last,
-			trackCount: [...(mergedByAlbum.get(k)?.values() || [])].filter((x) => x.plays > 0).length,
+			trackCount: [...(albumTrackLists.get(k) || new Map()).values()].filter((x) => x.plays > 0).length,
 			byYear: al.byYear,
 			tracks: tt,
 		});
 	}
 
-	// şarkı detay kayıtları (aynı sanatçı \u0000 albüm \u0000 şarkı adı birleşiktir)
+	// şarkı detay kayıtları (sanatçı + normalize ad birleşiktir; alsoPlayed =
+	// birleşen diğer sürümlerin albüm ve çalma toplamları)
 	const trackArr = [];
 	for (const v of mergedTracks.values()) {
 		if (v.plays < DETAIL_MIN) continue;
@@ -359,6 +448,7 @@ async function main() {
 			first: v.first,
 			last: v.last,
 			byYear: v.byYear,
+			...(v.alsoPlayed.length ? { alsoPlayed: v.alsoPlayed } : {}),
 		});
 	}
 
@@ -442,6 +532,7 @@ async function main() {
 	await write('artists.json', artistArr);
 	await write('albums.json', albumArr);
 	await write('tracks.json', trackArr);
+	await write('merge-report.json', mergeReport);
 
 	// --------------------------------------------------- yıl başına ilk 100
 	// /muzik sayfasındaki yıl sekmeleri: her yıl, her kategoride o yılın en
@@ -526,6 +617,14 @@ async function main() {
 	console.log(`Dinlenen gün     : ${f(sortedDays.length)}`);
 	console.log(`Liste (ilk 666)  : ${f(artistArr.length)} sanatçı, ${f(albumArr.length)} albüm, ${f(trackArr.length)} şarkı`);
 	console.log(`Yıl listeleri   : ${f(yearFiles)} dosya (public/data/muzik/, yılda ${f(YEAR_LIMIT)}er kayıt)`);
+	const topMerges = [...merges].sort((a, b) => b.playsAfter - a.playsAfter).slice(0, 5);
+	console.log(
+		`Şarkı birleştirme: ${f(merges.length)} grup, ${f(mergeReport.mergedAway)} sürüm kaydı kazanana eklendi (şüpheli: ${f(suspects.length)})`,
+	);
+	for (const m of topMerges) {
+		console.log(`   ${m.key}: ${m.playsBefore.join(' + ')} = ${m.playsAfter}  [kazanan: ${m.winner.album}]`);
+	}
+	console.log(`  rapor: src/data/music/merge-report.json`);
 	console.log(`✓ Yazıldı: src/data/music/`);
 }
 

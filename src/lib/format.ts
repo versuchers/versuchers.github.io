@@ -64,6 +64,33 @@ export function parseLooseTrDate(value?: string | null): Date | null {
 	return null;
 }
 
+/**
+ * Yıl filtreleri için sayısal yıl çıkarımı. Yalnızca açık biçimler kabul edilir:
+ *   'gg.aa.yyyy[ hh:mm]' → yıl (saat kısmı yok sayılır)
+ *   'Ekim 2026' | '2026 Ekim' → yıl (ay adı büyük/küçük harfe duyarsız)
+ *   '2026' → yıl
+ * Ayrıştırılamayan veya boş değer → null (tahmin edilmez, hata fırlatılmaz).
+ */
+export function parseYearOnly(value?: string | null): number | null {
+	const raw = String(value ?? '').trim();
+	if (!raw) return null;
+	const dmy = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})(?:[ T]\d{1,2}:\d{2}(?::\d{2})?)?$/);
+	if (dmy) return Number(dmy[3]);
+	if (/^\d{4}$/.test(raw)) return Number(raw);
+	const parts = raw.split(/\s+/);
+	if (parts.length === 2) {
+		const year = parts.find((p) => /^\d{4}$/.test(p));
+		// Büyük/küçük harf duyarsız eşleme: Türkçe I/İ kayması için iki taraf da
+		// aynı katlamadan geçer ('EKIM' → 'ekim').
+		const foldCase = (s: string) => s.toLocaleLowerCase('tr').replace(/ı/g, 'i');
+		const month = parts.some((p) =>
+			TR_MONTHS_LOWER.some((m) => foldCase(m) === foldCase(p)),
+		);
+		if (year && month) return Number(year);
+	}
+	return null;
+}
+
 /** Gevşek tarihin görünümü (gün/ay/yıl sırasıyla): '20 Ocak 2026' | 'Ağustos 2026' | '2025'. */
 export function formatLooseTrDate(value?: string | null): string {
 	const raw = String(value ?? '').trim();
