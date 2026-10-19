@@ -1,0 +1,78 @@
+---
+import Base from '../../../layouts/Base.astro';
+import MusicBrowse from '../../../components/MusicBrowse.astro';
+import { genrePages } from '../../../lib/artist-info';
+import { cover, durationText, integer, type Artist } from '../../../lib/music';
+
+export function getStaticPaths() {
+	return genrePages.map((g) => ({
+		params: { slug: g.slug },
+		props: { name: g.name, artists: g.artists },
+	}));
+}
+
+const { name, artists } = Astro.props as { name: string; artists: Artist[] };
+
+const rows = artists.map((a) => ({
+	href: `/muzik/sanatci/${a.slug}`,
+	title: a.name,
+	sub: `${integer(a.trackCount)} şarkı · ${durationText(a.ms)}`,
+	round: true,
+	src: cover('artist', a.slug),
+	plays: a.plays,
+}));
+---
+
+<Base
+	title={`${name} — Müzik türü`}
+	description={`${name} türünde dinlediğim ${artists.length} sanatçı; çalma sayısına göre.`}
+>
+	<div class="container section">
+		<nav class="crumbs" aria-label="Kırıntı">
+			<a href="/">Ana sayfa</a>
+			<span aria-hidden="true">/</span>
+			<a href="/muzik">Müzik</a>
+			<span aria-hidden="true">/</span>
+			<a href="/muzik/turler">Türler</a>
+		</nav>
+		<header class="page-head">
+			<p class="eyebrow">Tür</p>
+			<h1>{name}</h1>
+			<p class="lede">
+				<strong>{artists.length}</strong> sanatçı · <a href="/muzik/turler">tüm türler</a>
+			</p>
+		</header>
+		<MusicBrowse label="Sanatçılar" unit="sanatçı" rows={rows} />
+	</div>
+</Base>
+
+<style>
+	.crumbs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		font-family: var(--font-ui);
+		font-size: 0.72rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+		margin-bottom: 1.5rem;
+	}
+	.crumbs a {
+		color: var(--text-muted);
+	}
+	.crumbs a:hover {
+		color: var(--link-hover);
+	}
+	.page-head {
+		margin-bottom: 2rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+	.lede strong {
+		font-family: var(--font-card);
+		font-weight: 400;
+		color: var(--text);
+	}
+</style>

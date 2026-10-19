@@ -5,9 +5,6 @@ import { durationShort } from '../../lib/music';
 import {
 	getPlaylistById,
 	listedPlaylists,
-	getPlaylistFolderIds,
-	playlistFolders,
-	folderDisplayName,
 } from '../../lib/playlists';
 import { artistHref, trackHref } from '../../lib/playlist-xref';
 import { keptGenres, genreHref } from '../../lib/playlist-genres';
@@ -26,10 +23,6 @@ if (!pl) {
 const kept = keptGenres(pl);
 
 const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim() : '';
-const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
-	id,
-	name: folderDisplayName(playlistFolders.folders[id]?.name ?? id),
-}));
 ---
 
 <Base title={pl.name} description={`Spotify playlist: ${pl.name}`}>
@@ -42,24 +35,17 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 			</div>
 			<div class="pl-info">
 				<p class="eyebrow">Playlist</p>
-				{folderNames.length > 0 && (
-					<p class="pl-folders">
-						{folderNames.map((f) => (
-							<a class="pl-folder" href={`/playlist?k=${f.id}`}>{f.name}</a>
-						))}
-					</p>
-				)}
-				<h1>{pl.name.trim() || '(isimsiz)'}</h1>
+				<h1>
+					{pl.name.trim() || '(isimsiz)'}
+					<a class="pl-spotify" href={pl.url} target="_blank" rel="noopener" aria-label="Spotify'da aç" title="Spotify'da aç">
+						<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+					</a>
+				</h1>
 				{description && <p class="lede">{description}</p>}
 				<p class="muted">
 					{pl.trackCount} şarkı · {pl.artistCount} artist · {pl.albumCount} albüm
 					{pl.name === 'Serpent Culture' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
 				</p>
-				<div class="pl-actions">
-					<a class="btn btn--accent" href={pl.url} target="_blank" rel="noopener">
-						Spotify'da aç
-					</a>
-				</div>
 			</div>
 		</header>
 
@@ -67,10 +53,11 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 			<section class="panel">
 				<h2>Türler</h2>
 				{pl.genres.length > 0 && kept.length > 0 ? (
-					<ul class="chip-list">
+					<ul class="genres">
 						{kept.map((g) => (
-							<li class="chip">
-								<a href={genreHref(g.name)}>{g.name} ({g.count})</a>
+							<li class="gr">
+								<a class="gr-name" href={genreHref(g.name)}>{g.name}</a>
+								<span class="gr-count muted">{g.count}</span>
 							</li>
 						))}
 					</ul>
@@ -124,13 +111,39 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 		font-family: var(--font-ui);
 		font-size: 0.85rem;
 	}
-	.chip a {
-		color: inherit;
-		text-decoration: none;
+	/* Tür listesi: şarkı listesiyle aynı satır düzeni; taşarsa kendi içinde kayar. */
+	.genres {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		max-height: 32rem;
+		overflow: auto;
 	}
-	.chip a:hover {
+	.gr {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 0.6rem;
+		padding-bottom: 0.3rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.gr-name {
+		font-size: 17px;
+		color: inherit;
+	}
+	.gr-name:hover {
 		color: var(--link-hover);
 		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+	.gr-count {
+		font-family: var(--font-meta);
+		font-size: 0.78rem;
+		font-variant-numeric: tabular-nums;
+		color: var(--text-faint);
 	}
 	.pl-head {
 		display: grid;
@@ -138,6 +151,11 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 		gap: 1.2rem;
 		align-items: start;
 		margin-bottom: 1.6rem;
+		background: var(--surface);
+		border-radius: 14px;
+		box-shadow: var(--shadow);
+		padding: clamp(1.15rem, 2.6vw, 1.85rem) clamp(1.15rem, 3vw, 2.25rem)
+			clamp(1.4rem, 3vw, 2.25rem);
 	}
 	.pl-cover :global(.mcover) {
 		border: 1px solid var(--border-strong);
@@ -147,26 +165,20 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 	.pl-info h1 {
 		margin: 0.15rem 0 0.5rem;
 	}
-	.pl-folders {
-		margin: 0 0 0.35rem;
-	}
-	.pl-folder {
-		display: inline-block;
-		font-family: var(--font-ui);
-		font-size: 0.76rem;
-		padding: 0.24rem 0.6rem;
-		border: 1px solid var(--border);
-		border-radius: 999px;
-		background: var(--surface-2);
+	.pl-spotify {
+		display: inline-flex;
+		vertical-align: -0.08em;
+		margin-left: 0.4rem;
 		color: var(--text-muted);
-		text-decoration: none;
+		transition: color var(--dur) var(--ease);
 	}
-	.pl-folder:hover {
-		border-color: var(--accent);
-		color: var(--text);
+	.pl-spotify:hover {
+		color: var(--link-hover);
 	}
-	.pl-actions {
-		margin-top: 0.7rem;
+	.pl-spotify svg {
+		width: 0.62em;
+		height: 0.62em;
+		fill: currentColor;
 	}
 	.two {
 		display: grid;
@@ -192,7 +204,7 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 		border-bottom: 1px solid var(--border);
 	}
 	.tr-name {
-		font-size: 0.92rem;
+		font-size: 17px;
 	}
 	.tr-name:where(a) {
 		color: inherit;
@@ -201,11 +213,11 @@ const folderNames = getPlaylistFolderIds(pl.id).map((id) => ({
 		color: var(--link-hover);
 	}
 	.tr-sep {
-		font-size: 0.92rem;
+		font-size: 17px;
 	}
 	.tr-art {
-		font-family: var(--font-meta);
-		font-size: 0.78rem;
+		font-family: var(--font-card);
+		font-size: 17px;
 	}
 	@media (max-width: 640px) {
 		.pl-head,

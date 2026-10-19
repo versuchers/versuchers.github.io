@@ -2,8 +2,10 @@
 import Base from '../../layouts/Base.astro';
 import MusicBrowse from '../../components/MusicBrowse.astro';
 import { genres, stats } from '../../lib/music';
+import { genrePageHref } from '../../lib/artist-info';
 
 const rows = genres.map((g) => ({
+	href: genrePageHref(g.name) ?? undefined,
 	title: g.name,
 	sub: `${g.artists} sanatçı`,
 	plays: g.plays,

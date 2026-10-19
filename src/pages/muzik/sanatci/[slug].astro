@@ -9,12 +9,12 @@ import {
 	integer,
 	durationText,
 	musicDate,
-	spotifySearchUrl,
 	hasTrack,
 	hasAlbum,
 	type Artist,
 } from '../../../lib/music';
 import { artistPlaylists } from '../../../lib/playlist-xref';
+import { artistExtra } from '../../../lib/artist-info';
 
 export function getStaticPaths() {
 	return artists.map((a) => ({ params: { slug: a.slug }, props: { a } }));
@@ -42,6 +42,10 @@ const description = `${a.name} — ${integer(a.plays)} çalma, ${durationText(a.
 
 // Public playlistlerdeki varlığı (kural: yalnızca sayfası olan sanatçılar eşleşir).
 const plData = artistPlaylists(a.slug);
+
+// Tür satırı: ilk 3 tür; siyah liste + çıplak "metal" etiketi elenir, her tür
+// kendi etiket sayfasına bağlanır.
+const artistInfo = artistExtra(a.slug);
 ---
 
 <Base title={`${a.name} — Müzik`} description={description} ogImage={cover('artist', a.slug)}>
@@ -52,7 +56,7 @@ const plData = artistPlaylists(a.slug);
 		title={a.name}
 		coverSrc={cover('artist', a.slug)}
 		round
-		links={[{ label: 'Spotify', href: spotifySearchUrl(a.name) }]}
+		artistInfo={artistInfo}
 		stats={[
 			{ k: 'Çalma', v: integer(a.plays) },
 			{ k: 'Dinleme', v: durationText(a.ms) },

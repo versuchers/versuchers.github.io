@@ -1,6 +1,7 @@
 ---
 import EntryCard from './EntryCard.astro';
-import type { Entry } from '../lib/data';
+import Rating from './Rating.astro';
+import { href, KIND_LABEL, cardText, authorLine, type Entry } from '../lib/data';
 
 interface Props {
 	items: Entry[];
@@ -8,6 +9,8 @@ interface Props {
 	moreHref?: string;
 	moreLabel?: string;
 	subMode?: 'full' | 'compact';
+	/** 'cards' → poster kartları; 'rows' → metin satırları. */
+	layout?: 'cards' | 'rows';
 	id?: string;
 }
 
@@ -17,8 +20,13 @@ const {
 	moreHref,
 	moreLabel = 'Tümü',
 	subMode = 'full',
+	layout = 'cards',
 	id,
 } = Astro.props;
+
+/** Satır alt bilgisi: tür + yıl (film/dizi) veya yazar (kitap). */
+const rowSub = (entry: Entry) =>
+	[KIND_LABEL[entry.type], authorLine(entry) || cardText(entry)].filter(Boolean).join(' · ');
 ---
 
 {items.length > 0 && (
@@ -31,13 +39,29 @@ const {
 						{moreHref && <a class="more" href={moreHref}>{moreLabel} →</a>}
 					</div>
 				)}
-				<ul class="rail">
-					{items.map((entry, i) => (
-						<li>
-							<EntryCard entry={entry} eager={i < 3} subMode={subMode} />
-						</li>
-					))}
-				</ul>
+				{layout === 'rows' ? (
+					<ul class="rows">
+						{items.map((entry) => (
+							<li class="erow">
+								<a class="erow-link" href={href(entry)}>
+									<span class="txt">
+										<span class="t">{entry.type === 'film' ? entry.fullTitle || entry.title : entry.title}</span>
+										<span class="s muted">{rowSub(entry)}</span>
+									</span>
+									<Rating value={entry.rating} compact />
+								</a>
+							</li>
+						))}
+					</ul>
+				) : (
+					<ul class="rail">
+						{items.map((entry, i) => (
+							<li>
+								<EntryCard entry={entry} eager={i < 3} subMode={subMode} />
+							</li>
+						))}
+					</ul>
+				)}
 			</div>
 		</div>
 	</section>
@@ -68,5 +92,54 @@ const {
 			justify-content: center;
 			gap: 0.9rem;
 		}
+	}
+
+	/* ---- metin satırları ---- */
+	.rows {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		border-top: 1px solid var(--border);
+	}
+	.erow {
+		border-bottom: 1px solid var(--border);
+		transition: background var(--dur) var(--ease);
+	}
+	.erow:hover {
+		background: var(--surface-2);
+	}
+	.erow-link {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 0.9rem;
+		padding: 0.55rem 0.4rem;
+		color: inherit;
+		text-decoration: none;
+	}
+	.txt {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.t {
+		font-family: var(--font-card);
+		font-size: 1.05rem;
+		line-height: 1.25;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		transition: color var(--dur) var(--ease);
+	}
+	.erow-link:hover .t {
+		color: var(--link-hover);
+	}
+	.s {
+		font-family: var(--font-meta);
+		font-size: 0.82rem;
+		line-height: 1.35;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 </style>
