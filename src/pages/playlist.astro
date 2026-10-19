@@ -101,7 +101,10 @@ const defaultFolder = chips[0]?.id ?? '__all';
 
 		{
 			hasData && (
-				<ul class="grid pl-list" data-pl-grid>
+				<ul
+					class:list={['grid pl-list', { 'is-all': defaultFolder === '__all' }]}
+					data-pl-grid
+				>
 					{playlists.map((pl) => {
 						const folders = getPlaylistFolderIds(pl.id);
 						const folderLabels = folders.map((id) => folderName.get(id)).filter(Boolean);
@@ -179,6 +182,8 @@ const defaultFolder = chips[0]?.id ?? '__all';
 
 		const apply = () => {
 			const all = folder === '__all';
+			// Klasör şeridi yalnızca "Tümü" görünümünde gösterilir.
+			grid.classList.toggle('is-all', all);
 			const visible = cards.filter((c) => all || (c.dataset.folders || '').split(/\s+/).includes(folder));
 			visible.sort(bySort(sort));
 			for (const c of cards) c.hidden = true;
@@ -256,6 +261,7 @@ const defaultFolder = chips[0]?.id ?? '__all';
 	.fchip {
 		font-family: var(--font-ui);
 		font-size: 0.82rem;
+		text-transform: uppercase;
 		line-height: 1.2;
 		padding: 0.34rem 0.7rem;
 		border: 1px solid var(--border);
@@ -283,6 +289,11 @@ const defaultFolder = chips[0]?.id ?? '__all';
 	/* Playlist kartları: ekran genişliğine göre 4 / 3 / 2 sütun. */
 	.grid.pl-list {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
+		background: var(--surface);
+		border-radius: 14px;
+		box-shadow: var(--shadow);
+		padding: clamp(1.15rem, 2.6vw, 1.85rem) clamp(1.15rem, 3vw, 2.25rem)
+			clamp(1.4rem, 3vw, 2.25rem);
 	}
 	@media (max-width: 1100px) {
 		.grid.pl-list {
@@ -326,15 +337,21 @@ const defaultFolder = chips[0]?.id ?? '__all';
 		border-radius: 0;
 	}
 	.pl-body {
-		display: flex;
-		flex-direction: column;
-		gap: 0.3rem;
+		/* Spotify ikonu: metin bloğundan küçük, görünüme göre ölçeklenen kare boyut. */
+		--pl-icon: clamp(24px, 1.3vw + 12px, 30px);
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-rows: auto auto;
+		align-items: center;
+		column-gap: 0.6rem;
+		row-gap: 0.3rem;
 		padding: 0.75rem 0.85rem 0.9rem;
 	}
 	.t {
 		margin: 0;
 		font-family: var(--font-card);
-		font-size: 1.02rem;
+		font-size: 20px;
+		font-weight: 700;
 		line-height: 1.25;
 	}
 	.t a {
@@ -343,47 +360,61 @@ const defaultFolder = chips[0]?.id ?? '__all';
 	}
 	.s {
 		margin: 0;
+		grid-column: 1;
+		grid-row: 2;
 		font-family: var(--font-meta);
-		font-size: 0.8rem;
+		font-size: 14px;
 		line-height: 1.3;
 	}
-	/* Kapak altındaki klasör şeridi — film/dizi/kitap şeridiyle aynı dil. */
+	/* Kapak altındaki klasör şeridi — film/dizi/kitap şeridiyle aynı dil.
+	   Yalnızca "Tümü" görünümünde gösterilir (aksi hâlde şerit gereksizdir). */
 	.pl-folder-strip {
 		margin: 0;
 		padding: 0.32rem 0.75rem;
 		background: var(--accent-soft);
 		border-bottom: 1px solid var(--border);
-		font-family: var(--font-card);
+		font-family: var(--font-ui);
 		font-size: 0.62rem;
-		font-weight: 600;
+		font-weight: 700;
 		letter-spacing: 0.16em;
+		text-transform: uppercase;
 		color: var(--accent-2);
 		text-align: center;
 	}
-	/* Başlık satırı: başlık solda, Spotify ikon-linki sağa yaslı + dikey ortalı. */
+	.pl-list:not(.is-all) .pl-folder-strip {
+		display: none;
+	}
+	/* Başlık + Spotify ikonu: ikon sağda dikey ortalı; boyut --pl-icon ile
+	   ölçeklenir, genişlik kare oranına göre otomatik. */
 	.pl-head {
-		display: flex;
-		align-items: center;
-		gap: 0.3rem;
+		display: contents;
 	}
 	.pl-head .t {
-		flex: 1 1 auto;
+		grid-column: 1;
+		grid-row: 1;
 		min-width: 0; /* uzun başlık satıra kırılsın, ikon sıkışmasın */
 	}
 	.pl-spotify {
-		flex: 0 0 auto;
-		display: inline-flex;
+		grid-column: 2;
+		grid-row: 1 / 3;
+		align-self: center;
+		position: relative; /* dokunma alanı için ::after referansı */
+		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 0.625rem; /* 20px ikon + 2×10px → ≥40×40 dokunma alanı */
-		margin: -0.5rem -0.625rem -0.5rem 0; /* padding kart düzenini bozmasın */
 		color: var(--text-muted);
 		transition: color var(--dur) var(--ease);
 	}
+	/* Dokunma alanını büyüt (yerleşimi etkilemeden). */
+	.pl-spotify::after {
+		content: '';
+		position: absolute;
+		inset: -0.5rem -0.6rem;
+	}
 	.pl-spotify svg {
 		display: block;
-		width: 1.25rem;
-		height: 1.25rem;
+		height: var(--pl-icon);
+		width: auto;
 		fill: currentColor;
 	}
 	@media (hover: hover) {
