@@ -235,24 +235,39 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 		gap: 0.35rem;
 	}
 
+	/* Menü bağlantıları varsayılan olarak çerçevesiz; çip çerçevesi yalnızca
+	   hover'da belirir. */
 	.nav-link {
-		padding: 0.4rem 0.7rem;
-		border-radius: 999px;
+		padding: 0.24em 0.7em;
+		border: 1px solid transparent;
+		border-radius: var(--radius-sm);
+		background: none;
 		font-family: var(--font-display);
 		font-size: 20px;
+		line-height: 1.5;
 		letter-spacing: 0.02em;
+		text-transform: lowercase;
 		color: var(--text-muted);
-		transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+		transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease),
+			background-color var(--dur) var(--ease);
 	}
 
 	.nav-link:hover {
 		color: var(--link-hover);
-		background: var(--surface-2);
+		border-color: var(--link-hover);
+		background: var(--accent-soft);
 	}
 
+	/* Aktif bölüm: kullanıcı hangi menünün altındaysa o bağlantı çerçeveli
+	   durur (statik, hover gerektirmez). */
 	.nav-link.active {
 		color: var(--text);
-		font-weight: 600;
+		border-color: var(--accent);
+		background: var(--accent-soft);
+	}
+
+	.nav-link.active:hover {
+		border-color: var(--link-hover);
 	}
 
 	/* --- Açılır menü grupları --- */
@@ -263,12 +278,12 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 		align-self: stretch;
 	}
 
+	/* Açılır menü tetikleyicisi: çip çerçevesini .nav-link'ten alır,
+	   burada yalnızca yerleşim ayarlanır. */
 	.nav-trigger {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.3rem;
-		background: none;
-		border: 0;
 		cursor: pointer;
 	}
 
@@ -311,24 +326,37 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 		}
 	}
 
+	/* Alt menü bağlantıları da yalnızca hover'da çerçevelenir. */
 	.nav-sub {
-		padding: 0.4rem 0.7rem;
+		padding: 0.24em 0.7em;
+		border: 1px solid transparent;
 		border-radius: var(--radius-sm);
+		background: none;
 		font-family: var(--font-display);
 		font-size: 20px;
+		line-height: 1.5;
 		letter-spacing: 0.02em;
+		text-transform: lowercase;
 		color: var(--text-muted);
-		transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+		transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease),
+			background-color var(--dur) var(--ease);
 	}
 
 	.nav-sub:hover {
 		color: var(--link-hover);
-		background: var(--surface-2);
+		border-color: var(--link-hover);
+		background: var(--accent-soft);
 	}
 
+	/* Aktif alt bağlantı da çerçeveli durur. */
 	.nav-sub.active {
 		color: var(--text);
-		font-weight: 600;
+		border-color: var(--accent);
+		background: var(--accent-soft);
+	}
+
+	.nav-sub.active:hover {
+		border-color: var(--link-hover);
 	}
 
 	.actions {
@@ -402,7 +430,7 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 		gap: 0.55rem;
 		padding: 0.75rem 0.4rem;
 		border-bottom: 1px solid var(--border);
-		font-family: var(--font-ui);
+		font-family: var(--font-card);
 		color: var(--text);
 	}
 	.m-ico {

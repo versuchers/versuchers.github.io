@@ -18,35 +18,37 @@ body.is-blog .chip {
 	padding: 0;
 	white-space: normal;
 }
-body.is-blog .chip::before {
-	content: '#';
-	opacity: 0.45;
-}
 .blog-feed .chip {
-	font-family: var(--font-card);
+	font-family: var(--font-display);
 	font-weight: 400;
-	font-size: 0.72rem;
+	font-size: 18px;
 	letter-spacing: 0.08em;
-	text-transform: uppercase;
+	text-transform: lowercase;
 	color: var(--text-faint);
 }
 .blog-feed a.chip {
-	transition: color 0.15s ease;
+	transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
+/* Blogda etiketler sade metin gibi görünür (kart içinde): hover yalnızca renk. */
 .blog-feed a.chip:hover {
-	color: var(--accent-2);
+	color: var(--link-hover);
+	border-color: transparent;
+	background: none;
 }
+/* Blog yazısı sayfasındaki etiketler biraz daha büyük. */
 .blog-post .chip {
-	font-family: var(--font-display);
 	font-size: 1.1rem;
 	letter-spacing: 0.08em;
+	text-transform: lowercase;
 	color: var(--text-muted);
 }
 .blog-post a.chip {
-	transition: color 0.15s ease;
+	transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
 .blog-post a.chip:hover {
-	color: var(--accent-2);
+	color: var(--link-hover);
+	border-color: transparent;
+	background: none;
 }
 
 /* ================================================================ BLOG LİSTESİ */
@@ -174,9 +176,9 @@ body.is-blog .chip::before {
 }
 .blog-feed .post time {
 	order: 2;
-	font-family: var(--font-card);
-	font-size: 0.72rem;
-	font-weight: 400;
+	font-family: var(--font-head);
+	font-size: 13px;
+	font-weight: 700;
 	letter-spacing: 0.1em;
 	text-transform: uppercase;
 	color: var(--text-faint);
@@ -187,6 +189,17 @@ body.is-blog .chip::before {
 	margin-top: 10px;
 	position: relative;
 	z-index: 4;
+}
+/* Birden fazla etiket varsa aralarına "//" ayracı gelir. Boşluk iki yanda
+   eşit olsun diye ayraç ::before yerine ayrı bir öğe olarak yazılır:
+   sözde öğede sağ boşluk iki katına çıkıyordu. */
+.blog-feed .post .chip-list {
+	flex-wrap: nowrap;
+}
+.blog-feed .post .chip-sep {
+	margin-inline: 0.6em;
+	color: var(--text-faint);
+	opacity: 0.55;
 }
 
 /* ================================================================ BLOG YAZISI */
@@ -201,7 +214,7 @@ body.is-blog .chip::before {
 	justify-content: center;
 	gap: 0.5rem;
 	margin-bottom: 1.75rem;
-	font-family: var(--font-card);
+	font-family: var(--font-head);
 	font-size: 0.72rem;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
@@ -316,12 +329,14 @@ body.is-blog .chip::before {
 	font-weight: 400;
 	color: var(--text);
 	letter-spacing: 0.03em;
+	text-transform: lowercase;
 	margin: 1.6em 0 0.6em;
 }
 .blog-post .prose b,
 .blog-post .prose strong {
 	font-family: var(--font-display);
 	font-weight: 400;
+	text-transform: lowercase;
 }
 .blog-post .prose a {
 	color: var(--accent);
@@ -369,6 +384,11 @@ body.is-blog .chip::before {
 	.blog-feed .posts > li + li {
 		margin-top: 28px;
 		padding-top: 28px;
+	}
+	/* Etiket şeridi: yatay kaydırmada ilk/son çip kenara yapışmasın. */
+	.tagfilter .tf-chips {
+		margin-inline: -18px;
+		padding-inline: 18px;
 	}
 	.blog-post .prose {
 		padding: 40px 26px 48px;

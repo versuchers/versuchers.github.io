@@ -375,6 +375,25 @@ const sortedItems = items
 		font-size: 0.88rem;
 	}
 
+	/* Liste kendi kutusunda durur: denetim çubuğuyla aynı zemin/çerçeve,
+	   böylece grid arka plandan ayrışır. */
+	.browse-grid {
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+	}
+
+	/* Kutu iç boşluğu kartlara yer bırakmadığında iki sütuna zorlanır:
+	   dar mobilde ve kutu dolgusunun sınırda kaldığı 421–640px aralığında. */
+	@media (max-width: 640px) {
+		.browse-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.6rem;
+			padding: 0.6rem;
+		}
+	}
+
 	.cell[hidden] {
 		display: none;
 	}

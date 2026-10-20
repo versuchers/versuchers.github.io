@@ -183,15 +183,21 @@ button {
 	font-family: var(--font-ui);
 }
 
-h1,
-h2,
-h3,
-h4 {
+/* Başlıkların varsayılan yazı tipi Manufacturing Consent (--font-display).
+   Bir başlık başka bir yazı tipine geçerse kendi text-transform'unu yazar. */
+:where(h1, h2, h3, h4) {
 	font-family: var(--font-display);
 	font-weight: var(--headline-weight);
 	letter-spacing: var(--headline-tracking);
 	line-height: 1.15;
 	margin: 0 0 0.5em;
+}
+
+/* Küçük harf YALNIZCA Manufacturing Consent (--font-display) yazan öğelerde.
+   Kural başlık etiketine değil, o başlığı MC'ye bağlayan sınıfa yazılır. */
+.mconsent,
+.post-title {
+	text-transform: lowercase;
 }
 
 h1 {
@@ -316,19 +322,37 @@ h2 {
 	gap: 0.35em;
 	padding: 0.24em 0.7em;
 	border: 1px solid var(--border);
-	border-radius: 999px;
+	border-radius: var(--radius-sm);
 	background: var(--surface-2);
 	color: var(--text-muted);
-	font-family: var(--font-ui);
-	font-size: 0.72rem;
+	font-family: var(--font-display);
+	font-size: 18px;
 	line-height: 1.5;
+	/* MC yazan öğeler küçük harf. */
+	text-transform: lowercase;
 	white-space: nowrap;
 	transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease),
 		background-color var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
-a.chip:hover {
+/* Seçili çip: blog etiket süzgecindeki aktif görünümün aynısı. */
+.chip.is-active,
+.chip[aria-pressed='true'] {
+	color: var(--text);
+	border-color: var(--accent);
+	background: var(--accent-soft);
+}
+
+/* Her çip türü hover'da aynı tepkiyi verir (bağlantı ya da düğme olsun).
+   Aktif çip hover'da kendi görünümünü korur, yalnızca kenarlık hareket eder. */
+.chip:hover {
 	color: var(--link-hover);
+	border-color: var(--link-hover);
+	background: var(--accent-soft);
+}
+.chip.is-active:hover,
+.chip[aria-pressed='true']:hover {
+	color: var(--text);
 	border-color: var(--link-hover);
 	background: var(--accent-soft);
 }
@@ -505,8 +529,17 @@ a:hover .frame img {
 	font-weight: 600;
 	letter-spacing: 0.16em;
 	text-transform: uppercase;
-	color: var(--accent-2);
+	/* Kartın hover'ı bu şeride dokunmaz; hep aynı (nötr) tonda kalır. */
+	color: var(--text);
 	text-align: center;
+}
+
+/* Aynı davranış: kart hover'ında renk değişmesin. Tüm kart türlerinde geçerli. */
+.entry-card:hover .type-strip,
+.tbrowse .cell:hover .type-strip,
+.pbrowse .cell:hover .type-strip,
+.browse .cell:hover .type-strip {
+	color: var(--text);
 }
 
 /* Yalnızca tek tür seçiliyken (ör. yalnız "Kitap") şerit gereksiz tekrar olur: gizle.

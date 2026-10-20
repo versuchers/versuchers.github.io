@@ -9,9 +9,13 @@ interface Props {
 
 const { post } = Astro.props;
 const { title, pubDate, tags, encrypted } = post.data;
+
+// Etiket süzgeci (BlogTagFilter) bu attribute'ları okur; kart sırası ve
+// görünümü değişmez, yalnızca süzme bilgisi DOM'a yazılır.
+const tagKeys = tags.map((t) => tagSlug(t)).filter(Boolean);
 ---
 
-<li>
+<li data-tags={tagKeys.join(' ')} data-locked={encrypted ? 'true' : undefined}>
 	<article class="post">
 		{
 			encrypted && (
@@ -40,10 +44,13 @@ const { title, pubDate, tags, encrypted } = post.data;
 		{
 			tags.length > 0 && (
 				<div class="chip-list">
-					{tags.map((t) => (
-						<a class="chip" href={`/blog/etiket/${tagSlug(t)}`}>
-							{t}
-						</a>
+					{tags.map((t, i) => (
+						<>
+							{i > 0 && <span class="chip-sep" aria-hidden="true">{'//'}</span>}
+							<a class="chip" href={`/blog/etiket/${tagSlug(t)}`}>
+								{t}
+							</a>
+						</>
 					))}
 				</div>
 			)
