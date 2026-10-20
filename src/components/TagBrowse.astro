@@ -2,15 +2,22 @@
 import { KIND_LABEL, type Entry, type Kind } from '../lib/data';
 import { parseTrDate } from '../lib/format';
 import { fold } from '../lib/text';
+import { cover } from '../lib/music';
 import EntryCard from './EntryCard.astro';
+import MusicCard from './MusicCard.astro';
 
 interface Props {
 	items: Entry[];
 	/** Açılış sıralaması. */
 	defaultSort?: 'title' | 'rating' | 'year' | 'review' | 'added';
+	/** Ülke sayfaları: aynı ülkeden sanatçılar. "artist" çipiyle gösterilir. */
+	artists?: { slug: string; name: string; plays: number }[];
 }
 
-const { items, defaultSort = 'rating' } = Astro.props;
+const { items, defaultSort = 'rating', artists = [] } = Astro.props;
+const hasArtists = artists.length > 0;
+// Yalnızca sanatçısı olan ülkelerde sayfanın içeriği sanatçılardır: açılışta onlar görünür.
+const artistsOnly = hasArtists && items.length === 0;
 
 const displayTitle = (e: Entry) => (e.type === 'film' ? e.fullTitle || e.title : e.title);
 
@@ -47,13 +54,22 @@ const sortedItems = items
 <div class="browse tbrowse" data-tbrowse>
 	<div class="controls">
 		<div class="chips" role="group" aria-label="Türe göre süz">
-			<button type="button" class="chip is-active" data-type="">Tümü</button>
+			<button type="button" class="chip" class:list={[{ 'is-active': !artistsOnly }]} data-type="" aria-pressed={artistsOnly ? 'false' : 'true'}>
+				Tümü
+			</button>
 			{
 				presentTypes.map((k) => (
-					<button type="button" class="chip" data-type={k}>
+					<button type="button" class="chip" data-type={k} aria-pressed="false">
 						{KIND_LABEL[k]}
 					</button>
 				))
+			}
+			{
+				hasArtists && (
+					<button type="button" class="chip" class:list={[{ 'is-active': artistsOnly }]} data-type="artist" aria-pressed={artistsOnly ? 'true' : 'false'}>
+						Artist
+					</button>
+				)
 			}
 		</div>
 
@@ -89,6 +105,24 @@ const sortedItems = items
 		}
 	</ul>
 
+	{
+		hasArtists && (
+			<div class="artist-panel" data-artist-panel hidden>
+				<ul class="grid browse-grid tbrowse-grid artist-grid">
+					{artists.map((a) => (
+						<MusicCard
+							href={`/muzik/sanatci/${a.slug}`}
+							title={a.name}
+							src={cover('artist', a.slug)}
+							round
+							plays={a.plays}
+						/>
+					))}
+				</ul>
+			</div>
+		)
+	}
+
 	<p class="empty muted" data-empty hidden>Bu etikette kayıt yok.</p>
 </div>
 
@@ -103,9 +137,15 @@ const sortedItems = items
 		const sort = root.querySelector<HTMLSelectElement>('[data-f="sort"]')!;
 		const count = root.querySelector<HTMLElement>('[data-count]')!;
 		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+		// Ülke sayfalarında sanatçılar ayrı bir panelde; "artist" çipiyle açılır.
+		const artistPanel = root.querySelector<HTMLElement>('[data-artist-panel]');
+		const artistGrid = artistPanel?.querySelector<HTMLElement>('.artist-grid') ?? null;
+		const artistCells = artistGrid ? (Array.from(artistGrid.children) as HTMLElement[]) : [];
 
 		const num = (el: HTMLElement, key: string) => Number(el.dataset[key] ?? 0);
 		const active = new Set<string>();
+		// Yalnızca sanatçısı olan sayfalarda açılış görünümü sanatçı listesidir.
+		if (artistCells.length > 0 && cells.length === 0) active.add('artist');
 
 		function paintChips() {
 			for (const chip of chips) {
@@ -116,16 +156,30 @@ const sortedItems = items
 		}
 
 		function apply() {
+			paintChips();
+			const artistMode = active.has('artist');
+
 			let visible = 0;
 			for (const cell of cells) {
-				const ok = active.size === 0 || active.has(cell.dataset.type ?? '');
+				// Sanatçı görünümünde kitap/film/dizi kartları tamamen gizlenir.
+				const ok = !artistMode && (active.size === 0 || active.has(cell.dataset.type ?? ''));
 				cell.hidden = !ok;
 				if (ok) visible++;
 			}
 
+			if (artistPanel) artistPanel.hidden = !artistMode;
+
 			// Yalnızca TEK tür seçiliyken kartlardaki tür şeridi gereksiz: gizle.
 			// "Tümü" veya çoklu tür seçiminde şeritler ayırt edici olduğu için kalır.
 			root.classList.toggle('is-single-type', active.size === 1);
+
+			if (artistMode) {
+				count.textContent = `${artistCells.length} sanatçı`;
+				empty.hidden = artistCells.length !== 0;
+			} else {
+				count.textContent = `${visible} kayıt`;
+				empty.hidden = visible !== 0;
+			}
 
 			const mode = sort.value as SortId;
 			const sorted = [...cells].sort((a, b) => {
@@ -143,9 +197,6 @@ const sortedItems = items
 				}
 			});
 			for (const cell of sorted) grid!.appendChild(cell);
-
-			count.textContent = `${visible} kayıt`;
-			empty.hidden = visible !== 0;
 		}
 
 		chips.forEach((chip) => {
@@ -165,17 +216,39 @@ const sortedItems = items
 </script>
 
 <style>
-	@media (max-width: 420px) {
+	/* Sanatçı görünümü: kitap/film/dizi grid'iyle aynı kutu ve sütun düzeni. */
+	.artist-panel[hidden] {
+		display: none;
+	}
+	.artist-grid {
+		/* Sanatçı kartları kare kapak taşır; giriş kartlarından biraz dar olabilir. */
+		--col: 150px;
+	}
+	/* Liste kendi kutusunda durur (Browse.astro ile aynı tasarım); denetim
+	   çubuğundan ayrışır ve mobilde iki sütuna sabitlenir. */
+	.tbrowse-grid {
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+	}
+	@media (max-width: 640px) {
 		.tbrowse-grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 			gap: 0.6rem;
+			padding: 0.6rem;
 		}
 	}
+	.controls {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.65rem 0.9rem;
-		margin-bottom: 0.5rem;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		margin-bottom: 1rem;
 	}
 	.tbrowse .chips {
 		display: flex;

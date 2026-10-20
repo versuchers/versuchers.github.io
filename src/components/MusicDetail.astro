@@ -19,6 +19,8 @@ interface Props {
 	artistInfo?: {
 		genres: { name: string; href?: string | null }[];
 		country: string;
+		/** Ülkenin etiket sayfası (/ulke/<slug>); yoksa düz metin kalır. */
+		countryHref?: string | null;
 		links: {
 			bandcamp?: string;
 			discogs?: string;
@@ -75,7 +77,15 @@ const {
 									))}
 								</ul>
 							)}
-							{artistInfo.country && <p class="a-country">{artistInfo.country}</p>}
+							{artistInfo.country && (
+								<p class="a-country">
+									{artistInfo.countryHref ? (
+										<a href={artistInfo.countryHref}>{artistInfo.country}</a>
+									) : (
+										artistInfo.country
+									)}
+								</p>
+							)}
 							{artistInfo.links.metalArchives && (
 								<p class="a-links">
 									<a href={artistInfo.links.metalArchives} target="_blank" rel="noopener noreferrer">Metal Archives</a>
@@ -258,6 +268,15 @@ const {
 	.a-country {
 		font-size: 0.8rem;
 		color: var(--text-faint);
+	}
+	.a-country a {
+		color: inherit;
+		text-decoration: none;
+	}
+	.a-country a:hover {
+		color: var(--link-hover);
+		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
 	.a-links {
 		font-size: 0.8rem;

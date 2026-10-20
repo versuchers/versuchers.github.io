@@ -106,3 +106,51 @@ export function artistExtra(slug: string): ArtistExtra {
 		links: raw.links ?? {},
 	};
 }
+
+/** Bir sanatçının ülke etiketi adresi; ülke yoksa null. */
+export function artistCountryHref(slug: string): string | null {
+	const country = (INFO[slug]?.country ?? '').trim();
+	if (!country || country === '-') return null;
+	return `/ulke/${tagSlug(country)}`;
+}
+
+export interface CountryArtist {
+	slug: string;
+	name: string;
+	plays: number;
+}
+
+/**
+ * Ülke slug'ına göre sanatçılar (çalma sayısına göre).
+ * Ülke sayfaları kitap/film/dizi kayıtlarının yanında sanatçıları da gösterir.
+ */
+export const artistsByCountry: Map<string, CountryArtist[]> = (() => {
+	const map = new Map<string, CountryArtist[]>();
+	for (const a of artists) {
+		const country = (INFO[a.slug]?.country ?? '').trim();
+		if (!country || country === '-') continue;
+		const slug = tagSlug(country);
+		let list = map.get(slug);
+		if (!list) {
+			list = [];
+			map.set(slug, list);
+		}
+		list.push({ slug: a.slug, name: a.name, plays: a.plays });
+	}
+	for (const list of map.values()) {
+		list.sort((x, y) => y.plays - x.plays || x.name.localeCompare(y.name, 'tr'));
+	}
+	return map;
+})();
+
+/** Ülke slug'ı → görünen ülke adı (sanatçı verisinden). */
+export const countryLabels: Map<string, string> = (() => {
+	const map = new Map<string, string>();
+	for (const a of artists) {
+		const country = (INFO[a.slug]?.country ?? '').trim();
+		if (!country || country === '-') continue;
+		const slug = tagSlug(country);
+		if (!map.has(slug)) map.set(slug, country);
+	}
+	return map;
+})();

@@ -210,17 +210,30 @@ const sorted = works
 </script>
 
 <style>
-	@media (max-width: 420px) {
-		.pbrowse-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			gap: 0.6rem;
-		}
-	}
+	.controls {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.65rem 0.9rem;
-		margin-bottom: 0.5rem;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		margin-bottom: 1rem;
+	}
+	/* Liste kendi kutusunda durur (Browse.astro ile aynı tasarım). */
+	.pbrowse-grid {
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+	}
+	@media (max-width: 640px) {
+		.pbrowse-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.6rem;
+			padding: 0.6rem;
+		}
 	}
 	.pbrowse .chips {
 		display: flex;

@@ -14,7 +14,7 @@ import {
 	type Artist,
 } from '../../../lib/music';
 import { artistPlaylists } from '../../../lib/playlist-xref';
-import { artistExtra } from '../../../lib/artist-info';
+import { artistExtra, artistCountryHref } from '../../../lib/artist-info';
 
 export function getStaticPaths() {
 	return artists.map((a) => ({ params: { slug: a.slug }, props: { a } }));
@@ -46,6 +46,8 @@ const plData = artistPlaylists(a.slug);
 // Tür satırı: ilk 3 tür; siyah liste + çıplak "metal" etiketi elenir, her tür
 // kendi etiket sayfasına bağlanır.
 const artistInfo = artistExtra(a.slug);
+// Ülke, kitap/film/dizi kayıtlarıyla ortak etiket sayfasına (/ulke/<slug>) bağlanır.
+const countryHref = artistCountryHref(a.slug);
 ---
 
 <Base title={`${a.name} — Müzik`} description={description} ogImage={cover('artist', a.slug)}>
@@ -56,7 +58,7 @@ const artistInfo = artistExtra(a.slug);
 		title={a.name}
 		coverSrc={cover('artist', a.slug)}
 		round
-		artistInfo={artistInfo}
+		artistInfo={{ ...artistInfo, countryHref }}
 		stats={[
 			{ k: 'Çalma', v: integer(a.plays) },
 			{ k: 'Dinleme', v: durationText(a.ms) },
