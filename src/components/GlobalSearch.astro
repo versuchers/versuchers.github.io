@@ -108,6 +108,8 @@ const sortOptions = [
 			rk?: number;
 			/** Yuvarlak kapak (sanatçı). */
 			rd?: boolean;
+			/** Kare kapak (sanatçı, playlist): 2:3 poster çerçevesi kırpmasın. */
+			sq?: boolean;
 		}
 
 		/** Kişi → rol indeksi (yalnız aranan kişi için kart altı etiket üretir). */
@@ -231,7 +233,10 @@ const sortOptions = [
 					const a = node.querySelector('a')!;
 					a.href = it.u;
 					const frame = node.querySelector('.frame') as HTMLElement | null;
-					if (frame) frame.classList.toggle('round', Boolean(it.rd));
+					if (frame) {
+						frame.classList.toggle('round', Boolean(it.rd));
+						frame.classList.toggle('square', Boolean(it.sq));
+					}
 					const posterWrap = node.querySelector('.poster-wrap') as HTMLElement | null;
 					const img = node.querySelector('img') as HTMLImageElement | null;
 					if (img) {
@@ -492,7 +497,15 @@ const sortOptions = [
 		margin: 0.9rem auto 0;
 		width: min(100%, 132px);
 	}
+	/* Playlist kapağı kare (Spotify kapakları 1:1); kırpmasız doldurur. */
+	.entry-card .frame.square {
+		aspect-ratio: 1 / 1;
+	}
 	/* Kapak görseli yoksa (tür kartları) boş çerçeve hiç gösterilmez. */
+	.entry-card .poster-wrap:has(.frame.square) {
+		aspect-ratio: auto;
+		overflow: visible;
+	}
 	.entry-card .poster-wrap:has(.frame.round) {
 		aspect-ratio: auto;
 		background: transparent;

@@ -13,7 +13,8 @@ import { genrePages } from '../../lib/artist-info';
  * Alanlar GlobalSearch.astro'nun beklediği kısa adlardır:
  *   u=url, t=başlık, ty=tür, p=poster, a=yazar satırı, s=alt satır (yıl),
  *   r=puan, y=yıl, rt=yorum zamanı, ft=katlanmış başlık, q=arama metni, idx=sıra,
- *   rk=tüm zamanlar sırası (yalnız sanatçı; "#N" rozeti için), rd=yuvarlak kapak.
+ *   rk=tüm zamanlar sırası (yalnız sanatçı; "#N" rozeti için), rd=yuvarlak kapak,
+ *   sq=kare kapak (sanatçı, playlist).
  * Türler: film | dizi | kitap | sanatci | playlist | muzik-tur.
  */
 
@@ -61,6 +62,7 @@ const artistItems = artists.map((a) => ({
 	idx: nextIdx++,
 	rk: artistRank.get(a.slug) ?? 0,
 	rd: true,
+	sq: true,
 }));
 
 const playlistItems = listedPlaylists().map((p) => ({
@@ -76,6 +78,8 @@ const playlistItems = listedPlaylists().map((p) => ({
 	ft: fold(p.name),
 	q: fold(`${p.name} ${(p.description || '').replace(/<[^>]*>/g, ' ')}`),
 	idx: nextIdx++,
+	/** Spotify kapakları kare; 2:3 poster çerçevesi kırpıyordu. */
+	sq: true,
 }));
 
 const genreItems = genrePages.map((g) => ({
