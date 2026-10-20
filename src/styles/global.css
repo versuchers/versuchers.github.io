@@ -42,6 +42,7 @@
 	--border-strong: #333333;
 	--accent: #a99c8c;
 	--accent-2: #7d3482;
+	--search-match: #cbc0b8;
 	--accent-contrast: #111113;
 	--accent-soft: rgba(169, 156, 140, 0.12);
 	--link-hover: #7d3482;
@@ -72,6 +73,7 @@
 	--border-strong: #cec4b3;
 	--accent: #6d5f52;
 	--accent-2: #4c1d4f;
+	--search-match: #635b51;
 	--accent-contrast: #fbf9f5;
 	--accent-soft: rgba(109, 95, 82, 0.1);
 	--link-hover: #4c1d4f;
@@ -596,11 +598,18 @@ a:hover .frame img {
 	color: var(--accent-2);
 }
 
-/* Playlist kartında aranan sanatçı: "Marduk · 13 parça". */
+/* Playlist kartında aranan sanatçı: "Marduk · 13 parça".
+   Nötr bir ton kullanır; kart hover'ında rengi değişmez. */
 .entry-card .artist-match {
 	margin: 0.15rem 0 0;
 	font-family: var(--font-ui);
 	font-size: 0.72rem;
 	font-weight: 600;
-	color: var(--accent-2);
+	color: var(--search-match);
+}
+
+/* Playlist kartında sanatçı eşleşmesi varsa yalnız o satır kalsın:
+   "N sanatçı" ve "N şarkı · süre" bilgileri gizlenir. Arama sonuçlarına özel. */
+.cell.has-artist-match .entry-card .sub {
+	display: none;
 }

@@ -331,6 +331,8 @@ const sortOptions = [
 							matchEl.textContent = '';
 							matchEl.hidden = true;
 						}
+						/* Eşleşme varsa "N sanatçı" ve "N şarkı · süre" gizlenir. */
+						node.classList.toggle('has-artist-match', Boolean(m));
 					}
 					const rolesEl = node.querySelector('.card-roles') as HTMLElement | null;
 					if (rolesEl) {
