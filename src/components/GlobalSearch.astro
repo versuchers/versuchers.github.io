@@ -110,6 +110,8 @@ const sortOptions = [
 			rd?: boolean;
 			/** Kare kapak (sanatçı, playlist): 2:3 poster çerçevesi kırpmasın. */
 			sq?: boolean;
+			/** Şarkı sayısı (playlist): ilgi sıralamasında çoktan aza. */
+			tc?: number;
 		}
 
 		/** Kişi → rol indeksi (yalnız aranan kişi için kart altı etiket üretir). */
@@ -316,9 +318,17 @@ const sortOptions = [
 						case 'title':
 							return a.ft.localeCompare(b.ft, 'tr');
 						default: {
-							if (!tokens.length) return a.idx - b.idx;
-							const pa = a.ft.startsWith(tokens[0]) ? 0 : 1;
-							const pb = b.ft.startsWith(tokens[0]) ? 0 : 1;
+							// İlgi anahtarı: arama kutusu ya da çip(ler)den gelen ilk sözcük.
+							const key = tokens[0] ?? tagTokens[0];
+							if (!key) return a.idx - b.idx;
+							// Playlistler her zaman kendi içinde şarkı sayısına göre
+							// sıralanır (çoktan aza); başlık eşleşmesi bu sırayı bozmaz.
+							const ap = a.ty === 'playlist';
+							const bp = b.ty === 'playlist';
+							if (ap && bp) return (b.tc ?? 0) - (a.tc ?? 0) || a.idx - b.idx;
+							// Kalan kayıtlarda: aranan sözcükle başlayan başlıklar önce.
+							const pa = ap ? 1 : a.ft.startsWith(key) ? 0 : 1;
+							const pb = bp ? 1 : b.ft.startsWith(key) ? 0 : 1;
 							return pa - pb || a.idx - b.idx;
 						}
 					}
@@ -490,27 +500,36 @@ const sortOptions = [
 		margin-left: 0.4em;
 		white-space: nowrap;
 	}
-	/* Sanatçı kapağı kare ve yuvarlak: 2:3 poster çerçevesi kırpıyordu. */
+	/* Kapak alanı: kare/yuvarlak kapaklarda da 2:3 poster yüksekliği korunur ki
+	   altındaki tür şeridi tüm kartlarda aynı hizada dursun. Kapak ortalanır. */
+	.entry-card .poster-wrap:has(.frame.square),
+	.entry-card .poster-wrap:has(.frame.round) {
+		aspect-ratio: var(--poster-ratio);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+	}
+	.entry-card .poster-wrap:has(.frame.round) {
+		background: transparent;
+	}
+	/* Sanatçı kapağı: kare + yuvarlak, poster alanı içinde ortalanır. */
 	.entry-card .frame.round {
 		aspect-ratio: 1 / 1;
 		border-radius: 50%;
-		margin: 0.9rem auto 0;
 		width: min(100%, 132px);
+		height: auto;
+		flex: none;
 	}
-	/* Playlist kapağı kare (Spotify kapakları 1:1); kırpmasız doldurur. */
-	.entry-card .frame.square {
+	/* Playlist kapağı kare (Spotify kapakları 1:1); kart genişliğinde, ortalanır.
+	   Yuvarlak sanatçı kapağı bu genişlik kuralından etkilenmez. */
+	.entry-card .frame.square:not(.round) {
 		aspect-ratio: 1 / 1;
+		width: 100%;
+		height: auto;
+		flex: none;
 	}
 	/* Kapak görseli yoksa (tür kartları) boş çerçeve hiç gösterilmez. */
-	.entry-card .poster-wrap:has(.frame.square) {
-		aspect-ratio: auto;
-		overflow: visible;
-	}
-	.entry-card .poster-wrap:has(.frame.round) {
-		aspect-ratio: auto;
-		background: transparent;
-		overflow: visible;
-	}
 	.entry-card .poster-wrap[hidden] {
 		display: none;
 	}

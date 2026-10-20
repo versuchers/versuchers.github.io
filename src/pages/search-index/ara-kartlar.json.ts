@@ -14,7 +14,7 @@ import { genrePages } from '../../lib/artist-info';
  *   u=url, t=başlık, ty=tür, p=poster, a=yazar satırı, s=alt satır (yıl),
  *   r=puan, y=yıl, rt=yorum zamanı, ft=katlanmış başlık, q=arama metni, idx=sıra,
  *   rk=tüm zamanlar sırası (yalnız sanatçı; "#N" rozeti için), rd=yuvarlak kapak,
- *   sq=kare kapak (sanatçı, playlist).
+ *   sq=kare kapak (sanatçı, playlist), tc=şarkı sayısı (playlist sıralaması).
  * Türler: film | dizi | kitap | sanatci | playlist | muzik-tur.
  */
 
@@ -76,8 +76,12 @@ const playlistItems = listedPlaylists().map((p) => ({
 	y: '',
 	rt: 0,
 	ft: fold(p.name),
-	q: fold(`${p.name} ${(p.description || '').replace(/<[^>]*>/g, ' ')}`),
+	/* Ad + açıklama + playlistteki sanatçı adları. "marduk" gibi bir sanatçı
+	   arandığında içinde o sanatçının şarkısı olan playlistler de çıkar. */
+	q: fold(`${p.name} ${(p.description || '').replace(/<[^>]*>/g, ' ')} ${p.artists.map((x) => x.name).join(' ')}`),
 	idx: nextIdx++,
+	/** Şarkı sayısı: playlist sonuçları en çoktan en aza sıralanır. */
+	tc: p.trackCount,
 	/** Spotify kapakları kare; 2:3 poster çerçevesi kırpıyordu. */
 	sq: true,
 }));
