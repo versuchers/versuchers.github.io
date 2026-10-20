@@ -442,7 +442,12 @@ const sortOptions = [
 	}
 
 	/* [hidden] .grid{display:grid} tarafından eziliyor; gizliyken gerçekten gizlenir. */
-	.browse-grid[hidden] {
+	@media (max-width: 420px) {
+		.browse-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.6rem;
+		}
+	}
 		display: none;
 	}
 
