@@ -25,11 +25,13 @@ import { fileURLToPath } from 'node:url';
 import { loadPlaylistFolderMap, isKeptByFolder } from './playlist-folders.mjs';
 import { sleep, createThrottle, createSpotifyApi, hasSpotifyCreds } from './lib/spotify.mjs';
 import { cleanPlaylistName } from '../src/lib/playlist-title.mjs';
+import { makeNonGenreSet, primaryGenre } from '../src/lib/genre-tags.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'src/data/spotify-playlists.json');
 const OVERRIDES = path.join(ROOT, 'src/data/playlist-overrides.json');
 const GENRE_CACHE = path.join(ROOT, 'src/data/spotify-artist-genres.json');
+const NON_GENRE_TAGS = path.join(ROOT, 'src/data/non-genre-tags.json');
 
 const GENRE_BUDGET = Number(process.env.SPOTIFY_GENRE_BUDGET || 3000);
 const GENRES_ONLY = process.argv.includes('--genres-only');
@@ -93,6 +95,8 @@ async function paged(u, handler) {
 // ------------------------------------------------------------- tür zenginleştirme
 
 let genreCache = {};
+/** non-genre-tags.json — tür olmayan etiketler (ülke, milliyet, vokal…). */
+let nonGenreSet = new Set();
 
 // Last.fm etiketlerinde tür olmayan (gürültü) etiketler
 const JUNK_TAGS = new Set([
@@ -116,12 +120,22 @@ function cleanTags(tags) {
   return out;
 }
 
+/**
+ * Playlist tür sayımı: sanatçı başına TEK geçerli tür.
+ *
+ * Her sanatçının Last.fm etiket listesinden (ağırlığa göre sıralı) siyah
+ * listede olmayan ilk etiket alınır; böylece bir sanatçı hem "black metal"
+ * hem "atmospheric black metal" sayımını şişirmez ve ülke/vokal etiketleri
+ * ("german", "female vocalists") sayıma hiç girmez.
+ */
 function genreCounts(playlist) {
   const map = new Map();
   for (const a of playlist.artists || []) {
     const cached = a.name && genreCache[a.name.toLowerCase()];
     if (!cached) continue;
-    for (const g of cached.tags || []) map.set(g, (map.get(g) || 0) + a.count);
+    const primary = primaryGenre(cached.tags, nonGenreSet);
+    if (!primary) continue;
+    map.set(primary.name, (map.get(primary.name) || 0) + a.count);
   }
   return Array.from(map.entries())
     .map(([name, count]) => ({ name, count }))
@@ -281,6 +295,7 @@ async function main() {
     process.exit(1);
   }
   genreCache = await readJson(GENRE_CACHE, {});
+  nonGenreSet = makeNonGenreSet(await readJson(NON_GENRE_TAGS, []));
   // Hariç tutulan sanatçıların tür önbelleğini kalıcı olarak temizle.
   for (const k of Object.keys(genreCache)) {
     if (isExcluded(genreCache[k]?.name || k)) delete genreCache[k];

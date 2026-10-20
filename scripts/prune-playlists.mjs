@@ -18,10 +18,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadPlaylistFolderMap, isKeptByFolder } from './playlist-folders.mjs';
 import { sleep, createSpotifyApi, hasSpotifyCreds } from './lib/spotify.mjs';
+import { makeNonGenreSet, primaryGenre } from '../src/lib/genre-tags.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'src/data/spotify-playlists.json');
 const GENRE_CACHE = path.join(ROOT, 'src/data/spotify-artist-genres.json');
+const NON_GENRE_TAGS = path.join(ROOT, 'src/data/non-genre-tags.json');
 
 const OFFLINE = process.argv.includes('--offline');
 
@@ -42,12 +44,15 @@ const isExcludedPlaylist = (name) => OST_NAME_RE.test(String(name ?? '')) || !St
 
 const readJson = async (p, f) => { try { return JSON.parse(await readFile(p, 'utf8')); } catch { return f; } };
 
-function genreCounts(playlist, genreCache) {
+/** Playlist tür sayımı: sanatçı başına TEK geçerli tür (fetch-spotify.mjs ile aynı kural). */
+function genreCounts(playlist, genreCache, nonGenreSet) {
   const map = new Map();
   for (const a of playlist.artists || []) {
     const cached = a.name && genreCache[a.name.toLowerCase()];
     if (!cached) continue;
-    for (const g of cached.tags || []) map.set(g, (map.get(g) || 0) + a.count);
+    const primary = primaryGenre(cached.tags, nonGenreSet);
+    if (!primary) continue;
+    map.set(primary.name, (map.get(primary.name) || 0) + a.count);
   }
   return Array.from(map.entries()).map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'tr'));
@@ -109,6 +114,7 @@ async function fetchTracks(id) {
 async function main() {
   const data = await readJson(OUT, { playlists: [] });
   const genreCache = await readJson(GENRE_CACHE, {});
+  const nonGenreSet = makeNonGenreSet(await readJson(NON_GENRE_TAGS, []));
   const folderMap = await loadPlaylistFolderMap();
   if (folderMap.exists) {
     console.log(`🗂️  klasör eşlemesi: ${folderMap.whitelist.size} whitelist klasör`);
@@ -142,7 +148,7 @@ async function main() {
         if (estimated) estCount++;
         console.log(`   ${JSON.stringify(p.name).slice(0, 34).padEnd(36)} ${p.trackCount} -> ${np.trackCount}${estimated ? ' (süre/albüm tahmini)' : ''}`);
       }
-      np.genres = genreCounts(np, genreCache);
+      np.genres = genreCounts(np, genreCache, nonGenreSet);
       playlists.push(np);
     }
   } else {
@@ -168,7 +174,7 @@ async function main() {
       if (folderExcluded(p.name, p.id)) { dropped++; continue; }
       const np = byId.get(p.id) || p;
       if (np.trackCount === 0) { dropped++; console.log(`   🗑️ silindi (boşaldı): ${p.name}`); continue; }
-      np.genres = genreCounts(np, genreCache);
+      np.genres = genreCounts(np, genreCache, nonGenreSet);
       playlists.push(np);
     }
   }
