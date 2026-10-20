@@ -77,6 +77,7 @@ const sortOptions = [
 							<span class="author"></span>
 							<span class="year"></span>
 						</p>
+						<p class="artist-match" hidden></p>
 						<p class="card-roles" hidden></p>
 					</div>
 				</a>
@@ -112,6 +113,17 @@ const sortOptions = [
 			sq?: boolean;
 			/** Şarkı sayısı (playlist): ilgi sıralamasında çoktan aza. */
 			tc?: number;
+			/** Playlistteki sanatçı başına şarkı sayısı: [sözlük indeksi, adet]. */
+			ac?: [number, number][];
+		}
+
+		/** Arama indeksi yanıtı: kayıtlar + playlist sanatçı sözlüğü. */
+		interface SearchIndex {
+			/** Görünen sanatçı adları (sözlük). */
+			ad: string[];
+			/** Katlanmış sanatçı adları (sözlük, `ad` ile aynı sırada). */
+			af: string[];
+			items: Item[];
 		}
 
 		/** Kişi → rol indeksi (yalnız aranan kişi için kart altı etiket üretir). */
@@ -144,6 +156,9 @@ const sortOptions = [
 
 			const tags: string[] = [];
 			let items: Item[] = [];
+			/** Playlist sanatçı sözlüğü (görünen ve katlanmış adlar). */
+			let ad: string[] = [];
+			let af: string[] = [];
 			let roles: RolesFile | null = null;
 			let loaded = false;
 			let loading = false;
@@ -177,8 +192,10 @@ const sortOptions = [
 				loading = true;
 				try {
 					const url = '/search-index/ara-kartlar.json';
-					const data = await (await fetch(url)).json();
-					items = data as Item[];
+					const data = (await (await fetch(url)).json()) as SearchIndex;
+					items = data.items;
+					ad = data.ad;
+					af = data.af;
 					loaded = true;
 				} catch {
 					err = true;
@@ -222,7 +239,42 @@ const sortOptions = [
 				return map;
 			}
 
-			function buildList(list: Item[], roleMap: Map<number, string[]>) {
+			/**
+			 * Playlistte aranan sanatçıyı bulur: arama sözcükleri (ve varsa
+			 * birleşik hâli) ile playlistteki sanatçı adlarını karşılaştırır.
+			 * En çok eşleşen sözcüğe sahip sanatçıyı döndürür (ad + parça sayısı).
+			 */
+			function artistMatch(it: Item, keys: string[]): { name: string; count: number } | null {
+				if (it.ty !== 'playlist' || !it.ac || !it.ac.length || !keys.length) return null;
+				let best: { name: string; count: number } | null = null;
+				let bestScore = 0;
+				for (const [di, count] of it.ac) {
+					const name = ad[di];
+					const folded = af[di];
+					if (!folded) continue;
+					// Sanatçı adının sözcükleri: "witchthroat serpent" -> [witchthroat, serpent].
+					const words = folded.split(/\s+/).filter(Boolean);
+					let score = 0;
+					for (const k of keys) {
+						if (!k) continue;
+						// Tam ad eşleşmesi en güçlü.
+						if (folded === k) score = Math.max(score, 3);
+						// Tam sözcük eşleşmesi: "serpent" <-> "Witchthroat Serpent".
+						else if (words.includes(k)) score = Math.max(score, 2);
+						// Sözcük başı eşleşmesi: "serpent" -> "serpentcult".
+						// Kısa anahtarlarda ("metal" -> "Metallica") yanlış eşleşmeyi
+						// önlemek için en az 6 harf aranır.
+						else if (k.length >= 6 && words.some((w) => w.startsWith(k))) score = Math.max(score, 2);
+					}
+					if (score > bestScore || (score === bestScore && best && count > best.count)) {
+						bestScore = score;
+						best = { name, count };
+					}
+				}
+				return bestScore > 0 ? best : null;
+			}
+
+			function buildList(list: Item[], roleMap: Map<number, string[]>, keys: string[]) {
 				grid!.replaceChildren();
 				for (const it of list) {
 					const node = (tpl.content.firstElementChild as HTMLElement | null)!.cloneNode(true) as HTMLElement;
@@ -268,6 +320,18 @@ const sortOptions = [
 					if (yr) yr.textContent = it.s;
 					const strip = node.querySelector('.type-strip') as HTMLElement | null;
 					if (strip) strip.textContent = TYPE_STRIP[it.ty] ?? '';
+					/* Aranan sanatçı bu playlistte varsa: "Sanatçı · N parça". */
+					const matchEl = node.querySelector('.artist-match') as HTMLElement | null;
+					if (matchEl) {
+						const m = artistMatch(it, keys);
+						if (m) {
+							matchEl.textContent = `${m.name} · ${m.count} parça`;
+							matchEl.hidden = false;
+						} else {
+							matchEl.textContent = '';
+							matchEl.hidden = true;
+						}
+					}
 					const rolesEl = node.querySelector('.card-roles') as HTMLElement | null;
 					if (rolesEl) {
 						const labels = roleMap.get(it.idx);
@@ -279,8 +343,11 @@ const sortOptions = [
 			}
 
 			function apply() {
-				const tokens = fold(search.value.trim()).split(/\s+/).filter(Boolean);
+				const rawQuery = fold(search.value.trim());
+				const tokens = rawQuery.split(/\s+/).filter(Boolean);
 				const tagTokens = tags.map((tag) => fold(tag));
+				// Sanatçı eşleşmesi için: tam arama cümlesi + sözcükler + çipler.
+				const keys = [rawQuery, ...tokens, ...tagTokens].filter(Boolean);
 				const t = type.value;
 				const needText = tokens.length > 0 || tagTokens.length > 0;
 				const idle = !needText && !t;
@@ -333,7 +400,7 @@ const sortOptions = [
 						}
 					}
 				});
-				buildList(res, personRoles());
+				buildList(res, personRoles(), keys);
 				if (count) count.textContent = `${res.length} kayıt`;
 				if (empty) empty.hidden = res.length !== 0;
 				// Tek tür seçiliyken (Tür = Film/Dizi/Kitap) kart şeridi gereksiz: gizle.

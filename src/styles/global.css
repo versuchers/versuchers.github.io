@@ -595,3 +595,12 @@ a:hover .frame img {
 	text-transform: uppercase;
 	color: var(--accent-2);
 }
+
+/* Playlist kartında aranan sanatçı: "Marduk · 13 parça". */
+.entry-card .artist-match {
+	margin: 0.15rem 0 0;
+	font-family: var(--font-ui);
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: var(--accent-2);
+}

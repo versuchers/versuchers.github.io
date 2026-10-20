@@ -14,8 +14,12 @@ import { genrePages } from '../../lib/artist-info';
  *   u=url, t=başlık, ty=tür, p=poster, a=yazar satırı, s=alt satır (yıl),
  *   r=puan, y=yıl, rt=yorum zamanı, ft=katlanmış başlık, q=arama metni, idx=sıra,
  *   rk=tüm zamanlar sırası (yalnız sanatçı; "#N" rozeti için), rd=yuvarlak kapak,
- *   sq=kare kapak (sanatçı, playlist), tc=şarkı sayısı (playlist sıralaması).
+ *   sq=kare kapak (sanatçı, playlist), tc=şarkı sayısı (playlist sıralaması),
+ *   ac=playlistteki sanatçı başına şarkı sayısı [sözlük indeksi, adet].
  * Türler: film | dizi | kitap | sanatci | playlist | muzik-tur.
+ *
+ * Yanıt `{ ad, af, items }`: `ad`/`af` playlist sanatçı sözlüğüdür (görünen ve
+ * katlanmış ad); `ac` bu sözlüğe indeksle referans verir.
  */
 
 function displayTitle(e: Entry): string {
@@ -65,6 +69,24 @@ const artistItems = artists.map((a) => ({
 	sq: true,
 }));
 
+/* Playlistlerin sanatçı adları ortak bir sözlükte tutulur: aynı ad yüzlerce
+   playlistte geçtiği için sözlük indeksiyle referans vermek indeksi küçültür.
+   `ad` = görünen ad, `af` = katlanmış ad (karşılaştırma için). */
+const artistDict: string[] = [];
+const artistDictFolded: string[] = [];
+const artistIndex = new Map<string, number>();
+function artistKey(name: string): number {
+	const folded = fold(name);
+	let i = artistIndex.get(folded);
+	if (i === undefined) {
+		i = artistDict.length;
+		artistDict.push(name);
+		artistDictFolded.push(folded);
+		artistIndex.set(folded, i);
+	}
+	return i;
+}
+
 const playlistItems = listedPlaylists().map((p) => ({
 	u: `/playlist/${p.id}`,
 	t: p.name,
@@ -82,6 +104,8 @@ const playlistItems = listedPlaylists().map((p) => ({
 	idx: nextIdx++,
 	/** Şarkı sayısı: playlist sonuçları en çoktan en aza sıralanır. */
 	tc: p.trackCount,
+	/** Sanatçı başına şarkı sayısı: [sözlük indeksi, parça sayısı]. */
+	ac: p.artists.map((x) => [artistKey(x.name), x.count] as [number, number]),
 	/** Spotify kapakları kare; 2:3 poster çerçevesi kırpıyordu. */
 	sq: true,
 }));
@@ -103,7 +127,10 @@ const genreItems = genrePages.map((g) => ({
 
 const data = [...entries, ...artistItems, ...playlistItems, ...genreItems];
 
+/* Yanıt: kayıt listesi + playlist sanatçı sözlüğü. */
+const payload = { ad: artistDict, af: artistDictFolded, items: data };
+
 export const GET: APIRoute = () =>
-	new Response(JSON.stringify(data), {
+	new Response(JSON.stringify(payload), {
 		headers: { 'content-type': 'application/json; charset=utf-8' },
 	});
