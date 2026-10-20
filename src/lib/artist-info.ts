@@ -96,6 +96,19 @@ export function genrePageHref(name: string): string | null {
 	return genreSlugSet.has(slug) ? `/muzik/tur/${slug}` : null;
 }
 
+/**
+ * Tür slug'ına göre sanatçılar (çalma sayısına göre).
+ *
+ * Kaynak: `genrePages` ile aynı süzgeç (siyah liste + çıplak "metal", en fazla
+ * GENRE_LIMIT tür). Playlist tür sayfaları kendi Last.fm etiketleriyle
+ * eşleşen sanatçıları buradan alır; iki taraf aynı `tagSlug` havuzunu kullanır.
+ */
+export const artistsByGenre: Map<string, Artist[]> = (() => {
+	const map = new Map<string, Artist[]>();
+	for (const page of genrePages) map.set(page.slug, page.artists);
+	return map;
+})();
+
 /** Sanatçı sayfası için tür (ilk 3), ülke ve dış bağlantılar. */
 export function artistExtra(slug: string): ArtistExtra {
 	const raw = INFO[slug] ?? {};
