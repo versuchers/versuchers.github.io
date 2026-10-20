@@ -357,7 +357,23 @@ const {
 			grid-template-columns: 1fr;
 		}
 		.left {
-			max-width: 240px;
+			position: static;
+			width: 100%;
+			max-width: 100%;
+		}
+		.left :global(.mcover) {
+			width: 100%;
+			max-width: 100%;
+		}
+		.mdet-artist .left {
+			position: static;
+			width: 100%;
+			max-width: 100%;
+		}
+		.mdet-artist .left :global(.frame),
+		.mdet-artist .left :global(.mcover) {
+			width: 100%;
+			max-width: 100%;
 		}
 		.a-icons {
 			--icon-size: clamp(1.6rem, 3vw + 0.625rem, 2rem);

@@ -447,7 +447,31 @@ const listLabel = KIND_PLURAL[entry.type];
 		}
 		.left {
 			position: static;
-			max-width: 320px;
+			width: 100%;
+			max-width: 100%;
+			margin-inline: auto;
+		}
+		.left :global(.frame) {
+			width: 100%;
+			max-width: 100%;
+			margin-inline: auto;
+		}
+		.left :global(.mcover) {
+			width: 100%;
+			max-width: 100%;
+			margin-inline: auto;
+		}
+		.artist-title,
+		.ainfo,
+		.a-icons,
+		.links {
+			max-width: 100%;
+			margin-inline: auto;
+		}
+		.cover-rating,
+		.links {
+			max-width: min(100%, var(--poster-max));
+			margin-inline: auto;
 		}
 		.review p,
 		.review--spoiler p {
