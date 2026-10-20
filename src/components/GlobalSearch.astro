@@ -9,6 +9,9 @@ const typeOptions = [
 	{ id: 'film', label: 'Film' },
 	{ id: 'dizi', label: 'Dizi' },
 	{ id: 'kitap', label: 'Kitap' },
+	{ id: 'sanatci', label: 'Sanatçı' },
+	{ id: 'playlist', label: 'Playlist' },
+	{ id: 'muzik-tur', label: 'Müzik türü' },
 ];
 
 const sortOptions = [
@@ -29,7 +32,7 @@ const sortOptions = [
 			<input
 				type="search"
 				data-f="search"
-				placeholder="Film, dizi, kitap, kişi, tür, tema… ara"
+				placeholder="Film, dizi, kitap, kişi, tür, sanatçı, playlist… ara"
 				autocomplete="off"
 			/>
 		</label>
@@ -69,7 +72,7 @@ const sortOptions = [
 					</div>
 					<span class="type-strip"></span>
 					<div class="body">
-						<h3 class="title"></h3>
+						<h3 class="title"><span class="title-text"></span><span class="rank" hidden></span></h3>
 						<p class="sub">
 							<span class="author"></span>
 							<span class="year"></span>
@@ -91,7 +94,7 @@ const sortOptions = [
 		interface Item {
 			u: string;
 			t: string;
-			ty: 'film' | 'dizi' | 'kitap';
+			ty: 'film' | 'dizi' | 'kitap' | 'sanatci' | 'playlist' | 'muzik-tur';
 			p: string;
 			a: string;
 			s: string;
@@ -101,6 +104,10 @@ const sortOptions = [
 			ft: string;
 			q: string;
 			idx: number;
+			/** Tüm zamanlar sırası (yalnız sanatçı; "#N" rozeti). */
+			rk?: number;
+			/** Yuvarlak kapak (sanatçı). */
+			rd?: boolean;
 		}
 
 		/** Kişi → rol indeksi (yalnız aranan kişi için kart altı etiket üretir). */
@@ -109,7 +116,14 @@ const sortOptions = [
 			people: Record<string, [number, string][]>;
 		}
 
-		const TYPE_STRIP: Record<string, string> = { film: 'Film', dizi: 'Dizi', kitap: 'Kitap' };
+		const TYPE_STRIP: Record<string, string> = {
+			film: 'Film',
+			dizi: 'Dizi',
+			kitap: 'Kitap',
+			sanatci: 'Sanatçı',
+			playlist: 'Playlist',
+			'muzik-tur': 'Müzik türü',
+		};
 
 		document.querySelectorAll<HTMLElement>('[data-search-root]').forEach((root) => {
 			const grid = root.querySelector<HTMLElement>('.browse-grid');
@@ -216,13 +230,31 @@ const sortOptions = [
 					node.dataset.index = String(it.idx);
 					const a = node.querySelector('a')!;
 					a.href = it.u;
+					const frame = node.querySelector('.frame') as HTMLElement | null;
+					if (frame) frame.classList.toggle('round', Boolean(it.rd));
+					const posterWrap = node.querySelector('.poster-wrap') as HTMLElement | null;
 					const img = node.querySelector('img') as HTMLImageElement | null;
 					if (img) {
-						img.src = it.p;
-						img.alt = it.t;
+						if (it.p) {
+							img.src = it.p;
+							img.alt = it.t;
+						} else {
+							img.removeAttribute('src');
+							if (posterWrap) posterWrap.hidden = true;
+						}
 					}
-					const t = node.querySelector('.title')!;
-					t.textContent = it.t;
+					const t = node.querySelector('.title-text') as HTMLElement | null;
+					if (t) t.textContent = it.t;
+					const rank = node.querySelector('.rank') as HTMLElement | null;
+					if (rank) {
+						if (it.rk && it.rk > 0) {
+							rank.textContent = `#${it.rk}`;
+							rank.hidden = false;
+						} else {
+							rank.textContent = '';
+							rank.hidden = true;
+						}
+					}
 					const auth = node.querySelector('.author') as HTMLElement | null;
 					if (auth) auth.textContent = it.a;
 					const yr = node.querySelector('.year') as HTMLElement | null;
@@ -310,9 +342,10 @@ const sortOptions = [
 				tags.push(q);
 				renderChips();
 			}
+			const TUR_IDS = ['film', 'dizi', 'kitap', 'sanatci', 'playlist', 'muzik-tur'];
 			if (params.get('tur')) {
 				const tur = params.get('tur')!;
-				if (['film', 'dizi', 'kitap'].includes(tur)) type.value = tur;
+				if (TUR_IDS.includes(tur)) type.value = tur;
 			}
 			apply();
 		});
@@ -438,6 +471,34 @@ const sortOptions = [
 	}
 
 	.cell[hidden] {
+		display: none;
+	}
+
+	/* Sanatçı kartı: tüm zamanlar sıralaması "#N". Başlık akışında kalır ki
+	   iki satırlık -webkit-line-clamp bozulmasın. */
+	.entry-card .rank {
+		font-family: var(--font-ui);
+		font-size: 0.72em;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		color: var(--text-faint);
+		margin-left: 0.4em;
+		white-space: nowrap;
+	}
+	/* Sanatçı kapağı kare ve yuvarlak: 2:3 poster çerçevesi kırpıyordu. */
+	.entry-card .frame.round {
+		aspect-ratio: 1 / 1;
+		border-radius: 50%;
+		margin: 0.9rem auto 0;
+		width: min(100%, 132px);
+	}
+	/* Kapak görseli yoksa (tür kartları) boş çerçeve hiç gösterilmez. */
+	.entry-card .poster-wrap:has(.frame.round) {
+		aspect-ratio: auto;
+		background: transparent;
+		overflow: visible;
+	}
+	.entry-card .poster-wrap[hidden] {
 		display: none;
 	}
 

@@ -2,15 +2,27 @@
 import Base from '../layouts/Base.astro';
 import GlobalSearch from '../components/GlobalSearch.astro';
 import { allEntries } from '../lib/data';
+import { artists } from '../lib/music';
+import { listedPlaylists } from '../lib/playlists';
+import { genrePages } from '../lib/artist-info';
 
 const q = Astro.url.searchParams.get('q')?.trim() ?? '';
 const tur = Astro.url.searchParams.get('tur')?.trim() ?? '';
-const turLabel: Record<string, string> = { film: 'film', dizi: 'dizi', kitap: 'kitap' };
+const turLabel: Record<string, string> = {
+	film: 'film',
+	dizi: 'dizi',
+	kitap: 'kitap',
+	sanatci: 'sanatçı',
+	playlist: 'playlist',
+	'muzik-tur': 'müzik türü',
+};
+
+const total = allEntries.length + artists.length + listedPlaylists().length + genrePages.length;
 
 const heading = q ? `“${q}” için sonuçlar` : 'Ara';
 const description = q
-	? `${q} ile ilgili film, dizi ve kitap kayıtları.`
-	: 'Film, dizi ve kitap arşivinde ara: kişi, tür, tema, yayınevi, şehir ve daha fazlası.';
+	? `${q} ile ilgili film, dizi, kitap, sanatçı, playlist ve müzik türü kayıtları.`
+	: 'Film, dizi, kitap, sanatçı, playlist ve müzik türü arşivinde ara: kişi, tür, tema, yayınevi, şehir ve daha fazlası.';
 ---
 
 <Base title={q ? `Ara: ${q}` : 'Ara'} description={description}>
@@ -19,11 +31,13 @@ const description = q
 			<p class="eyebrow">Arşivde ara</p>
 			<h1>{heading}</h1>
 			<p class="lede">
-				Film, dizi ve kitap birlikte aranır. Bir kişi hem kitap yazarı hem kaynak yazarsa
-				her iki kayıt da burada çıkar.{tur && turLabel[tur] ? ` Şu an ${turLabel[tur]} süzülüyor.` : ''}
+				Film, dizi ve kitap; sanatçı, playlist ve müzik türü birlikte aranır. Bir kişi hem
+				kitap yazarı hem kaynak yazarsa her iki kayıt da burada çıkar.{tur && turLabel[tur]
+					? ` Şu an ${turLabel[tur]} süzülüyor.`
+					: ''}
 			</p>
 		</header>
-		<GlobalSearch total={allEntries.length} />
+		<GlobalSearch total={total} />
 	</div>
 </Base>
 

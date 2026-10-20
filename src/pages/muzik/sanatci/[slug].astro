@@ -15,6 +15,7 @@ import {
 } from '../../../lib/music';
 import { artistPlaylists } from '../../../lib/playlist-xref';
 import { artistExtra, artistCountryHref } from '../../../lib/artist-info';
+import { artistRank } from '../../../lib/artist-rank';
 
 export function getStaticPaths() {
 	return artists.map((a) => ({ params: { slug: a.slug }, props: { a } }));
@@ -48,6 +49,9 @@ const plData = artistPlaylists(a.slug);
 const artistInfo = artistExtra(a.slug);
 // Ülke, kitap/film/dizi kayıtlarıyla ortak etiket sayfasına (/ulke/<slug>) bağlanır.
 const countryHref = artistCountryHref(a.slug);
+
+// Tüm zamanlar çalma sırası: başlıkta "#N" olarak gösterilir.
+const rank = artistRank.get(a.slug);
 ---
 
 <Base title={`${a.name} — Müzik`} description={description} ogImage={cover('artist', a.slug)}>
@@ -59,6 +63,7 @@ const countryHref = artistCountryHref(a.slug);
 		coverSrc={cover('artist', a.slug)}
 		round
 		artistInfo={{ ...artistInfo, countryHref }}
+		rank={rank}
 		stats={[
 			{ k: 'Çalma', v: integer(a.plays) },
 			{ k: 'Dinleme', v: durationText(a.ms) },
