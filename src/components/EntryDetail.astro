@@ -441,7 +441,18 @@ const listLabel = KIND_PLURAL[entry.type];
 		border-top: 1px solid var(--border);
 	}
 
+	/* Benzer içerik ızgarası: tek sütuna düşmesin, en dar ekranda bile iki kart
+	   yan yana durur (kartlar kocaman tek kolon olmasın). Geniş ekranda da
+	   makul bir üst sınır kalır: en fazla dört kart bir satırda. */
+	.similar .grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
 	@media (max-width: 760px) {
+		.similar .grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.75rem;
+		}
 		.cols {
 			grid-template-columns: 1fr;
 		}

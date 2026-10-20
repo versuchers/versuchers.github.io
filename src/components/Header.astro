@@ -19,9 +19,10 @@ const groups = [
 	},
 ];
 
+// `navLabel` yalnızca masaüstü menüsünde görünür; `label` mobil panelde kalır.
 const singles = [
 	{ href: '/kitap', label: 'Okuyorum' },
-	{ href: '/blog', label: 'Blog' },
+	{ href: '/blog', label: 'Blog', navLabel: 'Yazıyorum' },
 ];
 
 const path = Astro.url.pathname;
@@ -70,7 +71,7 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
 			{
 				singles.map((item) => (
 					<a href={item.href} class:list={['nav-link', { active: isActive(item.href) }]}>
-						{item.label}
+						{item.navLabel ?? item.label}
 					</a>
 				))
 			}
