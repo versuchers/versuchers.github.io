@@ -17,13 +17,13 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft && !data.en
 ---
 
 <Base>
-	<h1 class="visually-hidden">Versucher — kişisel arşiv</h1>
+	<h1 class="visually-hidden">Versucher</h1>
 
 	<Rail items={read} title="Son okuduklarım" moreHref="/kitap" moreLabel="Tüm kitaplar" />
 
 	<Rail items={watched} title="Son izlediklerim" moreHref="/film" moreLabel="Tüm filmler" />
 
-	<Rail items={reviewed} title="Son yorumladıklarım" moreHref="/film" moreLabel="Gözat" layout="rows" />
+	<Rail items={reviewed} title="Son yorumladıklarım" moreHref="/film" moreLabel="Gözat" layout="rows" onlyNarrowest />
 
 	{posts.length > 0 && (
 		<section class="section">

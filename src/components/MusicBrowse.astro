@@ -169,11 +169,17 @@ const { label, unit, indexUrl, rows, kat, baseUrl, years = [] } = Astro.props;
 						img.loading = 'lazy';
 						img.decoding = 'async';
 						img.referrerPolicy = 'no-referrer';
-						img.onerror = function (this: HTMLImageElement) { this.remove(); };
+						img.dataset.coverImg = '';
+						const created = img;
+						created.onload = () => { created.dataset.loaded = ''; };
+						created.onerror = () => created.remove();
 						stamp(img, mono);
 						fig.append(img);
 					}
-					if (img) img.setAttribute('src', r.src);
+					if (img) {
+						delete img.dataset.loaded;
+						img.setAttribute('src', r.src);
+					}
 				} else if (img) {
 					img.remove();
 				}

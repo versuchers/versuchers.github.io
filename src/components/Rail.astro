@@ -12,6 +12,8 @@ interface Props {
 	/** 'cards' → poster kartları; 'rows' → metin satırları. */
 	layout?: 'cards' | 'rows';
 	id?: string;
+	/** Yalnızca en dar mobil tasarımda göster (üstünde gizlenir). */
+	onlyNarrowest?: boolean;
 }
 
 const {
@@ -22,6 +24,7 @@ const {
 	subMode = 'full',
 	layout = 'cards',
 	id,
+	onlyNarrowest = false,
 } = Astro.props;
 
 /** Satır alt bilgisi: tür + yıl (film/dizi) veya yazar (kitap). */
@@ -30,7 +33,7 @@ const rowSub = (entry: Entry) =>
 ---
 
 {items.length > 0 && (
-	<section class="section" id={id}>
+	<section class:list={['section', { 'narrowest-only': onlyNarrowest }]} id={id}>
 		<div class="container">
 			<div class="panel">
 				{title && (
@@ -68,6 +71,13 @@ const rowSub = (entry: Entry) =>
 )}
 
 <style>
+	/* Yalnızca en dar mobil tasarımda görünür (bkz. Header: ≤600px). */
+	@media (min-width: 601px) {
+		.narrowest-only {
+			display: none;
+		}
+	}
+
 	.rail {
 		display: grid;
 		grid-template-columns: repeat(6, minmax(0, 1fr));

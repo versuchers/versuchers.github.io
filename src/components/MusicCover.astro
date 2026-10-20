@@ -32,6 +32,8 @@ const initial = firstLetter(name ?? alt);
 				loading={eager ? 'eager' : 'lazy'}
 				decoding="async"
 				referrerpolicy="no-referrer"
+				data-cover-img
+				onload="this.dataset.loaded = ''"
 				onerror="this.remove()"
 			/>
 		)
@@ -66,5 +68,16 @@ const initial = firstLetter(name ?? alt);
 		height: 100%;
 		object-fit: cover;
 		transition: transform 420ms var(--ease);
+		/* Görsel gerçekten yüklenene kadar gizli: yarı yüklenmiş katman harf
+		   madalyonunun üstünü boyayıp başka bir görseli andırıyordu. */
+		opacity: 0;
+	}
+	.mcover img[data-loaded] {
+		opacity: 1;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.mcover img {
+			transition: transform 420ms var(--ease), opacity 220ms var(--ease);
+		}
 	}
 </style>

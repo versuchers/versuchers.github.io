@@ -53,7 +53,7 @@ export const GET: APIRoute = async ({ site }) => {
   <channel>
     <title>Versucher — yazılar</title>
     <link>${base.href}</link>
-    <description>Notlar, denemeler, listeler. Kişisel arşivin konuşan kısmı.</description>
+    <description>Notlar, denemeler, listeler.</description>
     <language>tr</language>
     <lastBuildDate>${lastBuild}</lastBuildDate>
     <atom:link href="${new URL('/rss.xml', base).href}" rel="self" type="application/rss+xml" />
