@@ -1,40 +1,31 @@
 ---
 import Base from '../layouts/Base.astro';
-import MusicCover from '../components/MusicCover.astro';
-import { listedPlaylists, folderChips, getPlaylistFolderIds, spotifyPlaylists } from '../lib/playlists';
-import { durationShort } from '../lib/music';
+import PlaylistBrowser from '../components/PlaylistBrowser.astro';
+import { folderChips, playlistsInFolder, listedPlaylists } from '../lib/playlists';
+import { spotifyPlaylists } from '../lib/playlists';
 import { formatDate } from '../lib/format';
 
-const playlists = listedPlaylists();
-const hasData = playlists.length > 0;
-// Oluşturulma tarihi (en eski şarkı ekleme anından); yoksa 0 → sıralamada sonda.
-const createdMs = (iso?: string | null) => (iso ? Date.parse(iso) || 0 : 0);
-
-// Klasör çipleri (başlık + çipler bloğu). Her playlist doğrudan tek bir
-// whitelist klasöre aittir; çipler düz ve eşittir.
+/**
+ * Playlistler ana sayfası. Statik çıktı: sorgu okunamaz, bu yüzden klasör
+ * başına ayrı sayfa üretilir (`/playlist/k/<id>`, `/playlist/hepsi`). Burada
+ * yalnızca varsayılan (ilk) klasörün kartları render edilir; sayfa hafif kalır.
+ */
 const chips = folderChips();
-const chipCount = new Map(chips.map((c) => [c.id, 0]));
-for (const p of playlists) {
-	for (const id of getPlaylistFolderIds(p.id)) {
-		if (chipCount.has(id)) chipCount.set(id, chipCount.get(id)! + 1);
-	}
-}
-const folderName = new Map(chips.map((c) => [c.id, c.name]));
+const folder = chips[0]?.id ?? '__all';
+const items = playlistsInFolder(folder);
+const total = listedPlaylists().length;
 const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
-
-// Varsayılan klasör sunucuda uygulanır: kullanıcı sorgusuz açtığında diğer
-// kartlar zaten gizli gelir, süzgeç "sonradan" uygulanmış gibi görünmez.
-const defaultFolder = chips[0]?.id ?? '__all';
+const hasData = total > 0;
 ---
 
-<Base title="Playlistler" description="Public Spotify playlistlerim.">
+<Base title="Playlistler" description={`Public Spotify playlistlerim: ${total} liste.`}>
 	<div class="container section">
 		<header class="section-head">
 			<div>
 				<p class="eyebrow">Müzik</p>
 				<h1>Playlistler</h1>
 				<p class="lede">
-					{hasData ? `${playlists.length} public playlist` : "Henüz veri yok — npm run spotify çalıştır."}
+					{hasData ? `${total} public playlist` : 'Henüz veri yok — npm run spotify çalıştır.'}
 				</p>
 			</div>
 			{hasData && spotifyFetchedAt && (
@@ -42,458 +33,25 @@ const defaultFolder = chips[0]?.id ?? '__all';
 			)}
 		</header>
 
-		{
-			!hasData && (
-				<section class="panel">
-					<h2>Kurulum</h2>
-					<ol>
-						<li>
-							developer.spotify.com/dashboard → Create app (Redirect URI:{' '}
-							<code>http://127.0.0.1:8888/callback</code>)
-						</li>
-						<li>
-							<code>.env</code> içine <code>SPOTIFY_CLIENT_ID</code>, <code>SPOTIFY_CLIENT_SECRET</code>
-						</li>
-						<li>
-							<code>npm run spotify:auth</code> → tarayıcıda onayla
-						</li>
-						<li>
-							<code>npm run spotify</code>
-						</li>
-					</ol>
-				</section>
-			)
-		}
+		{!hasData && (
+			<section class="panel">
+				<h2>Kurulum</h2>
+				<ol>
+					<li>
+						developer.spotify.com/dashboard → Create app (Redirect URI:{' '}
+						<code>http://127.0.0.1:8888/callback</code>)
+					</li>
+					<li>
+						<code>.env</code> içine <code>SPOTIFY_CLIENT_ID</code>, <code>SPOTIFY_CLIENT_SECRET</code>
+					</li>
+					<li>
+						<code>npm run spotify:auth</code> → tarayıcıda onayla
+					</li>
+					<li><code>npm run spotify</code></li>
+				</ol>
+			</section>
+		)}
 
-		{
-			hasData && chips.length > 0 && (
-				<section class="pl-folders" aria-label="Klasörler">
-					<div class="pl-folders-head">
-						<h2 class="pl-folders-title">Klasörler</h2>
-						<select class="pl-sort" data-pl-sort aria-label="Sıralama">
-							<option value="az">A → Z</option>
-							<option value="za">Z → A</option>
-							<option value="yeni">Yeniden eskiye</option>
-							<option value="eski">Eskiden yeniye</option>
-						</select>
-					</div>
-					<div class="fchips">
-						<button
-							class:list={['fchip', { 'is-on': defaultFolder === '__all' }]}
-							type="button"
-							data-folder="__all"
-						>
-							Tümü <span class="n">{playlists.length}</span>
-						</button>
-						{chips.map((c) => (
-							<button
-								class:list={['fchip', { 'is-on': c.id === defaultFolder }]}
-								type="button"
-								data-folder={c.id}
-							>
-								{c.name} <span class="n">{chipCount.get(c.id) ?? 0}</span>
-							</button>
-						))}
-					</div>
-				</section>
-			)
-		}
-
-		{
-			hasData && (
-				<ul
-					class:list={['grid pl-list', { 'is-all': defaultFolder === '__all' }]}
-					data-pl-grid
-				>
-					{playlists.map((pl) => {
-						const folders = getPlaylistFolderIds(pl.id);
-						const folderLabels = folders.map((id) => folderName.get(id)).filter(Boolean);
-						return (
-							<li
-								class="card pl"
-								data-folders={folders.join(' ')}
-								data-name={pl.name.trim().toLocaleLowerCase('tr')}
-								data-created={createdMs(pl.createdAt)}
-								hidden={defaultFolder !== '__all' && !folders.includes(defaultFolder)}
-							>
-								<a class="pl-cover" href={`/playlist/${pl.id}`} aria-label={pl.name}>
-									<MusicCover src={pl.cover ?? undefined} alt="" name={pl.name} />
-								</a>
-								{folderLabels.length ? (
-									<p class="pl-folder-strip">{folderLabels.join(' · ')}</p>
-								) : null}
-								<div class="pl-body">
-									<div class="pl-head">
-										<h3 class="t">
-											<a href={`/playlist/${pl.id}`}>{pl.name.trim() || '(isimsiz)'}</a>
-										</h3>
-										<a
-											class="pl-spotify"
-											href={pl.url}
-											target="_blank"
-											rel="noopener"
-											aria-label="Spotify'da aç"
-										>
-											<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-												<path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
-											</svg>
-										</a>
-									</div>
-									<p class="s muted">
-										<span class="n-track">{pl.trackCount} şarkı</span>
-										<span class="n-sep"> · </span>
-										<span class="n-artist">{pl.artistCount} artist</span>
-										{pl.name === 'Serpent Culture' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
-									</p>
-								</div>
-							</li>
-						);
-					})}
-				</ul>
-			)
-		}
+		{hasData && <PlaylistBrowser folder={folder} items={items} />}
 	</div>
 </Base>
-
-<script>
-	const grid = document.querySelector<HTMLElement>('[data-pl-grid]');
-	const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.fchip'));
-	const sortSel = document.querySelector<HTMLSelectElement>('[data-pl-sort]');
-	if (grid && chips.length) {
-		const cards = Array.from(grid.children) as HTMLElement[];
-		const defaultFolder = chips.find((c) => c.dataset.folder !== '__all')?.dataset.folder ?? '__all';
-
-		// Sıralayıcılar: A-Z, Z-A, yeniden eskiye, eskiden yeniye.
-		// Tarihi bilinmeyenler her zaman sonda kalır.
-		const bySort = (mode: string) => (a: HTMLElement, b: HTMLElement) => {
-			const an = a.dataset.name || '';
-			const bn = b.dataset.name || '';
-			if (mode === 'az') return an.localeCompare(bn, 'tr');
-			if (mode === 'za') return bn.localeCompare(an, 'tr');
-			const ac = Number(a.dataset.created || 0);
-			const bc = Number(b.dataset.created || 0);
-			if (!ac && !bc) return an.localeCompare(bn, 'tr');
-			if (!ac) return 1;
-			if (!bc) return -1;
-			return mode === 'yeni' ? bc - ac : ac - bc;
-		};
-
-		const params = new URLSearchParams(location.search);
-		let folder = params.get('k') || defaultFolder;
-		let sort = params.get('s') || 'az';
-
-		const apply = () => {
-			const all = folder === '__all';
-			// Klasör şeridi yalnızca "Tümü" görünümünde gösterilir.
-			grid.classList.toggle('is-all', all);
-			const visible = cards.filter((c) => all || (c.dataset.folders || '').split(/\s+/).includes(folder));
-			visible.sort(bySort(sort));
-			for (const c of cards) c.hidden = true;
-			for (const c of visible) {
-				c.hidden = false;
-				grid.appendChild(c);
-			}
-			for (const c of chips) c.classList.toggle('is-on', c.dataset.folder === folder);
-			if (sortSel) sortSel.value = sort;
-		};
-
-		const syncUrl = () => {
-			const url = new URL(location.href);
-			if (folder === defaultFolder) url.searchParams.delete('k');
-			else url.searchParams.set('k', folder);
-			if (sort === 'az') url.searchParams.delete('s');
-			else url.searchParams.set('s', sort);
-			history.replaceState(null, '', url);
-		};
-
-		apply();
-
-		for (const c of chips) {
-			c.addEventListener('click', () => {
-				folder = c.dataset.folder ?? '__all';
-				apply();
-				syncUrl();
-			});
-		}
-		sortSel?.addEventListener('change', () => {
-			sort = sortSel.value;
-			apply();
-			syncUrl();
-		});
-	}
-</script>
-
-<style>
-	.pl-folders {
-		margin: 0 0 1.4rem;
-	}
-	.pl-folders-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem 0.75rem;
-		flex-wrap: wrap;
-		margin: 0 0 0.6rem;
-	}
-	.pl-folders-title {
-		margin: 0;
-		font-family: var(--font-ui);
-		font-size: 0.82rem;
-		font-weight: 600;
-		letter-spacing: 0.06em;
-		color: var(--text-faint);
-	}
-	.pl-sort {
-		flex-shrink: 0;
-		max-width: 100%;
-		font-family: var(--font-ui);
-		font-size: 0.8rem;
-		padding: 0.3rem 0.5rem;
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		background: var(--surface-2);
-		color: var(--text);
-		cursor: pointer;
-	}
-	.fchips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.45rem;
-	}
-	/* Klasör çipleri sitenin geri kalanıyla aynı dili taşır: blog etiket
-	   süzgeciyle birebir çerçeve (hafif köşe, 1px kenarlık) ve font (MC 18px). */
-	.fchip {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35em;
-		margin: 0;
-		padding: 0.24em 0.7em;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-		background: var(--surface-2);
-		color: var(--text-muted);
-		font-family: var(--font-display);
-		font-size: 18px;
-		line-height: 1.5;
-		text-transform: lowercase;
-		white-space: nowrap;
-		cursor: pointer;
-		transition:
-			color var(--dur) var(--ease),
-			border-color var(--dur) var(--ease),
-			background-color var(--dur) var(--ease);
-	}
-	.fchip:hover {
-		color: var(--link-hover);
-		border-color: var(--link-hover);
-		background: var(--accent-soft);
-	}
-	.fchip:focus-visible {
-		outline: var(--ring) solid var(--link-hover);
-		outline-offset: 2px;
-	}
-	.fchip.is-on {
-		color: var(--text);
-		border-color: var(--accent);
-		background: var(--accent-soft);
-	}
-	.fchip.is-on:hover {
-		color: var(--text);
-		border-color: var(--link-hover);
-		background: var(--accent-soft);
-	}
-	.fchip .n {
-		color: var(--text-faint);
-		font-size: 0.9em;
-	}
-	.fchip.is-on .n {
-		color: var(--text-muted);
-	}
-	/* Playlist kartları: ekran genişliğine göre 4 / 3 / 2 sütun. */
-	.grid.pl-list {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		background: var(--surface);
-		border-radius: 14px;
-		box-shadow: var(--shadow);
-		padding: clamp(1.15rem, 2.6vw, 1.85rem) clamp(1.15rem, 3vw, 2.25rem)
-			clamp(1.4rem, 3vw, 2.25rem);
-	}
-	@media (max-width: 1100px) {
-		.grid.pl-list {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-		}
-	}
-	@media (max-width: 620px) {
-		.grid.pl-list {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-	@media (max-width: 480px) {
-		.grid.pl-list {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-	@media (max-width: 480px) {
-		.grid.pl-list {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-	.pl {
-		display: flex;
-		flex-direction: column;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
-	}
-
-	.pl:hover {
-		box-shadow: var(--shadow-hover, var(--shadow));
-	}
-	/* KRİTİK: yazar kuralı (display:flex) tarayıcının [hidden]{display:none}
-	   kuralını ezdiği için süzgeç görselde işlemiyordu; bu bunu geri kazandırır. */
-	.pl[hidden] {
-		display: none !important;
-	}
-	.pl-cover {
-		display: block;
-		aspect-ratio: 1 / 1;
-		overflow: hidden;
-	}
-
-	.pl-cover :global(.mcover img) {
-		transition: transform 280ms var(--ease);
-	}
-
-	.pl:hover .pl-cover :global(.mcover img) {
-		transform: scale(1.04);
-	}
-
-	.pl :global(.mcover) {
-		border-radius: 0;
-	}
-	.pl-body {
-		/* Spotify ikonu: metin bloğundan küçük, görünüme göre ölçeklenen kare boyut. */
-		--pl-icon: clamp(24px, 1.3vw + 12px, 30px);
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		grid-template-rows: auto auto;
-		align-items: center;
-		column-gap: 0.6rem;
-		row-gap: 0.3rem;
-		padding: 0.75rem 0.85rem 0.9rem;
-	}
-	.t {
-		margin: 0;
-		font-family: var(--font-card);
-		font-size: 18px;
-		font-weight: 400;
-		line-height: 1.25;
-	}
-	.t a {
-		color: inherit;
-		text-decoration: none;
-	}
-	.s {
-		margin: 0;
-		grid-column: 1;
-		grid-row: 2;
-		font-family: var(--font-meta);
-		font-size: 14px;
-		line-height: 1.3;
-	}
-	/* Şarkı/artist sayıları ayrı satırlara kırılabilsin: mobilde dar karta
-	   "66 şarkı" ve "70 artist" alt alta iner. */
-	.s .n-track,
-	.s .n-artist {
-		display: inline;
-	}
-	@media (max-width: 768px) {
-		.s .n-track,
-		.s .n-artist {
-			display: block;
-		}
-		/* Ayraç yalnızca yan yana dururken gerekir. */
-		.s .n-sep {
-			display: none;
-		}
-	}
-	/* Kapak altındaki klasör şeridi — film/dizi/kitap şeridiyle aynı dil.
-	   Yalnızca "Tümü" görünümünde gösterilir (aksi hâlde şerit gereksizdir). */
-	.pl-folder-strip {
-		margin: 0;
-		padding: 0.32rem 0.75rem;
-		background: var(--accent-soft);
-		border-bottom: 1px solid var(--border);
-		font-family: var(--font-ui);
-		font-size: 0.62rem;
-		font-weight: 700;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--accent-2);
-		text-align: center;
-	}
-	.pl-list:not(.is-all) .pl-folder-strip {
-		display: none;
-	}
-	/* Başlık + Spotify ikonu: ikon sağda dikey ortalı; boyut --pl-icon ile
-	   ölçeklenir, genişlik kare oranına göre otomatik. */
-	.pl-head {
-		display: contents;
-	}
-	.pl-head .t {
-		grid-column: 1;
-		grid-row: 1;
-		min-width: 0; /* uzun başlık satıra kırılsın, ikon sıkışmasın */
-	}
-	.pl-spotify {
-		grid-column: 2;
-		grid-row: 1 / 3;
-		align-self: center;
-		position: relative; /* dokunma alanı için ::after referansı */
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--text-muted);
-		transition: color var(--dur) var(--ease);
-	}
-	/* Dokunma alanını büyüt (yerleşimi etkilemeden). */
-	.pl-spotify::after {
-		content: '';
-		position: absolute;
-		inset: -0.5rem -0.6rem;
-	}
-	.pl-spotify svg {
-		display: block;
-		height: var(--pl-icon);
-		width: auto;
-		fill: currentColor;
-	}
-	@media (hover: hover) {
-		.pl-spotify:hover {
-			color: var(--text);
-		}
-	}
-	/* Mobil: hover'a bağlı stil yok; başlık en fazla 2 satır, kart içi
-	   yatay padding azaltılıp başlığa yer açılır, kart yükseklikleri eşit. */
-	@media (max-width: 768px) {
-		.pl-body {
-			padding-left: 0.6rem;
-			padding-right: 0.6rem;
-		}
-		.pl-head .t {
-			display: -webkit-box;
-			-webkit-line-clamp: 2;
-			line-clamp: 2;
-			-webkit-box-orient: vertical;
-			overflow: hidden;
-		}
-		.grid.pl-list {
-			align-items: stretch;
-		}
-	}
-	/* iOS, 16px altı form öğesine odaklanınca sayfayı yakınlaştırır; mobilde
-	   select'i 16px tutarak bunu engelle. */
-	@media (max-width: 640px) {
-		.pl-sort {
-			font-size: 1rem;
-		}
-	}
-</style>

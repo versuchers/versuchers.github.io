@@ -149,3 +149,10 @@ export function listedPlaylists(): SpotifyPlaylist[] {
     .filter(isListedPlaylist)
     .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
 }
+
+/** Bir klasörün listelenen playlistleri (alfabetik). '__all' → tümü. */
+export function playlistsInFolder(folder: string): SpotifyPlaylist[] {
+  const all = listedPlaylists();
+  if (folder === '__all') return all;
+  return all.filter((p) => getPlaylistFolderIds(p.id).includes(folder));
+}

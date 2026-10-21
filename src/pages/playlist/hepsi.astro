@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+import PlaylistBrowser from '../../components/PlaylistBrowser.astro';
+import { listedPlaylists, spotifyPlaylists } from '../../lib/playlists';
+
+/** Tümü: klasör süzgeci olmadan bütün listelenen playlistler (tek sayfa). */
+const items = listedPlaylists();
+const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
+---
+
+<Base
+	title="Playlistler — Tümü"
+	description={`Tüm public Spotify playlistlerim: ${items.length} liste.`}
+>
+	<div class="container section">
+		<header class="section-head">
+			<div>
+				<p class="eyebrow">Müzik</p>
+				<h1>Playlistler</h1>
+				<p class="lede">Tümü · {items.length} public playlist</p>
+			</div>
+			{spotifyFetchedAt && (
+				<p class="muted">Güncellenme: {new Date(spotifyFetchedAt).toLocaleDateString('tr-TR')}</p>
+			)}
+		</header>
+
+		<PlaylistBrowser folder="__all" items={items} />
+	</div>
+</Base>

@@ -1,0 +1,43 @@
+---
+import Base from '../../../layouts/Base.astro';
+import PlaylistBrowser from '../../../components/PlaylistBrowser.astro';
+import {
+	folderChips,
+	playlistsInFolder,
+	listedPlaylists,
+	spotifyPlaylists,
+} from '../../../lib/playlists';
+
+export function getStaticPaths() {
+	// Her whitelist klasör için bir statik sayfa: kartlar sunucuda süzülür.
+	return folderChips().map((c) => ({ params: { folder: c.id }, props: { name: c.name } }));
+}
+
+const { name } = Astro.props;
+const { folder } = Astro.params;
+const items = playlistsInFolder(folder);
+const total = listedPlaylists().length;
+const spotifyFetchedAt = spotifyPlaylists.fetchedAt;
+---
+
+<Base
+	title={`Playlistler — ${name}`}
+	description={`Spotify playlistlerim — ${name} klasörü: ${items.length} liste.`}
+>
+	<div class="container section">
+		<header class="section-head">
+			<div>
+				<p class="eyebrow">Müzik</p>
+				<h1>Playlistler</h1>
+				<p class="lede">
+					<span class="muted">{name}</span> · {items.length} liste (toplam {total} public playlist)
+				</p>
+			</div>
+			{spotifyFetchedAt && (
+				<p class="muted">Güncellenme: {new Date(spotifyFetchedAt).toLocaleDateString('tr-TR')}</p>
+			)}
+		</header>
+
+		<PlaylistBrowser folder={folder} items={items} />
+	</div>
+</Base>

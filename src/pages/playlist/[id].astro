@@ -4,6 +4,7 @@ import MusicCover from '../../components/MusicCover.astro';
 import { durationShort } from '../../lib/music';
 import {
 	getPlaylistById,
+	getPlaylistFolderIds,
 	listedPlaylists,
 } from '../../lib/playlists';
 import { artistHref, trackHref } from '../../lib/playlist-xref';
@@ -22,12 +23,17 @@ if (!pl) {
 
 const kept = keptGenres(pl);
 
+/* Klasör bağlantısı: playlist'in ait olduğu klasör sayfasına döner.
+   Her listelenen playlist tek bir whitelist klasöre aittir; yoksa düz liste. */
+const backFolder = getPlaylistFolderIds(pl.id)[0];
+const backHref = backFolder ? `/playlist/k/${backFolder}` : '/playlist';
+
 const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim() : '';
 ---
 
 <Base title={pl.name} description={`Spotify playlist: ${pl.name}`}>
 	<div class="container section">
-		<nav class="crumbs"><a href="/playlist">← Playlistler</a></nav>
+		<nav class="crumbs"><a href={backHref}>← Playlistler</a></nav>
 
 		<header class="pl-head">
 			<div class="pl-cover">
