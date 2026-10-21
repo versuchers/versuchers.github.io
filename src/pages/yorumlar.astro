@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+import TagBrowse from '../components/TagBrowse.astro';
+import { allEntries, reviewTime } from '../lib/data';
+
+/**
+ * Karma "yorumladıklarım" listesi: `/yorumlar`.
+ * Film, dizi ve kitap tek listede; yorum tarihine göre yeniden eskiye.
+ * Ana sayfadaki "Son yorumladıklarım" bölümünün tam karşılığıdır.
+ * Yalnızca yorum tarihi olan kayıtlar girer (yorumu olmayanlar dışarıda).
+ */
+const items = allEntries
+	.filter((e) => reviewTime(e) > 0)
+	.sort((a, b) => reviewTime(b) - reviewTime(a));
+
+const filmCount = items.filter((e) => e.type === 'film').length;
+const diziCount = items.filter((e) => e.type === 'dizi').length;
+const kitapCount = items.filter((e) => e.type === 'kitap').length;
+---
+
+<Base
+	title="Yorumladıklarım"
+	description={`Yorumladığım ${items.length} kayıt: ${filmCount} film, ${diziCount} dizi, ${kitapCount} kitap.`}
+>
+	<div class="container section">
+		<header class="page-head">
+			<p class="eyebrow">Arşiv</p>
+			<h1>Yorumladıklarım</h1>
+			<p class="lede">
+				{items.length} kayıt — {filmCount} film, {diziCount} dizi, {kitapCount} kitap. Yorum
+				tarihine göre yeniden eskiye.
+			</p>
+		</header>
+		<TagBrowse items={items} defaultSort="review" />
+	</div>
+</Base>
+
+<style>
+	.page-head {
+		margin-bottom: 2rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+</style>

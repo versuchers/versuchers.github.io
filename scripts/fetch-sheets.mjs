@@ -11,6 +11,7 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { slugify } from '../src/lib/slug.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = resolve(__dirname, '..', 'src', 'data');
@@ -88,22 +89,6 @@ function parseDelimited(text, delimiter) {
 }
 
 // ------------------------------------------------------------ normalizasyon
-const TR_MAP = {
-	ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u',
-	Ç: 'c', Ğ: 'g', İ: 'i', I: 'i', Ö: 'o', Ş: 's', Ü: 'u',
-};
-
-/** Başlığı URL-güvenli slug'a çevirir. */
-function slugify(input) {
-	return String(input ?? '')
-		.trim()
-		.replace(/[çğıöşüÇĞİIÖŞÜ]/g, (c) => TR_MAP[c] ?? c)
-		.toLowerCase()
-		.normalize('NFKD')
-		.replace(/[\u0300-\u036f]/g, '')
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '');
-}
 
 /** Metinden ilk geçerli 4 haneli yılı (1000-2099) çeker. */
 function firstYear(value) {

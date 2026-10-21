@@ -6,7 +6,7 @@ import filmsJson from '../data/film.json';
 import seriesJson from '../data/dizi.json';
 import booksJson from '../data/kitap.json';
 import { parseTrDate, parseLooseTrDate, parseYearOnly, formatLooseTrDate, formatYearRange } from './format';
-import { fold, splitMulti, tagSlug } from './text';
+import { fold, splitMulti, tagSlug, foldAccents } from './text';
 import {
 	buildPeople,
 	personHrefFrom,
@@ -169,6 +169,188 @@ export const KIND_PLURAL: Record<Kind, string> = {
 };
 
 /* --------------------------------------------------------------------------
+   Kaynak eser ↔ kitap eşleştirmesi.
+   Film/dizi künyesindeki "Kaynak Eser" + "Kaynak Yazar", arşivdeki kitapların
+   başlık/orijinal başlık + yazarıyla normalize edilerek karşılaştırılır.
+   Eşleşme bir kez hesaplanır ve iki yönde kullanılır: film/dizi sayfasında
+   "Kaynak Eser" kitaba bağlanır, kitap sayfasında "Uyarlamalar" bölümü çıkar.
+   -------------------------------------------------------------------------- */
+
+/** Normalize: küçük harf + aksan sadeleştirme + noktalama temizliği. */
+function adaptationKey(input: string): string {
+	return foldAccents(input || '')
+		.replace(/[^a-z0-9]+/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim();
+}
+
+interface AdaptationBook {
+	slug: string;
+	/** Normalize başlık ve orijinal başlık. */
+	keys: string[];
+	author: string;
+}
+
+const adaptationBooks: AdaptationBook[] = books.map((b) => ({
+	slug: b.slug,
+	keys: [...new Set([adaptationKey(b.title), adaptationKey(b.originalTitle)].filter(Boolean))],
+	author: adaptationKey(b.authorName || b.author),
+}));
+
+/**
+ * Kaynak eseri kitaba çevirir. Başlık tam eşleşmeli (kısmi eşleşme "It" gibi
+ * kısa adları yanlış kitaba bağlardı). İki tarafta da yazar varsa uyum aranır;
+ * yoksa yalnız başlık yeter. Birden çok eşleşmede arşiv sırasındaki ilk kitap.
+ */
+function matchAdaptation(sourceWork: string, sourceAuthor: string): AdaptationBook | null {
+	const work = adaptationKey(sourceWork);
+	if (!work) return null;
+	const author = adaptationKey(sourceAuthor);
+	const found = adaptationBooks.filter((b) => b.keys.includes(work));
+	if (!found.length) return null;
+	if (author) {
+		const withAuthor = found.find(
+			(b) => !b.author || b.author.includes(author) || author.includes(b.author),
+		);
+		if (withAuthor) return withAuthor;
+	}
+	return found[0];
+}
+
+/** Film/dizi id → kaynak kitabın slug'ı. */
+const sourceBookByEntry = new Map<string, string>();
+/** Kitap slug'ı → o kitabı kaynak alan film/diziler. */
+const adaptationsByBook = new Map<string, Entry[]>();
+
+{
+	const unmatched: string[] = [];
+	for (const e of [...films, ...series]) {
+		const work = (e.sourceWork || '').trim();
+		if (!work || work === '-') continue;
+		const book = matchAdaptation(work, e.sourceAuthor || '');
+		if (!book) {
+			unmatched.push(`[${e.type}] ${e.title} — "${work}"`);
+			continue;
+		}
+		sourceBookByEntry.set(e.id, book.slug);
+		const list = adaptationsByBook.get(book.slug);
+		if (list) list.push(e);
+		else adaptationsByBook.set(book.slug, [e]);
+	}
+	// Eşleşmeyenler build sırasında bir kez listelenir (veri düzeltmesi için).
+	if (unmatched.length) {
+		console.log(
+			`[adaptations] ${unmatched.length} kaynak eser kitaba bağlanamadı:\n` +
+				unmatched.map((u) => `  ${u}`).join('\n'),
+		);
+	}
+}
+
+/** Bir kitabı kaynak alan film/diziler (yoksa boş dizi). */
+export function adaptationsOf(bookSlug: string): Entry[] {
+	return adaptationsByBook.get(bookSlug) ?? [];
+}
+
+/** Film/dizinin kaynak kitabının slug'ı (eşleşme yoksa undefined). */
+export function sourceBookSlug(entry: Entry): string | undefined {
+	return sourceBookByEntry.get(entry.id);
+}
+
+/* --------------------------------------------------------------------------
+   Kitap serileri.
+   Sheet'te tek alan var: `series` = "Seri Adı #Sıra" (ör. "Dune #2").
+   Ayrı bir seri-sırası alanı yok; sıra bu alandan ayrıştırılır.
+   Ayrıştırılamayan değer seri sayılmaz (yanlış sıralama üretmemek için).
+   -------------------------------------------------------------------------- */
+
+/** "Dune #2" → { name: "Dune", order: 2 }. Format tutmuyorsa null. */
+function parseSeries(value: string): { name: string; order: number } | null {
+	const v = String(value ?? '').trim();
+	if (!v || v === '-') return null;
+	const m = v.match(/^(.*?)\s*#\s*(\d+(?:\.\d+)?)\s*$/);
+	if (!m) return null;
+	const name = m[1].trim();
+	if (!name) return null;
+	return { name, order: Number(m[2]) };
+}
+
+interface BookSeriesInfo {
+	name: string;
+	slug: string;
+	order: number;
+}
+
+const seriesByBookId = new Map<string, BookSeriesInfo>();
+const seriesMembers = new Map<string, Kitap[]>();
+
+for (const b of books) {
+	const parsed = parseSeries(b.series);
+	if (!parsed) continue;
+	const slug = tagSlug(parsed.name);
+	seriesByBookId.set(b.id, { ...parsed, slug });
+	const list = seriesMembers.get(slug);
+	if (list) list.push(b);
+	else seriesMembers.set(slug, [b]);
+}
+
+/**
+ * Seri üyeleri okuma/yayın sırasına göre (küçük sıra önce).
+ * Aynı sırayı paylaşanlar başlığa göre sıralanır ki liste deterministik olsun.
+ */
+function sortSeries(list: Kitap[]): Kitap[] {
+	return [...list].sort((a, b) => {
+		const oa = seriesByBookId.get(a.id)?.order ?? Number.MAX_SAFE_INTEGER;
+		const ob = seriesByBookId.get(b.id)?.order ?? Number.MAX_SAFE_INTEGER;
+		if (oa !== ob) return oa - ob;
+		return a.title.localeCompare(b.title, 'tr');
+	});
+}
+
+for (const [slug, list] of seriesMembers) seriesMembers.set(slug, sortSeries(list));
+
+/** Kitabın seri bilgisi (seride değilse undefined). */
+export function bookSeries(entry: Entry): BookSeriesInfo | undefined {
+	return seriesByBookId.get(entry.id);
+}
+
+/** Serideki kitaplar, okuma/yayın sırasıyla (yoksa boş dizi). */
+export function seriesBooks(slug: string): Kitap[] {
+	return seriesMembers.get(slug) ?? [];
+}
+
+/** Sayfası olan tüm seriler: slug → görünen ad. */
+export const seriesCatalog: Map<string, string> = new Map(
+	[...seriesMembers.entries()].map(([slug, list]) => [slug, parseSeries(list[0].series)?.name ?? slug]),
+);
+
+/**
+ * Kitabın serideki önceki/sonraki kitabı.
+ * Sıralı liste üzerinden yürünür; komşunun sırası farklıysa (aynı kitabın
+ * Kısım I/II gibi bölünmüş ciltleri aynı numarayı paylaşır) atlanır, aynı
+ * sıradaysa liste konumu izlenir — böylece Kısım I → Kısım II bağlanır.
+ */
+export function seriesNeighbours(entry: Entry): { prev?: Kitap; next?: Kitap; index: number; total: number } {
+	const info = seriesByBookId.get(entry.id);
+	if (!info) return { index: -1, total: 0 };
+	const list = seriesMembers.get(info.slug) ?? [];
+	const i = list.findIndex((b) => b.id === entry.id);
+	if (i < 0) return { index: -1, total: list.length };
+
+	const orderOf = (b?: Kitap) => (b ? seriesByBookId.get(b.id)?.order ?? NaN : NaN);
+	/** Verilen yönde, sırası aynı olan ilk komşuya kadar ilerler. */
+	const step = (dir: 1 | -1): Kitap | undefined => {
+		for (let j = i + dir; j >= 0 && j < list.length; j += dir) {
+			const o = orderOf(list[j]);
+			if (o === info.order) return list[j];
+			if (dir === 1 ? o > info.order : o < info.order) return list[j];
+		}
+		return undefined;
+	};
+
+	return { prev: step(-1), next: step(1), index: i, total: list.length };
+}
+
+/* --------------------------------------------------------------------------
    Kişi indeksi.
    Film/dizi/kitap künyelerindeki tüm roller (yönetmen, senarist, oyuncu,
    yazar, çevirmen…) kişi bazında toplanır. En az MIN_PERSON_WORKS yapımı olan
@@ -321,10 +503,20 @@ export function facts(entry: Entry): Fact[] {
 		label: string,
 		value?: string | number | null,
 		ns?: string,
-		opts?: { plain?: boolean },
+		opts?: { plain?: boolean; href?: string | null },
 	) => {
 		const v = value === 0 ? '0' : String(value ?? '').trim();
 		if (!v || v === '-') return;
+		/* `href` verilmişse kararı o verir: eşleşen bir sayfa varsa ona bağlan,
+		   yoksa (null) düz metin göster — aramaya düşme. */
+		if (opts && 'href' in opts) {
+			f.push(opts.href ? { label, value: v, href: opts.href } : { label, value: v });
+			return;
+		}
+		if (opts?.plain) {
+			f.push({ label, value: v });
+			return;
+		}
 		// Ayraçlı değerleri ("," ve/veya "//") tek tek tıklanabilir hâle getir.
 		const parts = splitMulti(v);
 		if (parts.length > 1) {
@@ -335,10 +527,6 @@ export function facts(entry: Entry): Fact[] {
 					href: ns ? (tax(ns, p) as string) : (q(p) as string),
 				})),
 			});
-			return;
-		}
-		if (opts?.plain) {
-			f.push({ label, value: v });
 			return;
 		}
 		f.push({ label, value: v, href: ns ? tax(ns, v) : q(v) });
@@ -365,7 +553,9 @@ export function facts(entry: Entry): Fact[] {
 		add('İlk İzlediğim Şehir', entry.firstCity, 'sehir');
 		add('Platform', entry.platform, 'erisim-seklim');
 		add('Kaç Kez İzledim', entry.rewatchCount, undefined, { plain: true });
-		add('Kaynak Eser', entry.sourceWork);
+		add('Kaynak Eser', entry.sourceWork, undefined, {
+			href: sourceBookSlug(entry) ? `/kitap/${sourceBookSlug(entry)}` : null,
+		});
 		addPeople('Kaynak Yazar', entry.sourceAuthor, 'kaynak-yazar');
 		add('Nasıl Keşfettim', entry.discovery, undefined, { plain: true });
 		add('İzleme Sebebim', entry.reason, undefined, { plain: true });
@@ -386,12 +576,26 @@ export function facts(entry: Entry): Fact[] {
 		add('Platform', entry.platform, 'erisim-seklim');
 		add('Bitirdim mi', entry.finished, undefined, { plain: true });
 		add('Kaç Kez Bitirdim', entry.finishCount, undefined, { plain: true });
-		add('Kaynak Eser', entry.sourceWork);
+		add('Kaynak Eser', entry.sourceWork, undefined, {
+			href: sourceBookSlug(entry) ? `/kitap/${sourceBookSlug(entry)}` : null,
+		});
 		addPeople('Kaynak Yazar', entry.sourceAuthor, 'kaynak-yazar');
 	} else {
 		addPeople('Yazar', entry.author, 'yazar');
 		addPeople('Çevirmen', entry.translator, 'cevirmen');
 		add('Yayınevi', entry.publisher, 'yayinevi');
+		// Seri: "Dune #2" → seri sayfasına bağlı "Dune #2".
+		const seri = bookSeries(entry);
+		{
+			const ad = seri ? `${seri.name} #${seri.order}` : String(entry.series ?? '').trim();
+			if (ad && ad !== '-') {
+				f.push({
+					label: 'Seri',
+					value: ad,
+					href: seri ? `/seri/${seri.slug}` : undefined,
+				});
+			}
+		}
 		add('Kategori', entry.category, 'kategori');
 		add('Tür', entry.genre, 'tur');
 		add('Ana Tema', entry.mainTheme, 'ana-tema');
@@ -431,14 +635,64 @@ export function externalLinks(entry: Entry): { label: string; href: string }[] {
 /** Aynı türden, ortak etiketi olan benzer kayıtlar. */
 export function related(entry: Entry, limit = 6): Entry[] {
 	const mine = new Set(tagList(entry).map((t) => t.toLocaleLowerCase('tr')));
+	/** Çoklu alanları ("A, B" / "A // B") küçük harfli kümeye çevirir. */
+	const set = (v?: string) =>
+		new Set(splitMulti(v).map((s) => s.toLocaleLowerCase('tr')));
+	const intersects = (a: Set<string>, b: Set<string>) => {
+		for (const x of a) if (b.has(x)) return true;
+		return false;
+	};
+
+	const mineTheme = set('mainTheme' in entry ? entry.mainTheme : undefined);
+	const mineDirector = entry.type === 'film' ? set(entry.director) : new Set<string>();
+	const mineAuthor =
+		entry.type === 'kitap' ? set(entry.authorName || entry.author) : new Set<string>();
+	const mySeries = entry.type === 'kitap' ? seriesByBookId.get(entry.id)?.slug : undefined;
+
+	/** İki kümenin kesişim sayısı (katman içi sıralama için). */
+	const shared = (a: Set<string>, b: Set<string>) => {
+		let n = 0;
+		for (const x of a) if (b.has(x)) n++;
+		return n;
+	};
+
+	/* Kitap bir seriye aitse havuz daralır: yalnızca o serinin diğer kitapları
+	   ve aynı yazarın diğer kitapları. Tema/tür eşleşmesi burada devreye
+	   girmez — seri bağlamı varken alakasız "benzer" istenmiyor. */
+	if (mySeries) {
+		const sameSeries = seriesBooks(mySeries).filter((e) => e.id !== entry.id) as Entry[];
+		const sameAuthor = mineAuthor.size
+			? (books.filter(
+					(e) =>
+						e.id !== entry.id &&
+						seriesByBookId.get(e.id)?.slug !== mySeries &&
+						intersects(mineAuthor, set(e.authorName || e.author)),
+				) as Entry[])
+			: [];
+		// Seri üyeleri (okuma sırası) önce, sonra yazarın diğer kitapları.
+		return [...sameSeries, ...sameAuthor].slice(0, limit);
+	}
+
+	/* Öncelik katmanları (büyük olan önce gelir). Etiket/tür örtüşmesi en alt
+	   katman: yalnızca onunla gelen sonuçlar listenin sonuna düşer. */
+	const score = (e: Entry): { tier: number; near: number } => {
+		const themeHit = mineTheme.size
+			? shared(mineTheme, set('mainTheme' in e ? e.mainTheme : undefined))
+			: 0;
+		const dirHit = mineDirector.size && e.type === 'film' ? shared(mineDirector, set(e.director)) : 0;
+		// Tema ya da yönetmen tutuyorsa üst katman; kaç ortak değer varsa o kadar öne.
+		if (themeHit > 0 || dirHit > 0) return { tier: 4, near: themeHit + dirHit * 2 };
+		if (mineAuthor.size && e.type === 'kitap' && intersects(mineAuthor, set(e.authorName || e.author)))
+			return { tier: 3, near: 0 };
+		const overlap = tagList(e).filter((x) => mine.has(x.toLocaleLowerCase('tr'))).length;
+		return overlap > 0 ? { tier: 1, near: overlap } : { tier: 0, near: 0 };
+	};
+
 	return byKind[entry.type]
 		.filter((e) => e.id !== entry.id)
-		.map((e) => ({
-			entry: e,
-			score: tagList(e).filter((t) => mine.has(t.toLocaleLowerCase('tr'))).length,
-		}))
-		.filter((x) => x.score > 0)
-		.sort((a, b) => b.score - a.score || (b.entry.rating ?? 0) - (a.entry.rating ?? 0))
+		.map((e) => ({ entry: e, ...score(e) }))
+		.filter((x) => x.tier > 0)
+		.sort((a, b) => b.tier - a.tier || b.near - a.near || (b.entry.rating ?? 0) - (a.entry.rating ?? 0))
 		.slice(0, limit)
 		.map((x) => x.entry);
 }

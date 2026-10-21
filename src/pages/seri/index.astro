@@ -1,0 +1,77 @@
+---
+import Base from '../../layouts/Base.astro';
+import { seriesCatalog, seriesBooks } from '../../lib/data';
+
+/**
+ * Kitap serileri dizini: `/seri`.
+ * Her seri, kaç kitabı olduğuyla listelenir.
+ */
+const items = [...seriesCatalog.entries()]
+	.map(([slug, name]) => ({ slug, name, count: seriesBooks(slug).length }))
+	.sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+---
+
+<Base
+	title="Kitap serileri"
+	description={`Arşivdeki ${items.length} kitap serisi, okuma sırasıyla.`}
+>
+	<div class="container section">
+		<header class="page-head">
+			<p class="eyebrow">Arşiv</p>
+			<h1>Kitap serileri</h1>
+			<p class="lede">{items.length} seri. Her seri kendi sayfasında okuma sırasıyla listelenir.</p>
+		</header>
+		<ul class="series-index">
+			{
+				items.map((s) => (
+					<li>
+						<a href={`/seri/${s.slug}`}>
+							<span class="nm">{s.name}</span>
+							<span class="ct muted">{s.count} kitap</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</Base>
+
+<style>
+	.page-head {
+		margin-bottom: 2rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+	.series-index {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 0.6rem;
+	}
+	.series-index a {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		text-decoration: none;
+		color: inherit;
+	}
+	.series-index a:hover {
+		border-color: var(--accent);
+	}
+	.series-index .nm {
+		font-family: var(--font-head);
+		font-size: 1rem;
+	}
+	.series-index .ct {
+		font-size: 0.82rem;
+		white-space: nowrap;
+	}
+</style>

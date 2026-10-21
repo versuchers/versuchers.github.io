@@ -23,7 +23,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft && !data.en
 
 	<Rail items={watched} title="Son izlediklerim" moreHref="/film" moreLabel="Tüm filmler" />
 
-	<Rail items={reviewed} title="Son yorumladıklarım" moreHref="/film" moreLabel="Gözat" layout="rows" onlyNarrowest />
+	<Rail items={reviewed} title="Son yorumladıklarım" moreHref="/yorumlar" moreLabel="Gözat" layout="rows" onlyNarrowest />
 
 	{posts.length > 0 && (
 		<section class="section">

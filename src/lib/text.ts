@@ -3,6 +3,16 @@
  * Tek kaynak — sunucu bileşenleri ve tarayıcı betikleri buradaki fonksiyonları kullanır.
  */
 
+import { slugify } from './slug.mjs';
+
+/**
+ * Aksan sadeleştirmesi: Türkçe harfler + NFKD birleştirici işaretler.
+ * Slug (src/lib/slug.mjs) ile aynı hattı kullanır; yalnızca ayraç farklıdır.
+ */
+export function foldAccents(input: string): string {
+	return slugify(input, 0).replace(/-/g, ' ');
+}
+
 /**
  * İngilizce sözcüklerde baş harf `i` → `I`, Türkçede `i` → `İ`.
  * Yalnızca `i` ile başlayan sözcükler için gerekir.
@@ -66,16 +76,13 @@ export function fold(input: string): string {
 	);
 }
 
-/** Etiket adlarını URL-güvenli slug'a çevirir. */
+/**
+ * Etiket adlarını URL-güvenli slug'a çevirir.
+ * Tek kaynak: src/lib/slug.mjs (sync script'leri de aynı fonksiyonu kullanır).
+ * Boş sonuç (ör. yalnız simge) yerine 'etiket' döner.
+ */
 export function tagSlug(input: string): string {
-	return (
-		fold(input)
-			.trim()
-			.replace(/['"’]/g, '')
-			.replace(/[^a-z0-9]+/g, '-')
-			.replace(/^-+|-+$/g, '')
-			.slice(0, 80) || 'etiket'
-	);
+	return slugify(input) || 'etiket';
 }
 
 /**

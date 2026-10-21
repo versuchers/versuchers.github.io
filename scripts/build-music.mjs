@@ -17,6 +17,7 @@
 import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { slugify } from '../src/lib/slug.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = resolve(__dirname, '..', 'src', 'data', 'music');
@@ -31,18 +32,7 @@ const Y1 = 2026;
 const YN = Y1 - Y0 + 1;
 const TZ_MS = 3 * 3600 * 1000; // Türkiye sabit UTC+3 (2016'dan beri)
 
-const TR_MAP = { ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u', â: 'a', î: 'i', û: 'u' };
-
 /** URL-güvenli slug. Latin dışı adlar boş dönerse hash ile desteklenir. */
-function slugify(input) {
-	return String(input ?? '')
-		.toLowerCase()
-		.replace(/[çğıöşüâîû]/g, (c) => TR_MAP[c] ?? c)
-		.normalize('NFKD')
-		.replace(/[\u0300-\u036f]/g, '')
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '');
-}
 function hash(s) {
 	let h = 5381;
 	for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;

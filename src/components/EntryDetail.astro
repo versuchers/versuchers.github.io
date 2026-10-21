@@ -4,6 +4,8 @@ import {
 	sheetTags,
 	externalLinks,
 	related,
+	adaptationsOf,
+	seriesNeighbours,
 	KIND_LABEL,
 	KIND_PLURAL,
 	personHref,
@@ -28,6 +30,8 @@ const meta = facts(entry);
 const tags = sheetTags(entry);
 const links = externalLinks(entry);
 const similar = related(entry, 6);
+/* Bu kitabı kaynak alan film/diziler. Yoksa bölüm hiç gösterilmez. */
+const adaptations = entry.type === 'kitap' ? adaptationsOf(entry.slug) : [];
 
 const yearLabel =
 	entry.type === 'dizi' ? formatYearRange(entry.yearRange, entry.year) : entry.year;
@@ -44,6 +48,9 @@ const reviewText = isSpoiler
 
 const listHref = `/${entry.type}`;
 const listLabel = KIND_PLURAL[entry.type];
+
+/* Seri içi gezinme: yalnızca seriye ait kitaplarda görünür. */
+const neighbours = entry.type === 'kitap' ? seriesNeighbours(entry) : null;
 ---
 
 <article class="detail" style={entry.type === 'film' && entry.color ? `--accent: ${entry.color}; --accent-2: ${entry.color}` : undefined}>
@@ -153,6 +160,21 @@ const listLabel = KIND_PLURAL[entry.type];
 					</div>
 				)}
 
+				{adaptations.length > 0 && (
+					<div class="block">
+						<p class="eyebrow">Uyarlamalar</p>
+						<ul class="cast">
+							{adaptations.map((a) => (
+								<li>
+									<a href={`/${a.type}/${a.slug}`}>
+										{KIND_LABEL[a.type]} — {a.type === 'film' ? a.fullTitle || a.title : a.title}
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				)}
+
 				{cast.length > 0 && (
 					<div class="block">
 						<p class="eyebrow">Kadro</p>
@@ -168,6 +190,27 @@ const listLabel = KIND_PLURAL[entry.type];
 				)}
 			</div>
 		</div>
+
+		{(neighbours?.prev || neighbours?.next) && (
+			<nav class="series-nav" aria-label="Seri içinde gezinme">
+				{neighbours?.prev ? (
+					<a class="series-link prev" href={`/kitap/${neighbours.prev.slug}`}>
+						<span class="dir">← Önceki kitap</span>
+						<span class="nm">{neighbours.prev.title}</span>
+					</a>
+				) : (
+					<span class="series-link is-empty" />
+				)}
+				{neighbours?.next ? (
+					<a class="series-link next" href={`/kitap/${neighbours.next.slug}`}>
+						<span class="dir">Sonraki kitap →</span>
+						<span class="nm">{neighbours.next.title}</span>
+					</a>
+				) : (
+					<span class="series-link is-empty" />
+				)}
+			</nav>
+		)}
 
 		{similar.length > 0 && (
 			<section class="similar">
@@ -439,6 +482,48 @@ const listLabel = KIND_PLURAL[entry.type];
 		margin-top: clamp(2.5rem, 6vw, 4rem);
 		padding-top: 2rem;
 		border-top: 1px solid var(--border);
+	}
+
+	/* Seri içi gezinme: iki uçta önceki/sonraki kitap. */
+	.series-nav {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+		margin-top: clamp(2rem, 5vw, 3rem);
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--border);
+	}
+	.series-link {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		padding: 0.8rem 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+		text-decoration: none;
+		color: inherit;
+	}
+	.series-link:hover {
+		border-color: var(--accent);
+	}
+	.series-link.next {
+		text-align: right;
+	}
+	.series-link.is-empty {
+		border: 0;
+		background: transparent;
+	}
+	.series-link .dir {
+		font-family: var(--font-head);
+		font-size: 0.7rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+	.series-link .nm {
+		font-family: var(--font-head);
+		font-size: 1rem;
 	}
 
 	/* Benzer içerik ızgarası: tek sütuna düşmesin, en dar ekranda bile iki kart

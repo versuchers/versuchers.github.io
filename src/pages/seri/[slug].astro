@@ -1,0 +1,97 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryCard from '../../components/EntryCard.astro';
+import { seriesBooks, seriesCatalog, bookSeries } from '../../lib/data';
+
+/**
+ * Kitap serisi sayfası: `/seri/<slug>`.
+ * Seri adı ve sırası sheet'teki `series` alanından ("Dune #2") gelir.
+ * Kitaplar okuma/yayın sırasına göre listelenir.
+ */
+export function getStaticPaths() {
+	return [...seriesCatalog.entries()].map(([slug, name]) => ({
+		params: { slug },
+		props: { name },
+	}));
+}
+
+const { slug } = Astro.params;
+const { name } = Astro.props as { name: string };
+// seriesBooks zaten okuma sırasına göre sıralı gelir.
+const items = seriesBooks(String(slug));
+---
+
+<Base
+	title={`${name} serisi`}
+	description={`${name} serisindeki ${items.length} kitap, okuma sırasıyla.`}
+>
+	<div class="container section">
+		<header class="page-head">
+			<p class="eyebrow">Kitap serisi</p>
+			<h1>{name}</h1>
+			<p class="lede">
+				{items.length} kitap · okuma sırasına göre. <a href="/kitap">Tüm kitaplar →</a>
+			</p>
+		</header>
+
+		<ol class="series-list">
+			{
+				items.map((b) => {
+					const order = bookSeries(b)?.order ?? 0;
+					return (
+						<li class="series-row">
+							<span class="order" aria-label={`Sıra ${order}`}>
+								#{order}
+							</span>
+							<div class="card-slot">
+								<EntryCard entry={b} />
+							</div>
+						</li>
+					);
+				})
+			}
+		</ol>
+	</div>
+</Base>
+
+<style>
+	.page-head {
+		margin-bottom: 2rem;
+	}
+	.page-head h1 {
+		margin-block: 0.2rem 0.6rem;
+	}
+	.series-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+		gap: 1rem;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface);
+	}
+	.series-row {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+	.order {
+		font-family: var(--font-head);
+		font-size: 0.8rem;
+		letter-spacing: 0.06em;
+		color: var(--text-muted);
+	}
+	.card-slot {
+		flex: 1;
+	}
+	@media (max-width: 640px) {
+		.series-list {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.6rem;
+			padding: 0.6rem;
+		}
+	}
+</style>
