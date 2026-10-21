@@ -141,6 +141,10 @@ const sortOptions = [
 			'muzik-tur': 'Müzik türü',
 		};
 
+		/* 2:3 poster kullanan türler. Sonuç kümesinde bunlardan hiç yoksa
+		   kartların poster yüksekliğini koruması gerekmez. */
+		const POSTER_TYPES = new Set(['film', 'dizi', 'kitap']);
+
 		document.querySelectorAll<HTMLElement>('[data-search-root]').forEach((root) => {
 			const grid = root.querySelector<HTMLElement>('.browse-grid');
 			const tpl = root.querySelector<HTMLTemplateElement>('[data-card-template]')!;
@@ -407,6 +411,10 @@ const sortOptions = [
 				if (empty) empty.hidden = res.length !== 0;
 				// Tek tür seçiliyken (Tür = Film/Dizi/Kitap) kart şeridi gereksiz: gizle.
 				root.classList.toggle('is-single-type', !!t);
+				/* Sonuçlarda film/dizi/kitap yoksa (yalnız sanatçı, playlist,
+				   müzik türü) 2:3 poster yüksekliği boşuna dikleştirir;
+				   kapak alanı kareye iner. */
+				root.classList.toggle('no-poster', !res.some((it) => POSTER_TYPES.has(it.ty)));
 			}
 
 			[search, type, sort].forEach((el) => el.addEventListener('input', apply));
@@ -601,6 +609,14 @@ const sortOptions = [
 	/* Kapak görseli yoksa (tür kartları) boş çerçeve hiç gösterilmez. */
 	.entry-card .poster-wrap[hidden] {
 		display: none;
+	}
+
+	/* Sonuçlarda film/dizi/kitap yoksa (yalnız sanatçı, playlist, müzik türü)
+	   2:3 poster yüksekliğini korumak boşuna: kapak alanı kareye iner.
+	   Tür şeridi yine tüm kartlarda aynı hizada kalır. */
+	.no-poster .entry-card .poster-wrap:has(.frame.square),
+	.no-poster .entry-card .poster-wrap:has(.frame.round) {
+		aspect-ratio: 1 / 1;
 	}
 
 	/* [hidden] .grid{display:grid} tarafından eziliyor; gizliyken gerçekten gizlenir. */
