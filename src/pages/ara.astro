@@ -2,9 +2,7 @@
 import Base from '../layouts/Base.astro';
 import GlobalSearch from '../components/GlobalSearch.astro';
 import { allEntries } from '../lib/data';
-import { artists } from '../lib/music';
 import { listedPlaylists } from '../lib/playlists';
-import { genrePages } from '../lib/artist-info';
 
 const q = Astro.url.searchParams.get('q')?.trim() ?? '';
 const tur = Astro.url.searchParams.get('tur')?.trim() ?? '';
@@ -17,7 +15,7 @@ const turLabel: Record<string, string> = {
 	'muzik-tur': 'müzik türü',
 };
 
-const total = allEntries.length + artists.length + listedPlaylists().length + genrePages.length;
+const total = allEntries.length + listedPlaylists().length;
 
 const heading = q ? `“${q}” için sonuçlar` : 'Ara';
 const description = q

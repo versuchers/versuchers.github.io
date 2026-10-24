@@ -1,6 +1,4 @@
 ---
-import MusicCover from './MusicCover.astro';
-import { integer } from '../lib/music';
 
 interface Props {
 	/** Detay sayfası olmayan öğelerde (ör. türler) boş bırakılabilir. */
@@ -20,13 +18,13 @@ const { href, title, sub, src, round = false, plays, rank, eager = false } = Ast
 <li class="mcard">
 	<a class="card" href={href}>
 		<div class="cvr">
-			<MusicCover src={src} alt="" name={title} round={round} eager={eager} />
+			{src ? <img src={src} alt="" loading={eager ? 'eager' : 'lazy'} /> : <div class="ph" />}
 			{rank && <span class="rank">{rank}</span>}
 		</div>
 		<div class="body">
 			<span class="t">{title}</span>
 			{sub && <span class="s muted">{sub}</span>}
-			<span class="p">{integer(plays)} çalma</span>
+			<span class="p">{plays} çalma</span>
 		</div>
 	</a>
 </li>

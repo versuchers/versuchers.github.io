@@ -2,9 +2,7 @@
 import { KIND_LABEL, type Entry, type Kind } from '../lib/data';
 import { parseTrDate } from '../lib/format';
 import { fold } from '../lib/text';
-import { cover } from '../lib/music';
 import EntryCard from './EntryCard.astro';
-import MusicCard from './MusicCard.astro';
 
 interface Props {
 	items: Entry[];
@@ -105,25 +103,8 @@ const sortedItems = items
 		}
 	</ul>
 
-	{
-		hasArtists && (
-			<div class="artist-panel" data-artist-panel hidden>
-				<ul class="grid browse-grid tbrowse-grid artist-grid">
-					{artists.map((a) => (
-						<MusicCard
-							href={`/muzik/sanatci/${a.slug}`}
-							title={a.name}
-							src={cover('artist', a.slug)}
-							round
-							plays={a.plays}
-						/>
-					))}
-				</ul>
-			</div>
-		)
-	}
 
-	<p class="empty muted" data-empty hidden>Bu etikette kayıt yok.</p>
+		<p class="empty muted" data-empty hidden>Bu etikette kayıt yok.</p>
 </div>
 
 <script>

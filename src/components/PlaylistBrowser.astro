@@ -1,7 +1,5 @@
 ---
-import MusicCover from './MusicCover.astro';
 import { folderChips, getPlaylistFolderIds, listedPlaylists } from '../lib/playlists';
-import { durationShort } from '../lib/music';
 
 interface Props {
 	/** Seçili klasör id'si ya da '__all'. Sunucuda uygulanır. */
@@ -87,7 +85,7 @@ const chipHref = (id: string) => (id === '__all' ? '/playlist/hepsi' : `/playlis
 				data-created={createdMs(pl.createdAt)}
 			>
 				<a class="pl-cover" href={`/playlist/${pl.id}`} aria-label={pl.name}>
-					<MusicCover src={pl.cover ?? undefined} alt="" name={pl.name} />
+					{pl.cover ? <img src={pl.cover} alt="" loading="lazy" /> : <div class="ph" />}
 				</a>
 				{folderLabels.length ? <p class="pl-folder-strip">{folderLabels.join(' · ')}</p> : null}
 				<div class="pl-body">
@@ -111,7 +109,7 @@ const chipHref = (id: string) => (id === '__all' ? '/playlist/hepsi' : `/playlis
 						<span class="n-track">{pl.trackCount} şarkı</span>
 						<span class="n-sep"> · </span>
 						<span class="n-artist">{pl.artistCount} artist</span>
-						{pl.name === 'Serpent Culture' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
+
 					</p>
 				</div>
 			</li>

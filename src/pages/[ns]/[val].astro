@@ -4,7 +4,6 @@ import TagBrowse from '../../components/TagBrowse.astro';
 import { allEntries } from '../../lib/data';
 import { TAXONOMIES, TAXONOMY_BY_NS, taxonomyValues } from '../../lib/taxonomy';
 import { tagSlug } from '../../lib/text';
-import { artistsByCountry, countryLabels } from '../../lib/artist-info';
 
 /**
  * Global etiket sayfası: `/sehir/istanbul`, `/tur/bilim-kurgu`…
@@ -20,13 +19,6 @@ export function getStaticPaths() {
 				const key = `${def.ns}/${slug}`;
 				if (!map.has(key)) map.set(key, { ns: def.ns, val: slug, label: v });
 			}
-		}
-	}
-	// Sanatçı ülkeleri: kaydı olmayan ülkeler de sayfa açar (yalnızca sanatçı listelenir).
-	for (const [slug] of artistsByCountry) {
-		const key = `ulke/${slug}`;
-		if (!map.has(key)) {
-			map.set(key, { ns: 'ulke', val: slug, label: countryLabels.get(slug) ?? slug });
 		}
 	}
 	return [...map.values()].map((p) => ({
@@ -45,7 +37,6 @@ const items = def
 	: [];
 
 // Ülke sayfaları sanatçıları da listeler (kitap/film/dizi ile aynı etiket havuzu).
-const countryArtists = ns === 'ulke' ? (artistsByCountry.get(val) ?? []) : [];
 
 // Türkçe bulunma hâli eki: İstanbul'da, İzmir'de, Zonguldak'ta, Paris'te…
 function locative(word: string): string {
@@ -70,9 +61,7 @@ const title = isSehir
 	: def
 		? `${label} – ${def.label}`
 		: label;
-const desc = countryArtists.length
-	? `${items.length} kayıt, ${countryArtists.length} sanatçı`
-	: `${items.length} kayıt`;
+const desc = `${items.length} kayıt`;
 ---
 
 <Base title={title} description={desc}>
@@ -81,7 +70,7 @@ const desc = countryArtists.length
 			<p class="eyebrow">{def?.label ?? 'Etiket'}</p>
 			<h1>{title}</h1>
 		</header>
-		<TagBrowse items={items} artists={countryArtists} />
+		<TagBrowse items={items} />
 	</main>
 </Base>
 

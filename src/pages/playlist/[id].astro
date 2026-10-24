@@ -1,14 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro';
-import MusicCover from '../../components/MusicCover.astro';
-import { durationShort } from '../../lib/music';
-import {
+import { 
 	getPlaylistById,
 	getPlaylistFolderIds,
 	listedPlaylists,
 } from '../../lib/playlists';
-import { artistHref, trackHref } from '../../lib/playlist-xref';
-import { keptGenres, genreHref } from '../../lib/playlist-genres';
 
 export function getStaticPaths() {
 	return listedPlaylists().map((p) => ({ params: { id: p.id } }));
@@ -21,7 +17,6 @@ if (!pl) {
 	throw new Error(`Playlist bulunamadı: ${id}`);
 }
 
-const kept = keptGenres(pl);
 
 /* Klasör bağlantısı: playlist'in ait olduğu klasör sayfasına döner.
    Her listelenen playlist tek bir whitelist klasöre aittir; yoksa düz liste. */
@@ -37,7 +32,7 @@ const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim
 
 		<header class="pl-head">
 			<div class="pl-cover">
-				<MusicCover src={pl.cover ?? undefined} alt="" name={pl.name} eager />
+				{pl.cover ? <img src={pl.cover} alt="" loading="eager" /> : <div class="ph" />}
 			</div>
 			<div class="pl-info">
 				<p class="eyebrow">Playlist</p>
@@ -50,194 +45,38 @@ const description = pl.description ? pl.description.replace(/<[^>]*>/g, '').trim
 				{description && <p class="lede">{description}</p>}
 				<p class="muted">
 					{pl.trackCount} şarkı · {pl.artistCount} artist · {pl.albumCount} albüm
-					{pl.name === 'Serpent Culture' && pl.durationMs > 0 ? ` · ${durationShort(pl.durationMs)}` : ''}
 				</p>
 			</div>
 		</header>
 
-		<div class="two">
-			<section class="panel">
-				<h2>Türler</h2>
-				{pl.genres.length > 0 && kept.length > 0 ? (
-					<ul class="genres">
-						{kept.map((g) => (
-							<li class="gr">
-								<a class="gr-name" href={genreHref(g.name)}>{g.name}</a>
-								<span class="gr-count muted">{g.count}</span>
-							</li>
-						))}
-					</ul>
-				) : pl.genres.length > 0 ? (
-					<p class="muted">
-						Listelenen tür yok (siyah liste/eşik süzgeci uygulandı).
-					</p>
-				) : (
-					<p class="muted">
-						Tür henüz yok. <code>npm run spotify -- --genres-only</code> ile Last.fm'den doldurulur.
-					</p>
-				)}
-			</section>
+		<section class="panel">
+			<h2>Türler</h2>
+			{pl.genres.length > 0 ? (
+				<ul class="genres">
+					{pl.genres.map((g) => (
+						<li class="gr">
+							<span class="gr-name">{g.name}</span>
+							<span class="gr-count muted">{g.count}</span>
+						</li>
+					))}
+				</ul>
+			) : (
+				<p class="muted">Tür bilgisi yok.</p>
+			)}
+		</section>
 
-			<section class="panel">
-				<h2>Tüm şarkılar</h2>
-				<ol class="tracks">
-					{pl.tracks.map((t) => {
-						const songHref = trackHref(t);
-						return (
-							<li class="track">
-								{songHref ? (
-									<a class="tr-name" href={songHref}>{t.name}</a>
-								) : (
-									<span class="tr-name">{t.name}</span>
-								)}
-								<span class="tr-sep muted" aria-hidden="true">·</span>
-								<span class="tr-art muted">
-									{t.artists.map((x, i) => {
-										const href = artistHref(x.name);
-										return (
-											<>
-												{i > 0 && ', '}
-												{href ? <a href={href}>{x.name}</a> : x.name}
-											</>
-										);
-									})}
-								</span>
-							</li>
-						);
-					})}
-				</ol>
-			</section>
-		</div>
+		<section class="panel">
+			<h2>Tüm şarkılar</h2>
+			<ol class="tracks">
+				{pl.tracks.map((t, i) => (
+					<li class="track">
+						<span class="tr-num muted">{i + 1}</span>
+						<span class="tr-name">{t.name}</span>
+						<span class="tr-sep muted" aria-hidden="true">·</span>
+						<span class="tr-art muted">{t.artists.map((x) => x.name).join(', ')}</span>
+					</li>
+				))}
+			</ol>
+		</section>
 	</div>
 </Base>
-
-<style>
-	.crumbs {
-		margin-bottom: 1rem;
-		font-family: var(--font-head);
-		font-size: 0.85rem;
-	}
-	/* Tür listesi: şarkı listesiyle aynı satır düzeni; taşarsa kendi içinde kayar. */
-	.genres {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.3rem;
-		max-height: 32rem;
-		overflow: auto;
-	}
-	.gr {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: 0.6rem;
-		padding-bottom: 0.3rem;
-		border-bottom: 1px solid var(--border);
-	}
-	.gr-name {
-		font-size: 17px;
-		color: inherit;
-	}
-	.gr-name:hover {
-		color: var(--link-hover);
-		text-decoration: underline;
-		text-underline-offset: 2px;
-	}
-	.gr-count {
-		font-family: var(--font-meta);
-		font-size: 0.78rem;
-		font-variant-numeric: tabular-nums;
-		color: var(--text-faint);
-	}
-	.pl-head {
-		display: grid;
-		grid-template-columns: minmax(140px, 220px) 1fr;
-		gap: 1.2rem;
-		align-items: start;
-		margin-bottom: 1.6rem;
-		background: var(--surface);
-		border-radius: 14px;
-		box-shadow: var(--shadow);
-		padding: clamp(1.15rem, 2.6vw, 1.85rem) clamp(1.15rem, 3vw, 2.25rem)
-			clamp(1.4rem, 3vw, 2.25rem);
-	}
-	.pl-cover :global(.mcover) {
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius);
-		box-shadow: var(--shadow);
-	}
-	.pl-info h1 {
-		margin: 0.15rem 0 0.5rem;
-	}
-	.pl-spotify {
-		display: inline-flex;
-		vertical-align: -0.08em;
-		margin-left: 0.4rem;
-		color: var(--text-muted);
-		transition: color var(--dur) var(--ease);
-	}
-	.pl-spotify:hover {
-		color: var(--link-hover);
-	}
-	.pl-spotify svg {
-		width: 0.62em;
-		height: 0.62em;
-		fill: currentColor;
-	}
-	.two {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: var(--gap);
-	}
-	.tracks {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.3rem;
-		max-height: 32rem;
-		overflow: auto;
-	}
-	.track {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: 0.15rem 0.4rem;
-		padding-bottom: 0.3rem;
-		border-bottom: 1px solid var(--border);
-	}
-	.tr-name {
-		font-size: 17px;
-	}
-	.tr-name:where(a) {
-		color: inherit;
-	}
-	.tr-name:where(a):hover {
-		color: var(--link-hover);
-	}
-	.tr-sep {
-		font-size: 17px;
-	}
-	.tr-art {
-		font-family: var(--font-card);
-		font-size: 17px;
-	}
-	@media (max-width: 640px) {
-		.pl-head,
-		.two {
-			grid-template-columns: 1fr;
-		}
-		.pl-cover {
-			width: 100%;
-			max-width: 100%;
-			margin-inline: auto;
-		}
-		.pl-cover :global(.mcover) {
-			width: 100%;
-			height: 100%;
-		}
-	}
-</style>
